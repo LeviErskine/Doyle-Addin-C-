@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Test2": {
+      "commandName": "Project"
+    },
+    "Run Inventor": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Autodesk\\Inventor 2025\\Bin\\Inventor.exe"
+    }
+  }
+}
