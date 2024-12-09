@@ -78,7 +78,6 @@ Module PrintUpdate
                 oPrintMgr.AllColorsAsBlack = False
                 oPrintMgr.Orientation = PrintOrientationEnum.kLandscapeOrientation
                 oPrintMgr.Scale = PrintScaleModeEnum.kPrintBestFitScale
-                oPrintMgr.PaperSize = PaperSizeEnum.kPaperSizeA4
                 oPrintMgr.SubmitPrint()
 
             Catch ex As Exception
