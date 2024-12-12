@@ -1,13 +1,13 @@
-﻿Imports Inventor
+﻿Imports System.Text
+Imports Inventor
 
 Module dxfUpdate
 
     Sub runDxfUpdate()
 
-
         Dim invApp As Inventor.Application = Nothing
         Dim oPartDoc As PartDocument = g_inventorApplication.ActiveDocument
-        Dim oDef As PartComponentDefinition = oPartDoc.ComponentDefinition
+        Dim oDef As SheetMetalComponentDefinition = oPartDoc.ComponentDefinition
         Dim oFactory As iPartFactory = oDef.iPartFactory
         Dim oRow As iPartTableRow
 
@@ -18,14 +18,29 @@ Module dxfUpdate
             For Each oRow In oFactory.TableRows
                 oFactory.DefaultRow = oRow
 
-                If g_inventorApplication.ErrorManager.HasErrors = True Then
-                    MsgBox("error found")
+                Dim partMaterial As String = oPartDoc.PropertySets.Item("Design Tracking Properties").Item("Material").Value.ToString
+                MsgBox(partMaterial)
+
+                Dim partAppearance As String = oPartDoc.ActiveAppearance.Name.ToString
+                MsgBox(partAppearance)
+
+                If oDef.FlatPattern.FlatBendResults.Count = 0 And (oDef.FlatPattern.RangeBox.MaxPoint.Z - oDef.FlatPattern.RangeBox.MinPoint.Z) > (oDef.Thickness.Value + 0.003) Then
+                    MsgBox("Invalid")
+                Else
+                    MsgBox("Valid")
+
                 End If
 
                 'Get part number
                 Dim PN As String = oPartDoc.PropertySets.Item("Design Tracking Properties").Item("Part Number").Value.ToString
                 'Set data write output format
-                Dim oFormat As String = "FLAT PATTERN DXF?AcadVersion=2018&BendDownLayer=test&BendDownLayerColor=255;255;0"
+                Dim oFormat As String = "FLAT PATTERN DXF?AcadVersion=2018" _
+                    + "&BendDownLayer=DOWN&BendDownLayerColor=255;0;0" _
+                    + "&BendUpLayer=UP&BendUpLayerColor=255;0;0" _
+                    + "&OuterProfileLayer=OUTER&OuterProfileLayerColor=0;0;255" _
+                    + "&InteriorProfilesLayer=INNER&InteriorProfilesLayerColor=0;0;0" _
+                    + "&ArcCentersLayer=POINT&ArcCentersLayerColor=255;0;255" _
+                    + "&TangentLayer=RADIUS&TangentLayerColor=255;255;0"
                 'Set output path
                 Dim oFileName As String = "W:\Blake\TESTFILES\" & PN & ".dxf"
 
@@ -34,14 +49,9 @@ Module dxfUpdate
                 If oDef.HasFlatPattern = False Then
                     Try
 
-                        oDef.Unfold
+                        oDef.Unfold()
 
-                        If g_inventorApplication.ErrorManager.HasErrors = True Then
-                            MsgBox("Error Found")
-                            Return
-                        End If
-
-                        oDef.Flatpattern.ExitEdit
+                        oDef.FlatPattern.ExitEdit()
 
                     Catch ex As Exception
 
@@ -78,7 +88,13 @@ Module dxfUpdate
 
             Dim PN As String = oPartDoc.PropertySets.Item("Design Tracking Properties").Item("Part Number").Value.ToString
             Dim oFormat As String = "FLAT PATTERN DXF?AcadVersion=2018" _
-                    + "&BendDownLayer=test&BendDownLayerColor=255;255;0"
+                    + "&BendDownLayer=DOWN&BendDownLayerColor=255;0;0" _
+                    + "&BendUpLayer=UP&BendUpLayerColor=255;0;0" _
+                    + "&OuterProfileLayer=OUTER&OuterProfileLayerColor=0;0;255" _
+                    + "&InteriorProfilesLayer=INNER&InteriorProfilesLayerColor=0;0;0" _
+                    + "&ArcCentersLayer=POINT&ArcCentersLayerColor=255;0;255" _
+                    + "&TangentLayer=RADIUS&TangentLayerColor=255;255;0"
+
             Dim oFileName As String = "W:\Blake\TESTFILES\" & PN & ".dxf"
 
             If oDef.HasFlatPattern = False Then
