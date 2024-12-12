@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="dxfUpdate.vb" />
+    <Compile Include="GlobalsHelpers.vb" />
     <Compile Include="printUpdate.vb" />
     <Compile Include="StandardAddInServer.vb" />
   </ItemGroup>

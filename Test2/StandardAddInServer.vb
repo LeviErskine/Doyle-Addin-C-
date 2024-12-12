@@ -14,7 +14,7 @@ Namespace DoyleAddin
     Public Class StandardAddInServer
         Implements Inventor.ApplicationAddInServer
 
-        Private WithEvents m_uiEvents As UserInterfaceEvents
+        Private WithEvents UiEvents As UserInterfaceEvents
         Private WithEvents DXFUpdate As ButtonDefinition
         Private WithEvents PrintUpdate As ButtonDefinition
 
@@ -24,11 +24,12 @@ Namespace DoyleAddin
         ' to the Inventor Application object. The FirstTime flag indicates if the AddIn is loaded for
         ' the first time. However, with the introduction of the ribbon this argument is always true.
         Public Sub Activate(ByVal addInSiteObject As Inventor.ApplicationAddInSite, ByVal firstTime As Boolean) Implements Inventor.ApplicationAddInServer.Activate
+
             ' Initialize AddIn members.
             g_inventorApplication = addInSiteObject.Application
 
             ' Connect to the user-interface events to handle a ribbon reset.
-            m_uiEvents = g_inventorApplication.UserInterfaceManager.UserInterfaceEvents
+            UiEvents = g_inventorApplication.UserInterfaceManager.UserInterfaceEvents
 
             ' TODO: Add button definitions.
 
@@ -52,7 +53,7 @@ Namespace DoyleAddin
             ' TODO:  Add ApplicationAddInServer.Deactivate implementation
 
             ' Release objects.
-            m_uiEvents = Nothing
+            UiEvents = Nothing
             g_inventorApplication = Nothing
 
             System.GC.Collect()
@@ -102,23 +103,19 @@ Namespace DoyleAddin
 
         End Sub
 
-        Private Sub m_uiEvents_OnResetRibbonInterface(Context As NameValueMap) Handles m_uiEvents.OnResetRibbonInterface
+        Private Sub UiEvents_OnResetRibbonInterface(Context As NameValueMap) Handles UiEvents.OnResetRibbonInterface
             ' The ribbon was reset, so add back the add-ins user-interface.
             AddToUserInterface()
         End Sub
 
         ' Sample handler for the button.
-        Private Sub DXFUpdate_OnExecute(Context As NameValueMap) Handles DXFUpdate.OnExecute
-
+        Private Shared Sub DXFUpdate_OnExecute(Context As NameValueMap) Handles DXFUpdate.OnExecute
             Call Sub() runDxfUpdate()
             'Call Sub() userName()
-
         End Sub
 
-        Private Sub PrintUpdate_OnExecute(Context As NameValueMap) Handles PrintUpdate.OnExecute
-
+        Private Shared Sub PrintUpdate_OnExecute(Context As NameValueMap) Handles PrintUpdate.OnExecute
             Call Sub() RunPrintUpdate()
-
         End Sub
 #End Region
 
@@ -127,8 +124,6 @@ End Namespace
 
 
 Public Module Globals
-    ' Inventor application object.
-    Public g_inventorApplication As Inventor.Application
 
 #Region "Function to get the add-in client ID."
     ' This function uses reflection to get the GuidAttribute associated with the add-in.
@@ -166,7 +161,7 @@ Public Module Globals
             End Get
         End Property
 
-        Private _hwnd As IntPtr
+        Private ReadOnly _hwnd As IntPtr
     End Class
 #End Region
 
