@@ -15,8 +15,8 @@ Namespace DoyleAddin
         Implements Inventor.ApplicationAddInServer
 
         Private WithEvents m_uiEvents As UserInterfaceEvents
-        Private WithEvents m_sampleButton As ButtonDefinition
-        Private WithEvents m_sampleButton2 As ButtonDefinition
+        Private WithEvents DXFUpdate As ButtonDefinition
+        Private WithEvents PrintUpdate As ButtonDefinition
 
 #Region "ApplicationAddInServer Members"
 
@@ -36,8 +36,8 @@ Namespace DoyleAddin
             'Dim largeIcon As stdole.IPictureDisp = PictureDispConverter.ToIPictureDisp(My.Resources.YourBigImage)
             'Dim smallIcon As stdole.IPictureDisp = PictureDispConverter.ToIPictureDisp(My.Resources.YourSmallImage)
             Dim controlDefs As Inventor.ControlDefinitions = g_inventorApplication.CommandManager.ControlDefinitions
-            m_sampleButton = controlDefs.AddButtonDefinition("DXF Update", "dxfUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID)
-            m_sampleButton2 = controlDefs.AddButtonDefinition("Print Update", "printUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID)
+            DXFUpdate = controlDefs.AddButtonDefinition("DXF Update", "dxfUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID)
+            PrintUpdate = controlDefs.AddButtonDefinition("Print Update", "printUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID)
 
             ' Add to the user interface, if it's the first time.
             If firstTime Then
@@ -93,12 +93,12 @@ Namespace DoyleAddin
             Dim customPanel As RibbonPanel = toolsTab.RibbonPanels.Add("Add-Ins", "dxfUpdate", AddInClientID)
 
             '' Add a button.
-            customPanel.CommandControls.AddButton(m_sampleButton)
+            customPanel.CommandControls.AddButton(DXFUpdate)
 
             partRibbon = g_inventorApplication.UserInterfaceManager.Ribbons.Item("Drawing")
             toolsTab = partRibbon.RibbonTabs.Item("id_TabPlaceViews")
             customPanel = toolsTab.RibbonPanels.Add("Add-Ins", "printUpdate", AddInClientID)
-            customPanel.CommandControls.AddButton(m_sampleButton2)
+            customPanel.CommandControls.AddButton(PrintUpdate)
 
         End Sub
 
@@ -108,14 +108,14 @@ Namespace DoyleAddin
         End Sub
 
         ' Sample handler for the button.
-        Private Sub m_sampleButton_OnExecute(Context As NameValueMap) Handles m_sampleButton.OnExecute
+        Private Sub DXFUpdate_OnExecute(Context As NameValueMap) Handles DXFUpdate.OnExecute
 
             Call Sub() runDxfUpdate()
             'Call Sub() userName()
 
         End Sub
 
-        Private Sub m_sampleButton2_OnExecute(Context As NameValueMap) Handles m_sampleButton2.OnExecute
+        Private Sub PrintUpdate_OnExecute(Context As NameValueMap) Handles PrintUpdate.OnExecute
 
             Call Sub() RunPrintUpdate()
 
@@ -179,11 +179,11 @@ Public Module Globals
     ' Dim smallIcon As stdole.IPictureDisp = PictureDispConverter.ToIPictureDisp(My.Resources.MyIcon)
 
     Public NotInheritable Class PictureDispConverter
-        <DllImport("OleAut32.dll", EntryPoint:="OleCreatePictureIndirect", ExactSpelling:=True, PreserveSig:=False)> _
-        Private Shared Function OleCreatePictureIndirect( _
-            <MarshalAs(UnmanagedType.AsAny)> ByVal picdesc As Object, _
-            ByRef iid As Guid, _
-            <MarshalAs(UnmanagedType.Bool)> ByVal fOwn As Boolean) As stdole.IPictureDisp
+        <DllImport("OleAut32.dll", EntryPoint:="OleCreatePictureIndirect", ExactSpelling:=True, PreserveSig:=False)>
+        Private Shared Function OleCreatePictureIndirect(
+    <MarshalAs(UnmanagedType.Struct)> ByVal picdesc As Object,
+    ByRef iid As Guid,
+    <MarshalAs(UnmanagedType.Bool)> ByVal fOwn As Boolean) As stdole.IPictureDisp
         End Function
 
         Shared iPictureDispGuid As Guid = GetType(stdole.IPictureDisp).GUID
@@ -196,7 +196,7 @@ Public Module Globals
             Public Const PICTYPE_BITMAP As Short = 1
             Public Const PICTYPE_ICON As Short = 3
 
-            <StructLayout(LayoutKind.Sequential)> _
+            <StructLayout(LayoutKind.Sequential)>
             Public Class Icon
                 Friend cbSizeOfStruct As Integer = Marshal.SizeOf(GetType(PICTDESC.Icon))
                 Friend picType As Integer = PICTDESC.PICTYPE_ICON
@@ -209,7 +209,7 @@ Public Module Globals
                 End Sub
             End Class
 
-            <StructLayout(LayoutKind.Sequential)> _
+            <StructLayout(LayoutKind.Sequential)>
             Public Class Bitmap
                 Friend cbSizeOfStruct As Integer = Marshal.SizeOf(GetType(PICTDESC.Bitmap))
                 Friend picType As Integer = PICTDESC.PICTYPE_BITMAP
