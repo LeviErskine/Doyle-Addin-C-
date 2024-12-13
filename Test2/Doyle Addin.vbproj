@@ -56,16 +56,20 @@
   <ItemGroup>
     <Compile Include="dxfUpdate.vb" />
     <Compile Include="GlobalsHelpers.vb" />
+    <Compile Include="My Project\Resources.Designer.vb">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="PictureConverter.vb" />
     <Compile Include="printUpdate.vb" />
     <Compile Include="StandardAddInServer.vb" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.vb" />
-    <Compile Include="UserTest.vb" />
   </ItemGroup>
   <ItemGroup>
     <None Include="My Project\Application.myapp" />
-    <None Include="Readme.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="DoylePlugin.manifest" />
@@ -102,6 +106,33 @@
       <Isolated>False</Isolated>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\DXFUpdateIconLarge.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\DXFUpdateIconSmall.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\PrintUpdateIconSmall.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\PrintUpdateIconLarge.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="My Project\Resources.resx">
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Autodesk.Inventor.Interop">

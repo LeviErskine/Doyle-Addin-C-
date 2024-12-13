@@ -26,7 +26,7 @@ Module PrintUpdate
 
         ' Count sheets
         Dim SheetCount As Integer = oDDoc.Sheets.Count
-        FileName = PN & ".jpg"
+        Dim unused As String = PN & ".jpg"
 
         If SheetCount = 1 Then
             ' Export JPEG only

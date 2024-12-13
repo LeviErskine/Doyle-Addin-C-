@@ -7,6 +7,7 @@ Imports Inventor
 Imports Microsoft.Win32
 Imports Windows.Foundation.Collections
 Imports Windows.UI
+imports stdole
 
 Namespace DoyleAddin
     <ProgIdAttribute("Test2.StandardAddInServer"),
@@ -28,22 +29,30 @@ Namespace DoyleAddin
             ' Initialize AddIn members.
             g_inventorApplication = addInSiteObject.Application
 
-            ' Connect to the user-interface events to handle a ribbon reset.
-            UiEvents = g_inventorApplication.UserInterfaceManager.UserInterfaceEvents
+            ' Get a reference to the UserInterfaceManager object. 
+            Dim UIManager As Inventor.UserInterfaceManager = g_inventorApplication.UserInterfaceManager
+
+            ' Get a reference to the ControlDefinitions object. 
+            Dim controlDefs As ControlDefinitions = g_inventorApplication.CommandManager.ControlDefinitions
 
             ' TODO: Add button definitions.
 
             ' Sample to illustrate creating a button definition.
-            'Dim largeIcon As stdole.IPictureDisp = PictureDispConverter.ToIPictureDisp(My.Resources.YourBigImage)
-            'Dim smallIcon As stdole.IPictureDisp = PictureDispConverter.ToIPictureDisp(My.Resources.YourSmallImage)
-            Dim controlDefs As Inventor.ControlDefinitions = g_inventorApplication.CommandManager.ControlDefinitions
-            DXFUpdate = controlDefs.AddButtonDefinition("DXF Update", "dxfUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID)
-            PrintUpdate = controlDefs.AddButtonDefinition("Print Update", "printUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID)
+            Dim PrintUpdateIconLarge As stdole.IPictureDisp = PictureConverter.ImageToPictureDisp(My.Resources.PrintUpdateIconLarge)
+            Dim PrintUpdateIconSmall As stdole.IPictureDisp = PictureConverter.ImageToPictureDisp(My.Resources.PrintUpdateIconSmall)
+            Dim DXFUpdateIconSmall As stdole.IPictureDisp = PictureConverter.ImageToPictureDisp(My.Resources.DXFUpdateIconSmall)
+            Dim DXFUpdateIconLarge As stdole.IPictureDisp = PictureConverter.ImageToPictureDisp(My.Resources.DXFUpdateIconLarge)
+            DXFUpdate = controlDefs.AddButtonDefinition("DXF Update", "dxfUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID, , , DXFUpdateIconSmall, DXFUpdateIconLarge)
+            PrintUpdate = controlDefs.AddButtonDefinition("Print Update", "printUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID, , , PrintUpdateIconSmall, PrintUpdateIconLarge)
 
             ' Add to the user interface, if it's the first time.
             If firstTime Then
                 AddToUserInterface()
             End If
+
+            ' Connect to the user-interface events to handle a ribbon reset.
+            UiEvents = g_inventorApplication.UserInterfaceManager.UserInterfaceEvents
+
         End Sub
 
         ' This method is called by Inventor when the AddIn is unloaded. The AddIn will be
@@ -165,69 +174,69 @@ Public Module Globals
     End Class
 #End Region
 
-#Region "Image Converter"
-    ' Class used to convert bitmaps and icons from their .Net native types into
-    ' an IPictureDisp object which is what the Inventor API requires. A typical
-    ' usage is shown below where MyIcon is a bitmap or icon that's available
-    ' as a resource of the project.
-    '
-    ' Dim smallIcon As stdole.IPictureDisp = PictureDispConverter.ToIPictureDisp(My.Resources.MyIcon)
+    '#Region "Image Converter"
+    '    ' Class used to convert bitmaps and icons from their .Net native types into
+    '    ' an IPictureDisp object which is what the Inventor API requires. A typical
+    '    ' usage is shown below where MyIcon is a bitmap or icon that's available
+    '    ' as a resource of the project.
+    '    '
+    '    ' Dim smallIcon As stdole.IPictureDisp = PictureDispConverter.ToIPictureDisp(My.Resources.MyIcon)
 
-    Public NotInheritable Class PictureDispConverter
-        <DllImport("OleAut32.dll", EntryPoint:="OleCreatePictureIndirect", ExactSpelling:=True, PreserveSig:=False)>
-        Private Shared Function OleCreatePictureIndirect(
-    <MarshalAs(UnmanagedType.Struct)> ByVal picdesc As Object,
-    ByRef iid As Guid,
-    <MarshalAs(UnmanagedType.Bool)> ByVal fOwn As Boolean) As stdole.IPictureDisp
-        End Function
+    '    Public NotInheritable Class PictureDispConverter
+    '        <DllImport("OleAut32.dll", EntryPoint:="OleCreatePictureIndirect", ExactSpelling:=True, PreserveSig:=False)>
+    '        Private Shared Function OleCreatePictureIndirect(
+    '    <MarshalAs(UnmanagedType.Struct)> ByVal picdesc As Object,
+    '    ByRef iid As GUID,
+    '    <MarshalAs(UnmanagedType.Bool)> ByVal fOwn As Boolean) As stdole.IPictureDisp
+    '        End Function
 
-        Shared iPictureDispGuid As Guid = GetType(stdole.IPictureDisp).GUID
+    '        Shared iPictureDispGuid As GUID = GetType(stdole.IPictureDisp).GUID
 
-        Private NotInheritable Class PICTDESC
-            Private Sub New()
-            End Sub
+    '        Private NotInheritable Class PICTDESC
+    '            Private Sub New()
+    '            End Sub
 
-            'Picture Types
-            Public Const PICTYPE_BITMAP As Short = 1
-            Public Const PICTYPE_ICON As Short = 3
+    '            'Picture Types
+    '            Public Const PICTYPE_BITMAP As Short = 1
+    '            Public Const PICTYPE_ICON As Short = 3
 
-            <StructLayout(LayoutKind.Sequential)>
-            Public Class Icon
-                Friend cbSizeOfStruct As Integer = Marshal.SizeOf(GetType(PICTDESC.Icon))
-                Friend picType As Integer = PICTDESC.PICTYPE_ICON
-                Friend hicon As IntPtr = IntPtr.Zero
-                Friend unused1 As Integer
-                Friend unused2 As Integer
+    '            <StructLayout(LayoutKind.Sequential)>
+    '            Public Class Icon
+    '                Friend cbSizeOfStruct As Integer = Marshal.SizeOf(GetType(PICTDESC.Icon))
+    '                Friend picType As Integer = PICTDESC.PICTYPE_ICON
+    '                Friend hicon As IntPtr = IntPtr.Zero
+    '                Friend unused1 As Integer
+    '                Friend unused2 As Integer
 
-                Friend Sub New(ByVal icon As System.Drawing.Icon)
-                    Me.hicon = icon.ToBitmap().GetHicon()
-                End Sub
-            End Class
+    '                Friend Sub New(ByVal icon As System.Drawing.Icon)
+    '                    Me.hicon = icon.ToBitmap().GetHicon()
+    '                End Sub
+    '            End Class
 
-            <StructLayout(LayoutKind.Sequential)>
-            Public Class Bitmap
-                Friend cbSizeOfStruct As Integer = Marshal.SizeOf(GetType(PICTDESC.Bitmap))
-                Friend picType As Integer = PICTDESC.PICTYPE_BITMAP
-                Friend hbitmap As IntPtr = IntPtr.Zero
-                Friend hpal As IntPtr = IntPtr.Zero
-                Friend unused As Integer
+    '            <StructLayout(LayoutKind.Sequential)>
+    '            Public Class Bitmap
+    '                Friend cbSizeOfStruct As Integer = Marshal.SizeOf(GetType(PICTDESC.Bitmap))
+    '                Friend picType As Integer = PICTDESC.PICTYPE_BITMAP
+    '                Friend hbitmap As IntPtr = IntPtr.Zero
+    '                Friend hpal As IntPtr = IntPtr.Zero
+    '                Friend unused As Integer
 
-                Friend Sub New(ByVal bitmap As System.Drawing.Bitmap)
-                    Me.hbitmap = bitmap.GetHbitmap()
-                End Sub
-            End Class
-        End Class
+    '                Friend Sub New(ByVal bitmap As System.Drawing.Bitmap)
+    '                    Me.hbitmap = bitmap.GetHbitmap()
+    '                End Sub
+    '            End Class
+    '        End Class
 
-        Public Shared Function ToIPictureDisp(ByVal icon As System.Drawing.Icon) As stdole.IPictureDisp
-            Dim pictIcon As New PICTDESC.Icon(icon)
-            Return OleCreatePictureIndirect(pictIcon, iPictureDispGuid, True)
-        End Function
+    '        Public Shared Function ToIPictureDisp(ByVal icon As System.Drawing.Icon) As stdole.IPictureDisp
+    '            Dim pictIcon As New PICTDESC.Icon(icon)
+    '            Return OleCreatePictureIndirect(pictIcon, iPictureDispGuid, True)
+    '        End Function
 
-        Public Shared Function ToIPictureDisp(ByVal bmp As System.Drawing.Bitmap) As stdole.IPictureDisp
-            Dim pictBmp As New PICTDESC.Bitmap(bmp)
-            Return OleCreatePictureIndirect(pictBmp, iPictureDispGuid, True)
-        End Function
-    End Class
-#End Region
+    '        Public Shared Function ToIPictureDisp(ByVal bmp As System.Drawing.Bitmap) As stdole.IPictureDisp
+    '            Dim pictBmp As New PICTDESC.Bitmap(bmp)
+    '            Return OleCreatePictureIndirect(pictBmp, iPictureDispGuid, True)
+    '        End Function
+    '    End Class
+    '#End Region
 
 End Module
