@@ -1,13 +1,6 @@
-Imports System.Drawing.Printing
-Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
-Imports System.Windows.Forms
-Imports System.Windows.Forms.Design.AxImporter
 Imports Inventor
-Imports Microsoft.Win32
-Imports Windows.Foundation.Collections
-Imports Windows.UI
-imports stdole
+
 
 Namespace DoyleAddin
     <ProgIdAttribute("Test2.StandardAddInServer"),
@@ -27,13 +20,13 @@ Namespace DoyleAddin
         Public Sub Activate(ByVal addInSiteObject As Inventor.ApplicationAddInSite, ByVal firstTime As Boolean) Implements Inventor.ApplicationAddInServer.Activate
 
             ' Initialize AddIn members.
-            g_inventorApplication = addInSiteObject.Application
+            ThisApplication = addInSiteObject.Application
 
             ' Get a reference to the UserInterfaceManager object. 
-            Dim UIManager As Inventor.UserInterfaceManager = g_inventorApplication.UserInterfaceManager
+            Dim UIManager As Inventor.UserInterfaceManager = ThisApplication.UserInterfaceManager
 
             ' Get a reference to the ControlDefinitions object. 
-            Dim controlDefs As ControlDefinitions = g_inventorApplication.CommandManager.ControlDefinitions
+            Dim controlDefs As ControlDefinitions = ThisApplication.CommandManager.ControlDefinitions
 
             ' TODO: Add button definitions.
 
@@ -51,7 +44,7 @@ Namespace DoyleAddin
             End If
 
             ' Connect to the user-interface events to handle a ribbon reset.
-            UiEvents = g_inventorApplication.UserInterfaceManager.UserInterfaceEvents
+            UiEvents = ThisApplication.UserInterfaceManager.UserInterfaceEvents
 
         End Sub
 
@@ -63,7 +56,7 @@ Namespace DoyleAddin
 
             ' Release objects.
             UiEvents = Nothing
-            g_inventorApplication = Nothing
+            ThisApplication = Nothing
 
             System.GC.Collect()
             System.GC.WaitForPendingFinalizers()
@@ -89,27 +82,73 @@ Namespace DoyleAddin
         ' Sub where the user-interface creation is done.  This is called when
         ' the add-in loaded and also if the user interface is reset.
         Private Sub AddToUserInterface()
-            ' This is where you'll add code to add buttons to the ribbon.
+            ' Cache frequently used objects
+            Dim uiManager = ThisApplication.UserInterfaceManager
+            Dim partRibbon = uiManager.Ribbons.Item("Part")
+            Dim drawingRibbon = uiManager.Ribbons.Item("Drawing")
 
-            '** Sample to illustrate creating a button on a new panel of the Tools tab of the Part ribbon.
+            ' Add DXF Update to the existing Flat Pattern panel on the Sheet Metal Tools tab
+            Try
+                Dim flatPatternPanel = partRibbon.RibbonTabs.Item("id_TabSheetMetal").RibbonPanels.Item("id_PanelP_SheetMetalManageUnfold")
+                flatPatternPanel.CommandControls.AddButton(DXFUpdate, True)
+            Catch ex As Exception
+                ' Panel or tab may not exist, handle gracefully
+            End Try
 
-            '' Get the part ribbon.
-            Dim partRibbon As Ribbon = g_inventorApplication.UserInterfaceManager.Ribbons.Item("Part")
+            '' Add Genius to Part tab
+            'Try
+            '    Dim sheetMetalTab = partRibbon.RibbonTabs.Item("id_TabSheetMetal")
+            '    Dim geniusPanel As RibbonPanel = Nothing
+            '    ' Check if panel already exists to avoid duplicates
+            '    For Each panel As RibbonPanel In sheetMetalTab.RibbonPanels
+            '        If panel.InternalName = "GeniusUpdate" Then
+            '            geniusPanel = panel
+            '            Exit For
+            '        End If
+            '    Next
+            '    If geniusPanel Is Nothing Then
+            '        geniusPanel = sheetMetalTab.RibbonPanels.Add("Genius", "GeniusUpdate", AddInClientID())
+            '    End If
+            '    geniusPanel.CommandControls.AddButton(GeniusUpdate, True)
+            'Catch ex As Exception
+            '    ' Handle missing tab or other errors
+            'End Try
 
-            '' Get the "Tools" tab.
-            Dim toolsTab As RibbonTab = partRibbon.RibbonTabs.Item("id_TabSheetMetal")
+            ' Add Print Update to Drawing Place Views tab
+            Try
+                Dim placeViewsTab = drawingRibbon.RibbonTabs.Item("id_TabPlaceViews")
+                Dim placeViewsPanel As RibbonPanel = Nothing
+                For Each panel As RibbonPanel In placeViewsTab.RibbonPanels
+                    If panel.InternalName = "printUpdate" Then
+                        placeViewsPanel = panel
+                        Exit For
+                    End If
+                Next
+                If placeViewsPanel Is Nothing Then
+                    placeViewsPanel = placeViewsTab.RibbonPanels.Add("Add-Ins", "printUpdate", AddInClientID())
+                End If
+                placeViewsPanel.CommandControls.AddButton(PrintUpdate, True)
+            Catch ex As Exception
+                ' Handle missing tab or other errors
+            End Try
 
-            '' Create a new panel.
-            Dim customPanel As RibbonPanel = toolsTab.RibbonPanels.Add("Add-Ins", "dxfUpdate", AddInClientID)
-
-            '' Add a button.
-            customPanel.CommandControls.AddButton(DXFUpdate)
-
-            partRibbon = g_inventorApplication.UserInterfaceManager.Ribbons.Item("Drawing")
-            toolsTab = partRibbon.RibbonTabs.Item("id_TabPlaceViews")
-            customPanel = toolsTab.RibbonPanels.Add("Add-Ins", "printUpdate", AddInClientID)
-            customPanel.CommandControls.AddButton(PrintUpdate)
-
+            ' Add Print Update to Drawing Annotate tab
+            Try
+                Dim annotateTab = drawingRibbon.RibbonTabs.Item("id_TabAnnotate")
+                Dim annotatePanel As RibbonPanel = Nothing
+                For Each panel As RibbonPanel In annotateTab.RibbonPanels
+                    If panel.InternalName = "printUpdateAnnotate" Then
+                        annotatePanel = panel
+                        Exit For
+                    End If
+                Next
+                If annotatePanel Is Nothing Then
+                    annotatePanel = annotateTab.RibbonPanels.Add("Add-Ins", "printUpdateAnnotate", AddInClientID())
+                End If
+                annotatePanel.CommandControls.AddButton(PrintUpdate, True)
+            Catch ex As Exception
+                ' Handle missing tab or other errors
+            End Try
         End Sub
 
         Private Sub UiEvents_OnResetRibbonInterface(Context As NameValueMap) Handles UiEvents.OnResetRibbonInterface
@@ -118,13 +157,13 @@ Namespace DoyleAddin
         End Sub
 
         ' Sample handler for the button.
-        Private Shared Sub DXFUpdate_OnExecute(Context As NameValueMap) Handles DXFUpdate.OnExecute
-            Call Sub() runDxfUpdate()
+        Private Sub DXFUpdate_OnExecute(Context As NameValueMap) Handles DXFUpdate.OnExecute
+            Call Sub() runDxfUpdate(ThisApplication)
             'Call Sub() userName()
         End Sub
 
-        Private Shared Sub PrintUpdate_OnExecute(Context As NameValueMap) Handles PrintUpdate.OnExecute
-            Call Sub() RunPrintUpdate()
+        Private Sub PrintUpdate_OnExecute(Context As NameValueMap) Handles PrintUpdate.OnExecute
+            Call Sub() RunPrintUpdate(ThisApplication)
         End Sub
 #End Region
 
@@ -155,7 +194,7 @@ Public Module Globals
     ' This is primarily used for parenting a dialog to the Inventor window.
     '
     ' For example:
-    ' myForm.Show(New WindowWrapper(g_inventorApplication.MainFrameHWND))
+    ' myForm.Show(New WindowWrapper(ThisApplication.MainFrameHWND))
     '
     Public Class WindowWrapper
         Implements System.Windows.Forms.IWin32Window
