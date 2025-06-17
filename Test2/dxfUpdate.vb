@@ -1,12 +1,9 @@
-﻿Imports System.Text
-Imports Inventor
+﻿Imports Inventor
 
 Module dxfUpdate
 
-    Sub runDxfUpdate()
-
-        Dim invApp As Inventor.Application = Nothing
-        Dim oPartDoc As PartDocument = g_inventorApplication.ActiveDocument
+    Sub runDxfUpdate(ThisApplication As Inventor.Application)
+        Dim oPartDoc As PartDocument = ThisApplication.ActiveDocument
         Dim oDef As SheetMetalComponentDefinition = oPartDoc.ComponentDefinition
         Dim oFactory As iPartFactory = oDef.iPartFactory
         Dim oRow As iPartTableRow
@@ -42,7 +39,7 @@ Module dxfUpdate
                     + "&ArcCentersLayer=POINT&ArcCentersLayerColor=255;0;255" _
                     + "&TangentLayer=RADIUS&TangentLayerColor=255;255;0"
                 'Set output path
-                Dim oFileName As String = "W:\Blake\TESTFILES\" & PN & ".dxf"
+                Dim oFileName As String = "X:\" & PN & ".dxf"
 
                 'Make a flat pattern if one doesn't exist and refold
 
@@ -95,14 +92,14 @@ Module dxfUpdate
                     + "&ArcCentersLayer=POINT&ArcCentersLayerColor=255;0;255" _
                     + "&TangentLayer=RADIUS&TangentLayerColor=255;255;0"
 
-            Dim oFileName As String = "W:\Blake\TESTFILES\" & PN & ".dxf"
+            Dim oFileName As String = "X:\" & PN & ".dxf"
 
             If oDef.HasFlatPattern = False Then
-                oDef.Unfold
-                oDef.flatPattern.ExitEdit
+                oDef.Unfold()
+                oDef.FlatPattern.ExitEdit()
             End If
 
-            If g_inventorApplication.ErrorManager.HasErrors = True Then
+            If ThisApplication.ErrorManager.HasErrors = True Then
                 MsgBox("Broke")
                 Return
             End If
