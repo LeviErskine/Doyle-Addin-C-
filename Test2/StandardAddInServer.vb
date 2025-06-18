@@ -128,11 +128,27 @@ Namespace DoyleAddin
         ' unloaded either manually by the user or when the Inventor session is terminated.
         Public Sub Deactivate() Implements Inventor.ApplicationAddInServer.Deactivate
 
-            ' TODO:  Add ApplicationAddInServer.Deactivate implementation
-
             ' Release objects.
             UiEvents = Nothing
             ThisApplication = Nothing
+
+            ' Check for pending update marker
+            Dim updateMarker As String = "C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt"
+            Dim updaterBat As String = "C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\Updater.bat"
+            If IO.File.Exists(updateMarker) AndAlso IO.File.Exists(updaterBat) Then
+                Try
+                    ' Start Updater.bat in a detached process
+                    Dim psi As New ProcessStartInfo()
+                    psi.FileName = updaterBat
+                    psi.WindowStyle = ProcessWindowStyle.Normal
+                    psi.UseShellExecute = True
+                    Process.Start(psi)
+                Catch ex As Exception
+                    ' Optionally log or show error
+                End Try
+                ' Remove marker
+                IO.File.Delete(updateMarker)
+            End If
 
             System.GC.Collect()
             System.GC.WaitForPendingFinalizers()
@@ -221,6 +237,8 @@ Namespace DoyleAddin
 
         Private Sub PrintUpdate_OnExecute(Context As NameValueMap) Handles PrintUpdate.OnExecute
             Call Sub() RunPrintUpdate(ThisApplication)
+            ' When user chooses to update
+            IO.File.WriteAllText("C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt", "update")
         End Sub
 #End Region
 
