@@ -54,7 +54,6 @@ Namespace DoyleAddin
 
         Private Async Sub CheckForUpdateAndDownloadAsync()
             Try
-                System.Windows.Forms.MessageBox.Show("Starting update check...", "Debug")
                 Dim localVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString()
                 System.Windows.Forms.MessageBox.Show($"Local version: {localVersion}", "Debug")
 
