@@ -1,0 +1,23 @@
+mode: ContinuousDeployment
+branches:
+  ForTesting:
+    regex: ^ForTesting$
+    increment: None
+    tag: ''
+    is-release-branch: false
+    source-branches: ['main', 'master']
+    prevent-increment-of-merged-branch-version: true
+    versioning-mode: ContinuousDeployment
+    tracks-release-branches: false
+    is-mainline: false
+  master:
+    regex: ^master$
+    increment: Minor
+    is-release-branch: true
+  Plugin-With-Genius-integration:
+    regex: ^Plugin-With-Genius-integration$
+    increment: Minor
+    is-release-branch: false
+
+# Set the next-version at the root to force 0.0.1 for new branches if needed
+next-version: 0.0.1

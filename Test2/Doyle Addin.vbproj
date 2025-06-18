@@ -17,7 +17,6 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <IsWebBootstrapper>true</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -39,6 +38,10 @@
 	  <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <OutputPath>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin</OutputPath>
   </PropertyGroup>
+	<PropertyGroup>
+		<Version>$(GitVersion_FullSemVer)</Version>
+		<VersionPrefix>$(GitVersion_SemVer)</VersionPrefix>
+	</PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DocumentationFile>.xml</DocumentationFile>
     <DefineDebug>false</DefineDebug>
@@ -55,6 +58,9 @@
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
     <ImportedNamespaces>Docnet.Core=False,Microsoft.VisualBasic=True,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,System.Xml.Linq=True,System.Threading.Tasks=True,Doyle Addin=True</ImportedNamespaces>
+    <NeutralLanguage>en</NeutralLanguage>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/Bmassner/Doyle-AddIn</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
     <Reference Update="System">
@@ -87,6 +93,7 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+    <None Include="GitVersion.yml" />
     <None Include="My Project\Application.myapp" />
   </ItemGroup>
   <ItemGroup>
@@ -159,6 +166,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Docnet.Core" Version="2.7.0-alpha.1">
+    </PackageReference>
+    <PackageReference Include="GitVersion.MsBuild" Version="6.3.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

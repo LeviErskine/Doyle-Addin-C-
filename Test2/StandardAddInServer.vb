@@ -1,6 +1,8 @@
+Imports System.Net.Http
+Imports System.Reflection
 Imports System.Runtime.InteropServices
+Imports System.Text.Json
 Imports Inventor
-
 
 Namespace DoyleAddin
     <ProgIdAttribute("Test2.StandardAddInServer"),
@@ -18,6 +20,8 @@ Namespace DoyleAddin
         ' to the Inventor Application object. The FirstTime flag indicates if the AddIn is loaded for
         ' the first time. However, with the introduction of the ribbon this argument is always true.
         Public Sub Activate(ByVal addInSiteObject As Inventor.ApplicationAddInSite, ByVal firstTime As Boolean) Implements Inventor.ApplicationAddInServer.Activate
+
+            CheckForUpdateAndDownloadAsync()
 
             ' Initialize AddIn members.
             ThisApplication = addInSiteObject.Application
@@ -47,6 +51,78 @@ Namespace DoyleAddin
             UiEvents = ThisApplication.UserInterfaceManager.UserInterfaceEvents
 
         End Sub
+
+        Private Async Sub CheckForUpdateAndDownloadAsync()
+            Try
+                System.Windows.Forms.MessageBox.Show("Starting update check...", "Debug")
+                Dim localVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString()
+                System.Windows.Forms.MessageBox.Show($"Local version: {localVersion}", "Debug")
+
+                Dim releaseNullable = Await GetLatestReleaseFromGitHub()
+                If Not releaseNullable.HasValue Then
+                    System.Windows.Forms.MessageBox.Show("Could not fetch release info from GitHub.", "Debug")
+                    Exit Sub
+                End If
+                Dim release = releaseNullable.Value
+
+                Dim latestVersion As String = release.GetProperty("tag_name").GetString().TrimStart("v"c)
+                System.Windows.Forms.MessageBox.Show($"Latest GitHub version: {latestVersion}", "Debug")
+
+                Dim localVerObj As New Version(localVersion)
+                Dim latestVerObj As New Version(latestVersion)
+                If latestVerObj > localVerObj Then
+                    System.Windows.Forms.MessageBox.Show("New version found, searching for asset...", "Debug")
+                    Dim assetUrl As String = ""
+                    Dim assetName As String = ""
+                    For Each asset In release.GetProperty("assets").EnumerateArray()
+                        If asset.GetProperty("name").GetString() = "DoyleAddin.zip" Then
+                            assetUrl = asset.GetProperty("browser_download_url").GetString()
+                            assetName = asset.GetProperty("name").GetString()
+                            Exit For
+                        End If
+                    Next
+
+                    If Not String.IsNullOrEmpty(assetUrl) Then
+                        System.Windows.Forms.MessageBox.Show($"Downloading asset: {assetName} from {assetUrl}", "Debug")
+                        Dim downloadPath = IO.Path.Combine(IO.Path.GetTempPath(), assetName)
+                        Await DownloadFileAsync(assetUrl, downloadPath)
+                        System.Windows.Forms.MessageBox.Show(
+                            $"A new version ({latestVersion}) is available and has been downloaded to:{vbCrLf}{downloadPath}",
+                            "Update Downloaded",
+                            System.Windows.Forms.MessageBoxButtons.OK,
+                            System.Windows.Forms.MessageBoxIcon.Information)
+                    Else
+                        System.Windows.Forms.MessageBox.Show("No matching asset found in the release.", "Debug")
+                    End If
+                Else
+                    System.Windows.Forms.MessageBox.Show("You are running the latest version.", "Debug")
+                End If
+            Catch ex As Exception
+                System.Windows.Forms.MessageBox.Show($"Error during update check: {ex.Message}", "Debug")
+            End Try
+        End Sub
+
+        Private Async Function GetLatestReleaseFromGitHub() As Task(Of JsonElement?)
+            Dim url As String = "https://api.github.com/repos/Bmassner/Doyle-AddIn/releases"
+            Using client As New HttpClient()
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("InventorAddinUpdater")
+                Dim json = Await client.GetStringAsync(url)
+                Dim doc = JsonDocument.Parse(json)
+                Dim root = doc.RootElement
+                If root.ValueKind = JsonValueKind.Array AndAlso root.GetArrayLength() > 0 Then
+                    Return root(0) ' Use the first release (most recent)
+                Else
+                    Return Nothing
+                End If
+            End Using
+        End Function
+
+        Private Async Function DownloadFileAsync(url As String, outputPath As String) As Task
+            Using client As New HttpClient()
+                Dim data = Await client.GetByteArrayAsync(url)
+                Await IO.File.WriteAllBytesAsync(outputPath, data)
+            End Using
+        End Function
 
         ' This method is called by Inventor when the AddIn is unloaded. The AddIn will be
         ' unloaded either manually by the user or when the Inventor session is terminated.
@@ -212,70 +288,4 @@ Public Module Globals
         Private ReadOnly _hwnd As IntPtr
     End Class
 #End Region
-
-    '#Region "Image Converter"
-    '    ' Class used to convert bitmaps and icons from their .Net native types into
-    '    ' an IPictureDisp object which is what the Inventor API requires. A typical
-    '    ' usage is shown below where MyIcon is a bitmap or icon that's available
-    '    ' as a resource of the project.
-    '    '
-    '    ' Dim smallIcon As stdole.IPictureDisp = PictureDispConverter.ToIPictureDisp(My.Resources.MyIcon)
-
-    '    Public NotInheritable Class PictureDispConverter
-    '        <DllImport("OleAut32.dll", EntryPoint:="OleCreatePictureIndirect", ExactSpelling:=True, PreserveSig:=False)>
-    '        Private Shared Function OleCreatePictureIndirect(
-    '    <MarshalAs(UnmanagedType.Struct)> ByVal picdesc As Object,
-    '    ByRef iid As GUID,
-    '    <MarshalAs(UnmanagedType.Bool)> ByVal fOwn As Boolean) As stdole.IPictureDisp
-    '        End Function
-
-    '        Shared iPictureDispGuid As GUID = GetType(stdole.IPictureDisp).GUID
-
-    '        Private NotInheritable Class PICTDESC
-    '            Private Sub New()
-    '            End Sub
-
-    '            'Picture Types
-    '            Public Const PICTYPE_BITMAP As Short = 1
-    '            Public Const PICTYPE_ICON As Short = 3
-
-    '            <StructLayout(LayoutKind.Sequential)>
-    '            Public Class Icon
-    '                Friend cbSizeOfStruct As Integer = Marshal.SizeOf(GetType(PICTDESC.Icon))
-    '                Friend picType As Integer = PICTDESC.PICTYPE_ICON
-    '                Friend hicon As IntPtr = IntPtr.Zero
-    '                Friend unused1 As Integer
-    '                Friend unused2 As Integer
-
-    '                Friend Sub New(ByVal icon As System.Drawing.Icon)
-    '                    Me.hicon = icon.ToBitmap().GetHicon()
-    '                End Sub
-    '            End Class
-
-    '            <StructLayout(LayoutKind.Sequential)>
-    '            Public Class Bitmap
-    '                Friend cbSizeOfStruct As Integer = Marshal.SizeOf(GetType(PICTDESC.Bitmap))
-    '                Friend picType As Integer = PICTDESC.PICTYPE_BITMAP
-    '                Friend hbitmap As IntPtr = IntPtr.Zero
-    '                Friend hpal As IntPtr = IntPtr.Zero
-    '                Friend unused As Integer
-
-    '                Friend Sub New(ByVal bitmap As System.Drawing.Bitmap)
-    '                    Me.hbitmap = bitmap.GetHbitmap()
-    '                End Sub
-    '            End Class
-    '        End Class
-
-    '        Public Shared Function ToIPictureDisp(ByVal icon As System.Drawing.Icon) As stdole.IPictureDisp
-    '            Dim pictIcon As New PICTDESC.Icon(icon)
-    '            Return OleCreatePictureIndirect(pictIcon, iPictureDispGuid, True)
-    '        End Function
-
-    '        Public Shared Function ToIPictureDisp(ByVal bmp As System.Drawing.Bitmap) As stdole.IPictureDisp
-    '            Dim pictBmp As New PICTDESC.Bitmap(bmp)
-    '            Return OleCreatePictureIndirect(pictBmp, iPictureDispGuid, True)
-    '        End Function
-    '    End Class
-    '#End Region
-
 End Module
