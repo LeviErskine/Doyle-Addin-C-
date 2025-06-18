@@ -171,25 +171,6 @@ Namespace DoyleAddin
                 ' Panel or tab may not exist, handle gracefully
             End Try
 
-            '' Add Genius to Part tab
-            'Try
-            '    Dim sheetMetalTab = partRibbon.RibbonTabs.Item("id_TabSheetMetal")
-            '    Dim geniusPanel As RibbonPanel = Nothing
-            '    ' Check if panel already exists to avoid duplicates
-            '    For Each panel As RibbonPanel In sheetMetalTab.RibbonPanels
-            '        If panel.InternalName = "GeniusUpdate" Then
-            '            geniusPanel = panel
-            '            Exit For
-            '        End If
-            '    Next
-            '    If geniusPanel Is Nothing Then
-            '        geniusPanel = sheetMetalTab.RibbonPanels.Add("Genius", "GeniusUpdate", AddInClientID())
-            '    End If
-            '    geniusPanel.CommandControls.AddButton(GeniusUpdate, True)
-            'Catch ex As Exception
-            '    ' Handle missing tab or other errors
-            'End Try
-
             ' Add Print Update to Drawing Place Views tab
             Try
                 Dim placeViewsTab = drawingRibbon.RibbonTabs.Item("id_TabPlaceViews")

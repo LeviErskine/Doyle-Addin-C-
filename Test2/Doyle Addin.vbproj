@@ -25,8 +25,8 @@
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
     <Title>Doyle Addin</Title>
 	  <Version>$(GitVersion_FullSemVer)</Version>
-	  <FileVersion>$(GitVersion_FullSemVer)</FileVersion>
-	  <AssemblyVersion>$(GitVersion_FullSemVer)</AssemblyVersion>
+	  <AssemblyVersion>$(GitVersion_AssemblySemVer)</AssemblyVersion>
+	  <FileVersion>$(GitVersion_AssemblySemFileVer)</FileVersion>
     <Description>Doyle Addin for print and dxf updates</Description>
     <Company>Autodesk, Inc.</Company>
     <Product>Autodesk Inventor</Product>
@@ -58,10 +58,8 @@
     <PackageReadmeFile>Readme.md</PackageReadmeFile>
     <ImportedNamespaces>Docnet.Core=False,Microsoft.VisualBasic=True,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,System.Xml.Linq=True,System.Threading.Tasks=True,Doyle Addin=True</ImportedNamespaces>
     <NeutralLanguage>en</NeutralLanguage>
-    <RepositoryType>git</RepositoryType>
+    <RepositoryType>github</RepositoryType>
     <RepositoryUrl>https://github.com/Bmassner/Doyle-AddIn</RepositoryUrl>
-    <AssemblyVersion>$(GitVersion_FullSemVer)</AssemblyVersion>
-    <FileVersion>$(GitVersion_FullSemVer)</FileVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Update="System">
@@ -166,6 +164,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Docnet.Core" Version="2.7.0-alpha.1">
+    </PackageReference>
+    <PackageReference Include="GitInfo" Version="3.5.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="GitVersion.MsBuild" Version="6.3.0">
       <PrivateAssets>all</PrivateAssets>
