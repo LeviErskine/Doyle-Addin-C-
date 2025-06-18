@@ -4,6 +4,3 @@ Imports System.Runtime.InteropServices
 
 'The following GUID is for the ID of the typelib if this project is exposed to COM
 <Assembly: Guid("ed52dd8b-28c0-47b3-aafd-1fc40f940ec9")>
-<Assembly: AssemblyVersion(ThisAssembly.Git.BaseVersion.Major & "." & ThisAssembly.Git.BaseVersion.Minor & "." & ThisAssembly.Git.BaseVersion.Patch)>
-<Assembly: AssemblyFileVersion(ThisAssembly.Git.SemVer.Major & "." & ThisAssembly.Git.SemVer.Minor & "." & ThisAssembly.Git.SemVer.Patch)>
-<Assembly: AssemblyInformationalVersion(ThisAssembly.Git.SemVer.Major & "." & ThisAssembly.Git.SemVer.Minor & "." & ThisAssembly.Git.SemVer.Patch)>
