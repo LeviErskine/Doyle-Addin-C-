@@ -1,15 +1,41 @@
-mode: ContinuousDeployment
+assembly-versioning-scheme: MajorMinorPatch
+assembly-file-versioning-scheme: MajorMinorPatch
+tag-prefix: '[vV]?'
+version-in-branch-pattern: (?<version>[vV]?\d+(\.\d+)?(\.\d+)?).*
+major-version-bump-message: \+semver:\s?(breaking|major)
+minor-version-bump-message: \+semver:\s?(feature|minor)
+patch-version-bump-message: \+semver:\s?(fix|patch)
+no-bump-message: \+semver:\s?(none|skip)
+tag-pre-release-weight: 60000
+commit-date-format: yyyy-MM-dd
+merge-message-formats: {}
+update-build-number: true
+semantic-version-format: Strict
+strategies:
+- Fallback
+- ConfiguredNextVersion
+- MergeMessage
+- TaggedCommit
+- TrackReleaseBranches
+- VersionInBranchName
+
 branches:
   ForTesting:
     regex: ^ForTesting$
-    increment: None
-    tag: ''
+    increment: Patch
+    tag: 'Pre-Release'
     is-release-branch: false
     source-branches: ['main', 'master']
     prevent-increment-of-merged-branch-version: true
     versioning-mode: ContinuousDeployment
     tracks-release-branches: false
     is-mainline: false
+  main:
+    regex: ^main$
+    increment: Patch
+    is-release-branch: false
+    is-main-branch: true
+    pre-release-weight: 55000
   master:
     regex: ^master$
     increment: Minor
@@ -18,6 +44,61 @@ branches:
     regex: ^Plugin-With-Genius-integration$
     increment: Minor
     is-release-branch: false
+  release:
+    mode: ManualDeployment
+    label: beta
+    increment: Patch
+    regex: ^releases?[\/-](?<BranchName>.+)
+    source-branches:
+    - main
+    is-release-branch: true
+    pre-release-weight: 30000
+  feature:
+    mode: ManualDeployment
+    label: '{BranchName}'
+    increment: Inherit
+    regex: ^features?[\/-](?<BranchName>.+)
+    source-branches:
+    - main
+    - release
+    pre-release-weight: 30000
+  pull-request:
+    mode: ContinuousDelivery
+    label: PullRequest{Number}
+    increment: Inherit
+    regex: ^(pull-requests|pull|pr)[\/-](?<Number>\d*)
+    source-branches:
+    - main
+    - release
+    - feature
+    pre-release-weight: 30000
+  unknown:
+    mode: ManualDeployment
+    label: '{BranchName}'
+    increment: Inherit
+    regex: (?<BranchName>.+)
+    source-branches:
+    - main
+    - release
+    - feature
+    - pull-request
 
-# Set the next-version at the root to force 0.0.1 for new branches if needed
-next-version: 0.0.1
+ignore:
+  sha: []
+
+mode: ContinuousDelivery
+label: '{BranchName}'
+increment: Inherit
+prevent-increment:
+  of-merged-branch: false
+  when-branch-merged: false
+  when-current-commit-tagged: true
+track-merge-target: false
+track-merge-message: true
+commit-message-incrementing: Enabled
+regex: ''
+source-branches: []
+is-source-branch-for: []
+tracks-release-branches: false
+is-release-branch: false
+is-main-branch: false
