@@ -55,49 +55,38 @@ Namespace DoyleAddin
         Private Async Sub CheckForUpdateAndDownloadAsync()
             Try
                 Dim localVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString()
-                System.Windows.Forms.MessageBox.Show($"Local version: {localVersion}", "Debug")
+                ' System.Windows.Forms.MessageBox.Show($"Local version: {localVersion}", "Debug")
 
                 Dim releaseNullable = Await GetLatestReleaseFromGitHub()
                 If Not releaseNullable.HasValue Then
-                    System.Windows.Forms.MessageBox.Show("Could not fetch release info from GitHub.", "Debug")
+                    '  System.Windows.Forms.MessageBox.Show("Could not fetch release info from GitHub.", "Debug")
                     Exit Sub
                 End If
                 Dim release = releaseNullable.Value
 
                 Dim latestVersion As String = release.GetProperty("tag_name").GetString().TrimStart("v"c)
-                System.Windows.Forms.MessageBox.Show($"Latest GitHub version: {latestVersion}", "Debug")
+                '  System.Windows.Forms.MessageBox.Show($"Latest GitHub version: {latestVersion}", "Debug")
 
                 Dim localVerObj As New Version(localVersion)
                 Dim latestVerObj As New Version(latestVersion)
                 If latestVerObj > localVerObj Then
-                    System.Windows.Forms.MessageBox.Show("New version found, searching for asset...", "Debug")
-                    Dim assetUrl As String = ""
-                    Dim assetName As String = ""
-                    For Each asset In release.GetProperty("assets").EnumerateArray()
-                        If asset.GetProperty("name").GetString() = "DoyleAddin.zip" Then
-                            assetUrl = asset.GetProperty("browser_download_url").GetString()
-                            assetName = asset.GetProperty("name").GetString()
-                            Exit For
-                        End If
-                    Next
-
-                    If Not String.IsNullOrEmpty(assetUrl) Then
-                        System.Windows.Forms.MessageBox.Show($"Downloading asset: {assetName} from {assetUrl}", "Debug")
-                        Dim downloadPath = IO.Path.Combine(IO.Path.GetTempPath(), assetName)
-                        Await DownloadFileAsync(assetUrl, downloadPath)
-                        System.Windows.Forms.MessageBox.Show(
-                            $"A new version ({latestVersion}) is available and has been downloaded to:{vbCrLf}{downloadPath}",
-                            "Update Downloaded",
-                            System.Windows.Forms.MessageBoxButtons.OK,
-                            System.Windows.Forms.MessageBoxIcon.Information)
+                    Dim result = System.Windows.Forms.MessageBox.Show(
+                $"A new version of the Doyle AddIn is available ({latestVersion}) . Update now?",
+                "Update Available",
+                System.Windows.Forms.MessageBoxButtons.YesNo,
+                System.Windows.Forms.MessageBoxIcon.Question)
+                    If result = System.Windows.Forms.DialogResult.Yes Then
+                        IO.File.WriteAllText("C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt", "update")
+                        ThisApplication.Quit()
                     Else
-                        System.Windows.Forms.MessageBox.Show("No matching asset found in the release.", "Debug")
+                        IO.File.WriteAllText("C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt", "update")
+                        System.Windows.Forms.MessageBox.Show("The update will be installed after you close Inventor.", "Update Scheduled", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information)
                     End If
                 Else
-                    System.Windows.Forms.MessageBox.Show("You are running the latest version.", "Debug")
+                    ' System.Windows.Forms.MessageBox.Show("You are running the latest version.", "Debug")
                 End If
             Catch ex As Exception
-                System.Windows.Forms.MessageBox.Show($"Error during update check: {ex.Message}", "Debug")
+                ' Optionally log or show error
             End Try
         End Sub
 
@@ -113,13 +102,6 @@ Namespace DoyleAddin
                 Else
                     Return Nothing
                 End If
-            End Using
-        End Function
-
-        Private Async Function DownloadFileAsync(url As String, outputPath As String) As Task
-            Using client As New HttpClient()
-                Dim data = Await client.GetByteArrayAsync(url)
-                Await IO.File.WriteAllBytesAsync(outputPath, data)
             End Using
         End Function
 
