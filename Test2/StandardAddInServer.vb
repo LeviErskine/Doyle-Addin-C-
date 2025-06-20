@@ -161,48 +161,76 @@ Namespace DoyleAddin
             Dim drawingRibbon = uiManager.Ribbons.Item("Drawing")
 
             ' Add DXF Update to the existing Flat Pattern panel on the Sheet Metal Tools tab
-            Try
-                Dim flatPatternPanel = partRibbon.RibbonTabs.Item("id_TabSheetMetal").RibbonPanels.Item("id_PanelP_SheetMetalManageUnfold")
-                flatPatternPanel.CommandControls.AddButton(DXFUpdate, True)
-            Catch ex As Exception
-                ' Panel or tab may not exist, handle gracefully
-            End Try
+            Dim DXFTabs = New Dictionary(Of String, String) From {
+                {"id_TabSheetMetal", "dxfUpdate"},
+                {"id_TabFlatPattern", "dxfUpdate"},
+                {"id_TabTools", "dxfUpdate"}
+            }
+
+            For Each tabInfo In DXFTabs
+                Try
+                    Dim tab As RibbonTab = Nothing
+                    Try
+                        tab = partRibbon.RibbonTabs.Item(tabInfo.Key)
+                    Catch ex As Exception
+                        Debug.Print("Tab not found: " & tabInfo.Key)
+                        Continue For
+                    End Try
+
+                    Dim panel As RibbonPanel = Nothing
+                    Try
+                        panel = tab.RibbonPanels.Item(tabInfo.Value)
+                    Catch
+                        ' Try fallback panels
+                        Try
+                            Select Case tabInfo.Key
+                                Case "id_TabSheetMetal"
+                                    panel = tab.RibbonPanels.Item("id_PanelP_SheetMetalManageUnfold")
+                                Case "id_TabFlatPattern"
+                                    panel = tab.RibbonPanels.Item("id_PanelP_FlatPatternExit")
+                                Case "id_TabTools"
+                                    panel = partRibbon.RibbonTabs.Item("id_TabTools").RibbonPanels.Item("id_PanelP_ToolsOptions")
+                            End Select
+                        Catch ex As Exception
+                            Debug.Print("Panel not found for tab: " & tabInfo.Key)
+                            Continue For
+                        End Try
+                    End Try
+
+                    If panel IsNot Nothing Then
+                        panel.CommandControls.AddButton(DXFUpdate, True)
+                    End If
+                Catch ex As Exception
+                    Debug.Print("Unexpected error: " & ex.Message)
+                End Try
+            Next
+
 
             ' Add Print Update to Drawing Place Views tab
-            Try
-                Dim placeViewsTab = drawingRibbon.RibbonTabs.Item("id_TabPlaceViews")
-                Dim placeViewsPanel As RibbonPanel = Nothing
-                For Each panel As RibbonPanel In placeViewsTab.RibbonPanels
-                    If panel.InternalName = "printUpdate" Then
-                        placeViewsPanel = panel
-                        Exit For
-                    End If
-                Next
-                If placeViewsPanel Is Nothing Then
-                    placeViewsPanel = placeViewsTab.RibbonPanels.Add("Add-Ins", "printUpdate", AddInClientID())
-                End If
-                placeViewsPanel.CommandControls.AddButton(PrintUpdate, True)
-            Catch ex As Exception
-                ' Handle missing tab or other errors
-            End Try
 
-            ' Add Print Update to Drawing Annotate tab
-            Try
-                Dim annotateTab = drawingRibbon.RibbonTabs.Item("id_TabAnnotate")
-                Dim annotatePanel As RibbonPanel = Nothing
-                For Each panel As RibbonPanel In annotateTab.RibbonPanels
-                    If panel.InternalName = "printUpdateAnnotate" Then
-                        annotatePanel = panel
-                        Exit For
+            Dim PrintTabs = New Dictionary(Of String, String) From {
+                    {"id_TabPlaceViews", "printUpdate"},
+                    {"id_TabAnnotate", "printUpdateAnnotate"}
+                }
+            For Each tabInfo In PrintTabs
+                Try
+                    Dim tab = drawingRibbon.RibbonTabs.Item(tabInfo.Key)
+                    Dim panel As RibbonPanel = Nothing
+                    For Each p As RibbonPanel In tab.RibbonPanels
+                        If p.InternalName = tabInfo.Value Then
+                            panel = p
+                            Exit For
+                        End If
+                    Next
+                    If panel Is Nothing Then
+                        panel = tab.RibbonPanels.Add("Add-Ins", tabInfo.Value, AddInClientID())
                     End If
-                Next
-                If annotatePanel Is Nothing Then
-                    annotatePanel = annotateTab.RibbonPanels.Add("Add-Ins", "printUpdateAnnotate", AddInClientID())
-                End If
-                annotatePanel.CommandControls.AddButton(PrintUpdate, True)
-            Catch ex As Exception
-                ' Handle missing tab or other errors
-            End Try
+                    panel.CommandControls.AddButton(PrintUpdate, True)
+                Catch ex As Exception
+                    ' Handle missing tab or other errors
+                End Try
+
+            Next
         End Sub
 
         Private Sub UiEvents_OnResetRibbonInterface(Context As NameValueMap) Handles UiEvents.OnResetRibbonInterface
