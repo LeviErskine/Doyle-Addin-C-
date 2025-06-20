@@ -55,6 +55,7 @@ Module PrintUpdate
         Try
             ' Publish document
             oPDFAddin.SaveCopyAs(oDocument, oContext, oOptions, oDataMedium)
+            ExportFirstPageAsImage(pdfPath, oFilePath & "\" & PN & ".jpg")
         Catch
             MsgBox("Failed to Export PDF (Someone might have this file open)", MsgBoxStyle.OkOnly)
             Return
