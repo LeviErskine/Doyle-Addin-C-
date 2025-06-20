@@ -218,8 +218,6 @@ Namespace DoyleAddin
 
         Private Sub PrintUpdate_OnExecute(Context As NameValueMap) Handles PrintUpdate.OnExecute
             Call Sub() RunPrintUpdate(ThisApplication)
-            ' When user chooses to update
-            IO.File.WriteAllText("C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt", "update")
         End Sub
 #End Region
 
