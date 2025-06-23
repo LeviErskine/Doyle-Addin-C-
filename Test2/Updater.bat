@@ -1,6 +1,6 @@
 @echo off
 SETLOCAL EnableDelayedExpansion
-
+timeout /t 5 /nobreak
 REM --- Configuration ---
 SET GITHUB_USER=Bmassner
 SET GITHUB_REPO=Doyle-AddIn
@@ -83,13 +83,6 @@ IF EXIST "%TARGET_ZIP_PATH%" (
 )
 
 ECHO Update process finished.
-ECHO This installer will now delete itself. Press any key to finish.
-PAUSE
-
-REM --- Self-destruct mechanism ---
-REM Starts a new, non-blocking cmd process that waits 1 second then deletes this script file.
-REM This allows the main script to exit cleanly before deletion occurs.
-start /b "" cmd /c "ping 127.0.0.1 -n 2 > nul & del /F /Q "%~f0""
 
 ENDLOCAL
 GOTO :EOF

@@ -21,11 +21,11 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-	  <UseWindowsForms>true</UseWindowsForms>
+	<UseWindowsForms>true</UseWindowsForms>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
     <Title>Doyle Addin</Title>
 	  <Version>$(GitVersion_FullSemVer)</Version>
-	  <AssemblyVersion>$(GitVersion_AssemblySemVer)</AssemblyVersion>
+	  <GetAssemblyVersion>$(GitVersion_AssemblySemVer)</GetAssemblyVersion>
 	  <FileVersion>$(GitVersion_AssemblySemFileVer)</FileVersion>
     <Description>Doyle Addin for print and dxf updates</Description>
     <Company>Autodesk, Inc.</Company>
@@ -172,7 +172,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="GitVersion.MsBuild" Version="6.3.0">
+    <PackageReference Include="GitVersion.MsBuild" Version="5.12.0">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
