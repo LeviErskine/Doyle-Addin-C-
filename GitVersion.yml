@@ -23,7 +23,7 @@ branches:
   ForTesting:
     mode: ContinuousDelivery
     label: alpha
-    increment: Minor
+    increment: Patch
     prevent-increment:
       when-current-commit-tagged: false
     track-merge-target: true
