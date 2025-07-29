@@ -46,8 +46,8 @@ Module PrintUpdate
 
         ' Set PDF options
         oOptions.Value("All_Color_AS_Black") = 0
-        oOptions.Value("Remove_Line_Weights") = 1
-        oOptions.Value("Vector_Resolution") = 400
+        oOptions.Value("Remove_Line_Weights") = 0
+        oOptions.Value("Vector_Resolution") = 4800
         oOptions.Value("Sheet_Range") = Inventor.PrintRangeEnum.kPrintAllSheets
 
         ' Set PDF target file name

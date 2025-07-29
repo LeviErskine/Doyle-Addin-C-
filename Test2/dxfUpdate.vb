@@ -2,7 +2,7 @@
 
 Module dxfUpdate
 
-    Sub runDxfUpdate(ThisApplication As Inventor.Application)
+    Sub RunDxfUpdate(ThisApplication As Inventor.Application)
         Dim oPartDoc As PartDocument = ThisApplication.ActiveDocument
         Dim oDef As SheetMetalComponentDefinition = oPartDoc.ComponentDefinition
         Dim oFactory As iPartFactory = oDef.iPartFactory
@@ -99,13 +99,12 @@ Module dxfUpdate
                 oDef.FlatPattern.ExitEdit()
             End If
 
-            If ThisApplication.ErrorManager.HasErrors = True Then
-                MsgBox("Broke")
+            Try
+                oDef.DataIO.WriteDataToFile(oFormat, oFileName)
+            Catch ex As Exception
+                MsgBox("Check to see if you are connected to the X Drive and try again")
                 Return
-            End If
-
-            oDef.DataIO.WriteDataToFile(oFormat, oFileName)
-
+            End Try
         End If
 
     End Sub

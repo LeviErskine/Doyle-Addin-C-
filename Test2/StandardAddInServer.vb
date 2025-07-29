@@ -119,10 +119,11 @@ Namespace DoyleAddin
             If IO.File.Exists(updateMarker) AndAlso IO.File.Exists(updaterBat) Then
                 Try
                     ' Start Updater.bat in a detached process
-                    Dim psi As New ProcessStartInfo()
-                    psi.FileName = updaterBat
-                    psi.WindowStyle = ProcessWindowStyle.Normal
-                    psi.UseShellExecute = True
+                    Dim psi As New ProcessStartInfo With {
+                        .FileName = updaterBat,
+                        .WindowStyle = ProcessWindowStyle.Normal,
+                        .UseShellExecute = True
+                    }
                     Process.Start(psi)
                 Catch ex As Exception
                     ' Optionally log or show error
@@ -197,9 +198,7 @@ Namespace DoyleAddin
                         End Try
                     End Try
 
-                    If panel IsNot Nothing Then
-                        panel.CommandControls.AddButton(DXFUpdate, True)
-                    End If
+                    panel?.CommandControls.AddButton(DXFUpdate, True)
                 Catch ex As Exception
                     Debug.Print("Unexpected error: " & ex.Message)
                 End Try
@@ -240,7 +239,7 @@ Namespace DoyleAddin
 
         ' Sample handler for the button.
         Private Sub DXFUpdate_OnExecute(Context As NameValueMap) Handles DXFUpdate.OnExecute
-            Call Sub() runDxfUpdate(ThisApplication)
+            Call Sub() RunDxfUpdate(ThisApplication)
             'Call Sub() userName()
         End Sub
 

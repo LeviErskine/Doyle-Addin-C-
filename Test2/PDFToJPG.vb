@@ -15,6 +15,7 @@ Public Module PDFToImage
     Public Sub ExportFirstPageAsImage(pdfFilePath As String, imageFilePath As String)
         Dim originalPath As String = Environment.GetEnvironmentVariable("C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin")
         Dim nativeDllPath As String = "C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\runtimes\win-x64\native"
+        Dim fullOriginalPath As String = Environment.GetEnvironmentVariable("PATH")
 
         Try
             ' Get the directory where your add-in DLL is located (bin\Debug or bin\Release)
@@ -27,7 +28,9 @@ Public Module PDFToImage
             If Directory.Exists(nativeDllPath) Then
                 ' Add the native DLL path to the beginning of the PATH environment variable
                 ' This makes it discoverable for the duration of this process.
-                Environment.SetEnvironmentVariable("PATH", nativeDllPath & ";" & originalPath)
+                ' Before changing PATH, save the full original PATH
+                ' Prepend the native DLL path
+                Environment.SetEnvironmentVariable("PATH", nativeDllPath & ";" & fullOriginalPath)
 
                 ' Set desired DPI or pixel dimensions
                 Dim dpi As Integer = 3200
@@ -61,12 +64,12 @@ Public Module PDFToImage
             End If
 
         Catch ex As Exception
-            ' MsgBox.Show($"An error occurred: {ex.Message}", "Docnet Error", MessageBoxButtons.OK, MessageBoxIcon.Error"")
+            ' MsgBox.Show($"An error occurred: {ex.Message}", "Docnet Error", MessageBoxButtons.OK, MsgBoxIcon.Error"")
 
         Finally
-            ' Restore the original PATH environment variable
-            If Not String.IsNullOrEmpty(originalPath) Then
-                Environment.SetEnvironmentVariable("PATH", originalPath)
+            ' Restore the full original PATH
+            If Not String.IsNullOrEmpty(fullOriginalPath) Then
+                Environment.SetEnvironmentVariable("PATH", fullOriginalPath)
             End If
         End Try
     End Sub
