@@ -2,6 +2,7 @@ Imports System.Net.Http
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Text.Json
+Imports System.Windows.Forms
 Imports Inventor
 
 Namespace DoyleAddin
@@ -35,15 +36,28 @@ Namespace DoyleAddin
             ' TODO: Add button definitions.
 
             ' Sample to illustrate creating a button definition.
-            Dim PrintUpdateIconLarge As stdole.IPictureDisp = PictureConverter.ImageToPictureDisp(My.Resources.PrintUpdateIconLarge)
-            Dim PrintUpdateIconSmall As stdole.IPictureDisp = PictureConverter.ImageToPictureDisp(My.Resources.PrintUpdateIconSmall)
-            Dim DXFUpdateIconSmall As stdole.IPictureDisp = PictureConverter.ImageToPictureDisp(My.Resources.DXFUpdateIconSmall)
-            Dim DXFUpdateIconLarge As stdole.IPictureDisp = PictureConverter.ImageToPictureDisp(My.Resources.DXFUpdateIconLarge)
-            DXFUpdate = controlDefs.AddButtonDefinition("DXF Update", "dxfUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID, , , DXFUpdateIconSmall, DXFUpdateIconLarge)
-            PrintUpdate = controlDefs.AddButtonDefinition("Print Update", "printUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID, , , PrintUpdateIconSmall, PrintUpdateIconLarge)
+            ' Replace with your actual resource names and desired icon sizes
+            Dim oThemeManager As Inventor.ThemeManager
+            oThemeManager = ThisApplication.ThemeManager
 
-            ' Add to the user interface, if it's the first time.
-            If firstTime Then
+            Dim oTheme As Inventor.Theme
+            oTheme = oThemeManager.ActiveTheme
+
+            Select Case oTheme.Name
+                    Case "LightTheme", "DarkTheme"
+                        Dim themeSuffix As String = If(oTheme.Name = "LightTheme", "Light", "Dark")
+                        Dim PrintUpdateIcon As String = "Doyle_Addin.PrintUpdateIcon.svg"
+                        Dim DXFUpdateIcon As String = "Doyle_Addin.DXFUpdateIcon.svg"
+                    Dim PrintUpdateIconLarge As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(PrintUpdateIcon, 32, 32, themeSuffix)
+                    Dim PrintUpdateIconSmall As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(PrintUpdateIcon, 16, 16, themeSuffix)
+                        Dim DXFUpdateIconSmall As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(DXFUpdateIcon, 16, 16, themeSuffix)
+                    Dim DXFUpdateIconLarge As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(DXFUpdateIcon, 32, 32, themeSuffix)
+                    DXFUpdate = controlDefs.AddButtonDefinition("DXF Update", "dxfUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID, , , DXFUpdateIconSmall, DXFUpdateIconLarge)
+                        PrintUpdate = controlDefs.AddButtonDefinition("Print Update", "printUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID, , , PrintUpdateIconSmall, PrintUpdateIconLarge)
+                End Select
+
+                ' Add to the user interface, if it's the first time.
+                If firstTime Then
                 AddToUserInterface()
             End If
 
