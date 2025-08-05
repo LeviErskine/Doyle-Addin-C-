@@ -15,23 +15,17 @@ Module PrintUpdate
         ' Get referenced model document type (part or assembly)
         Dim refDocType As Inventor.DocumentTypeEnum = oDDoc.ReferencedDocuments(1).DocumentType
 
-        Dim oFilePath As String = "P:\"
+        Dim oFilePath As String = UserOptions.Load.PrintExportLocation
         Dim FileName As String
         Dim PN As String = oDDoc.PropertySets.Item("Design Tracking Properties").Item("Part Number").Value.ToString
         Dim DocName As String = oDDoc.DisplayName
-
-        ' Check if document name matches part number
-        If DocName <> (PN & ".idw") Then
-            MsgBox("DOCUMENT NAME IS DIFFERENT FROM PART NUMBER")
-            Return
-        End If
 
         ' Count sheets
         Dim SheetCount As Integer = oDDoc.Sheets.Count
 
         ' Always export PDF
         If String.IsNullOrEmpty(oFilePath) Then
-            MsgBox("This file has not yet been saved and doesn't exist on disk!" & vbCrLf & "Please save it first", 64, "Formsprag iLogic")
+            MsgBox("This file has not been saved yet or save location cannot be found" & vbCrLf, 64, "Ssave error")
             Return
         End If
 

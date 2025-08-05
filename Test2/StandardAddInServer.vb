@@ -2,7 +2,6 @@ Imports System.Net.Http
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Text.Json
-Imports System.Windows.Forms
 Imports Inventor
 
 Namespace DoyleAddin
@@ -14,6 +13,7 @@ Namespace DoyleAddin
         Private WithEvents UiEvents As UserInterfaceEvents
         Private WithEvents DXFUpdate As ButtonDefinition
         Private WithEvents PrintUpdate As ButtonDefinition
+        Private WithEvents OptionsButton As ButtonDefinition
 
 #Region "ApplicationAddInServer Members"
 
@@ -32,11 +32,6 @@ Namespace DoyleAddin
 
             ' Get a reference to the ControlDefinitions object. 
             Dim controlDefs As ControlDefinitions = ThisApplication.CommandManager.ControlDefinitions
-
-            ' TODO: Add button definitions.
-
-            ' Sample to illustrate creating a button definition.
-            ' Replace with your actual resource names and desired icon sizes
             Dim oThemeManager As Inventor.ThemeManager
             oThemeManager = ThisApplication.ThemeManager
 
@@ -45,16 +40,20 @@ Namespace DoyleAddin
 
             Select Case oTheme.Name
                     Case "LightTheme", "DarkTheme"
-                        Dim themeSuffix As String = If(oTheme.Name = "LightTheme", "Light", "Dark")
-                        Dim PrintUpdateIcon As String = "Doyle_Addin.PrintUpdateIcon.svg"
-                        Dim DXFUpdateIcon As String = "Doyle_Addin.DXFUpdateIcon.svg"
+                    Dim themeSuffix As String = If(oTheme.Name = "LightTheme", "Light", "Dark")
+                    Dim PrintUpdateIcon As String = "Doyle_Addin.PrintUpdateIcon.svg"
+                    Dim DXFUpdateIcon As String = "Doyle_Addin.DXFUpdateIcon.svg"
+                    Dim SettingsIcon As String = "Doyle_Addin.SettingsIcon.svg"
                     Dim PrintUpdateIconLarge As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(PrintUpdateIcon, 32, 32, themeSuffix)
                     Dim PrintUpdateIconSmall As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(PrintUpdateIcon, 16, 16, themeSuffix)
-                        Dim DXFUpdateIconSmall As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(DXFUpdateIcon, 16, 16, themeSuffix)
+                    Dim DXFUpdateIconSmall As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(DXFUpdateIcon, 16, 16, themeSuffix)
                     Dim DXFUpdateIconLarge As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(DXFUpdateIcon, 32, 32, themeSuffix)
+                    Dim SettingsIconSmall As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(SettingsIcon, 16, 16, themeSuffix)
+                    Dim SettingsIconLarge As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(SettingsIcon, 32, 32, themeSuffix)
                     DXFUpdate = controlDefs.AddButtonDefinition("DXF Update", "dxfUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID, , , DXFUpdateIconSmall, DXFUpdateIconLarge)
-                        PrintUpdate = controlDefs.AddButtonDefinition("Print Update", "printUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID, , , PrintUpdateIconSmall, PrintUpdateIconLarge)
-                End Select
+                    PrintUpdate = controlDefs.AddButtonDefinition("Print Update", "printUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID, , , PrintUpdateIconSmall, PrintUpdateIconLarge)
+                    OptionsButton = controlDefs.AddButtonDefinition("Options", "userOptions", CommandTypesEnum.kNonShapeEditCmdType, AddInClientID, , , SettingsIconSmall, SettingsIconLarge)
+            End Select
 
                 ' Add to the user interface, if it's the first time.
                 If firstTime Then
@@ -64,6 +63,14 @@ Namespace DoyleAddin
             ' Connect to the user-interface events to handle a ribbon reset.
             UiEvents = ThisApplication.UserInterfaceManager.UserInterfaceEvents
 
+            ' Ensure the options file exists with default values if it doesn't exist
+            If Not IO.File.Exists(UserOptions.OptionsFilePath) Then
+                Dim defaultOptions As New UserOptions With {
+                    .PrintExportLocation = "P:\",
+                    .DXFExportLocation = "X:\"
+                }
+                defaultOptions.Save()
+            End If
         End Sub
 
         Private Async Sub CheckForUpdateAndDownloadAsync()
@@ -172,78 +179,97 @@ Namespace DoyleAddin
         Private Sub AddToUserInterface()
             ' Cache frequently used objects
             Dim uiManager = ThisApplication.UserInterfaceManager
-            Dim partRibbon = uiManager.Ribbons.Item("Part")
-            Dim drawingRibbon = uiManager.Ribbons.Item("Drawing")
 
-            ' Add DXF Update to the existing Flat Pattern panel on the Sheet Metal Tools tab
-            Dim DXFTabs = New Dictionary(Of String, String) From {
-                {"id_TabSheetMetal", "dxfUpdate"},
-                {"id_TabFlatPattern", "dxfUpdate"},
-                {"id_TabTools", "dxfUpdate"}
+            ' Define ribbon mappings for each document type
+            Dim ribbonMappings = New Dictionary(Of String, Ribbon) From {
+                {"Part", uiManager.Ribbons.Item("Part")},
+                {"Assembly", uiManager.Ribbons.Item("Assembly")},
+                {"Drawing", uiManager.Ribbons.Item("Drawing")},
+                {"ZeroDoc", uiManager.Ribbons.Item("ZeroDoc")}
             }
 
-            For Each tabInfo In DXFTabs
-                Try
-                    Dim tab As RibbonTab = Nothing
-                    Try
-                        tab = partRibbon.RibbonTabs.Item(tabInfo.Key)
-                    Catch ex As Exception
-                        Debug.Print("Tab not found: " & tabInfo.Key)
-                        Continue For
-                    End Try
+            ' Define button configurations with document type specificity
+            ' DXF button only appears on Part documents
+            Dim dxfButtonConfigs = New List(Of Tuple(Of String, String, ButtonDefinition, String())) From {
+                Tuple.Create("id_TabSheetMetal", "dxfUpdate", DXFUpdate, New String() {"id_PanelP_SheetMetalManageUnfold"}),
+                Tuple.Create("id_TabFlatPattern", "dxfUpdate", DXFUpdate, New String() {"id_PanelP_FlatPatternExit"}),
+                Tuple.Create("id_TabTools", "dxfUpdate", DXFUpdate, New String() {"id_PanelP_ToolsOptions"})
+            }
 
-                    Dim panel As RibbonPanel = Nothing
-                    Try
-                        panel = tab.RibbonPanels.Item(tabInfo.Value)
-                    Catch
-                        ' Try fallback panels
+            ' Options button appears on all document types
+            Dim optionsButtonConfigs = New List(Of Tuple(Of String, String, ButtonDefinition, String())) From {
+                Tuple.Create("id_TabPlaceViews", "printUpdate", PrintUpdate, New String() {"Add-Ins"}),
+                Tuple.Create("id_TabAnnotate", "printUpdate", PrintUpdate, New String() {"Add-Ins"}),
+                Tuple.Create("id_TabTools", "userOptions", OptionsButton, New String() {"id_PanelP_ToolsOptions", "Add-Ins"})
+            }
+
+            ' Add buttons to appropriate ribbons based on document context
+            For Each kvp In ribbonMappings
+                Dim ribbonName = kvp.Key
+                Dim ribbon = kvp.Value
+
+                ' Add DXF button only to Part ribbon
+                If ribbonName = "Part" Then
+                    For Each config In dxfButtonConfigs
+                        Dim tabName = config.Item1
+                        Dim panelName = config.Item2
+                        Dim buttonDef = config.Item3
+                        Dim fallbackPanels = config.Item4
+
+                        AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels)
+                    Next
+                End If
+
+                ' Add Options button to all ribbons
+                For Each config In optionsButtonConfigs
+                    Dim tabName = config.Item1
+                    Dim panelName = config.Item2
+                    Dim buttonDef = config.Item3
+                    Dim fallbackPanels = config.Item4
+
+                    AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels)
+                Next
+            Next
+        End Sub
+
+        ' Helper method to add a button to a specific ribbon with fallback handling
+        Private Sub AddButtonToRibbon(ribbon As Ribbon, tabName As String, panelName As String, buttonDef As ButtonDefinition, fallbackPanels As String())
+            Try
+                ' Get the tab
+                Dim tab As RibbonTab = ribbon.RibbonTabs.Item(tabName)
+                If tab Is Nothing Then Return
+
+                ' Try to get the specified panel
+                Dim panel As RibbonPanel = Nothing
+                Try
+                    panel = tab.RibbonPanels.Item(panelName)
+                Catch
+                    ' Try fallback panels
+                    For Each fallbackPanel In fallbackPanels
                         Try
-                            Select Case tabInfo.Key
-                                Case "id_TabSheetMetal"
-                                    panel = tab.RibbonPanels.Item("id_PanelP_SheetMetalManageUnfold")
-                                Case "id_TabFlatPattern"
-                                    panel = tab.RibbonPanels.Item("id_PanelP_FlatPatternExit")
-                                Case "id_TabTools"
-                                    panel = partRibbon.RibbonTabs.Item("id_TabTools").RibbonPanels.Item("id_PanelP_ToolsOptions")
-                            End Select
-                        Catch ex As Exception
-                            Debug.Print("Panel not found for tab: " & tabInfo.Key)
+                            If fallbackPanel = "Add-Ins" Then
+                                ' Create new Add-Ins panel if it doesn't exist
+                                panel = tab.RibbonPanels.Add("Add-Ins", panelName, AddInClientID())
+                                Exit For
+                            Else
+                                panel = tab.RibbonPanels.Item(fallbackPanel)
+                                If panel IsNot Nothing Then Exit For
+                            End If
+                        Catch
                             Continue For
                         End Try
-                    End Try
-
-                    panel?.CommandControls.AddButton(DXFUpdate, True)
-                Catch ex As Exception
-                    Debug.Print("Unexpected error: " & ex.Message)
-                End Try
-            Next
-
-
-            ' Add Print Update to Drawing Place Views tab
-
-            Dim PrintTabs = New Dictionary(Of String, String) From {
-                    {"id_TabPlaceViews", "printUpdate"},
-                    {"id_TabAnnotate", "printUpdateAnnotate"}
-                }
-            For Each tabInfo In PrintTabs
-                Try
-                    Dim tab = drawingRibbon.RibbonTabs.Item(tabInfo.Key)
-                    Dim panel As RibbonPanel = Nothing
-                    For Each p As RibbonPanel In tab.RibbonPanels
-                        If p.InternalName = tabInfo.Value Then
-                            panel = p
-                            Exit For
-                        End If
                     Next
-                    If panel Is Nothing Then
-                        panel = tab.RibbonPanels.Add("Add-Ins", tabInfo.Value, AddInClientID())
-                    End If
-                    panel.CommandControls.AddButton(PrintUpdate, True)
-                Catch ex As Exception
-                    ' Handle missing tab or other errors
                 End Try
 
-            Next
+                ' Add the button if panel was found
+                If panel IsNot Nothing Then
+                    panel.CommandControls.AddButton(buttonDef, True)
+                End If
+
+            Catch ex As Exception
+                ' Log specific errors for debugging
+                Debug.Print($"Failed to add button '{buttonDef.DisplayName}' to tab '{tabName}' in ribbon '{ribbon.InternalName}': {ex.Message}")
+            End Try
         End Sub
 
         Private Sub UiEvents_OnResetRibbonInterface(Context As NameValueMap) Handles UiEvents.OnResetRibbonInterface
@@ -259,6 +285,10 @@ Namespace DoyleAddin
 
         Private Sub PrintUpdate_OnExecute(Context As NameValueMap) Handles PrintUpdate.OnExecute
             Call Sub() RunPrintUpdate(ThisApplication)
+        End Sub
+        Private Sub OptionsButton_OnExecute(Context As NameValueMap) Handles OptionsButton.OnExecute
+            Dim optionsForm As New UserOptionsForm()
+            optionsForm.ShowDialog(New WindowWrapper(ThisApplication.MainFrameHWND))
         End Sub
 #End Region
 

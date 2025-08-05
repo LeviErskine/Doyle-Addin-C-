@@ -21,7 +21,7 @@ Module dxfUpdate
 
                 Dim memberDef As SheetMetalComponentDefinition = TryCast(oPartDoc.ComponentDefinition, SheetMetalComponentDefinition)
                 Dim PN As String = oPartDoc.PropertySets.Item("Design Tracking Properties").Item("Part Number").Value.ToString
-                Dim oFileName As String = "X:\" & PN & ".dxf"
+                Dim oFileName As String = UserOptions.Load.DXFExportLocation & PN & ".dxf"
 
                 ' Check for comatose nodes
                 If oPartDoc._ComatoseNodesCount > 0 Then
@@ -86,7 +86,7 @@ Module dxfUpdate
             ' MsgBox(ThisApplication.ActiveDocument._ComatoseNodesCount.ToString, MsgBoxStyle.OkOnly, "Comatose Nodes")
             'All same as above, for non-iparts
             Dim PN As String = oPartDoc.PropertySets.Item("Design Tracking Properties").Item("Part Number").Value.ToString
-            Dim oFileName As String = "X:\" & PN & ".dxf"
+            Dim oFileName As String = UserOptions.Load.DXFExportLocation & PN & ".dxf"
             Dim oFormat As String = "FLAT PATTERN DXF?AcadVersion=2018" _
                         + "&BendDownLayer=DOWN&BendDownLayerColor=255;0;0" _
                         + "&BendUpLayer=UP&BendUpLayerColor=255;0;0" _
