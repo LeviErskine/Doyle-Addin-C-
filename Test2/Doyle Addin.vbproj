@@ -69,11 +69,6 @@
   <ItemGroup>
     <Compile Include="dxfUpdate.vb" />
     <Compile Include="GlobalsHelpers.vb" />
-    <Compile Include="My Project\Resources.Designer.vb">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="My Project\Settings.Designer.vb">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
@@ -104,17 +99,11 @@
     <None Include="Autodesk.DoyleAddin.Inventor.addin">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="My Project\DataSources\PDFToImage.datasource" />
     <None Include="My Project\Settings.settings">
       <CustomToolNamespace>My</CustomToolNamespace>
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
-    <EmbeddedResource Include="My Project\Resources.resx">
-      <CustomToolNamespace>My.Resources</CustomToolNamespace>
-      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
-    </EmbeddedResource>
     <EmbeddedResource Include="Resources\PrintUpdateIcon.svg" />
     <EmbeddedResource Include="Resources\DXFUpdateIcon.svg" />
     <EmbeddedResource Include="Options\UserOptionsForm.resx" />

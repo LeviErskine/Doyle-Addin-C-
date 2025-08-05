@@ -39,24 +39,32 @@ Namespace DoyleAddin
             oTheme = oThemeManager.ActiveTheme
 
             Select Case oTheme.Name
-                    Case "LightTheme", "DarkTheme"
+                Case "LightTheme", "DarkTheme"
                     Dim themeSuffix As String = If(oTheme.Name = "LightTheme", "Light", "Dark")
-                    Dim PrintUpdateIcon As String = "Doyle_Addin.PrintUpdateIcon.svg"
-                    Dim DXFUpdateIcon As String = "Doyle_Addin.DXFUpdateIcon.svg"
-                    Dim SettingsIcon As String = "Doyle_Addin.SettingsIcon.svg"
-                    Dim PrintUpdateIconLarge As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(PrintUpdateIcon, 32, 32, themeSuffix)
-                    Dim PrintUpdateIconSmall As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(PrintUpdateIcon, 16, 16, themeSuffix)
-                    Dim DXFUpdateIconSmall As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(DXFUpdateIcon, 16, 16, themeSuffix)
-                    Dim DXFUpdateIconLarge As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(DXFUpdateIcon, 32, 32, themeSuffix)
-                    Dim SettingsIconSmall As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(SettingsIcon, 16, 16, themeSuffix)
-                    Dim SettingsIconLarge As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(SettingsIcon, 32, 32, themeSuffix)
-                    DXFUpdate = controlDefs.AddButtonDefinition("DXF Update", "dxfUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID, , , DXFUpdateIconSmall, DXFUpdateIconLarge)
-                    PrintUpdate = controlDefs.AddButtonDefinition("Print Update", "printUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID, , , PrintUpdateIconSmall, PrintUpdateIconLarge)
-                    OptionsButton = controlDefs.AddButtonDefinition("Options", "userOptions", CommandTypesEnum.kNonShapeEditCmdType, AddInClientID, , , SettingsIconSmall, SettingsIconLarge)
+                    Dim iconSizes = {16, 32}
+                    Dim icons = {
+            New With {.Name = "PrintUpdate", .Icon = "Doyle_Addin.PrintUpdateIcon.svg"},
+            New With {.Name = "DXFUpdate", .Icon = "Doyle_Addin.DXFUpdateIcon.svg"},
+            New With {.Name = "Settings", .Icon = "Doyle_Addin.SettingsIcon.svg"}
+        }
+
+                    For Each icon In icons
+                        Dim largeIcon As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(icon.Icon, iconSizes(1), iconSizes(1), themeSuffix)
+                        Dim smallIcon As stdole.IPictureDisp = PictureConverter.SvgResourceToPictureDisp(icon.Icon, iconSizes(0), iconSizes(0), themeSuffix)
+
+                        Select Case icon.Name
+                            Case "PrintUpdate"
+                                PrintUpdate = controlDefs.AddButtonDefinition("Print Update", "printUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID, , , smallIcon, largeIcon)
+                            Case "DXFUpdate"
+                                DXFUpdate = controlDefs.AddButtonDefinition("DXF Update", "dxfUpdate", CommandTypesEnum.kShapeEditCmdType, AddInClientID, , , smallIcon, largeIcon)
+                            Case "Settings"
+                                OptionsButton = controlDefs.AddButtonDefinition("Options", "userOptions", CommandTypesEnum.kNonShapeEditCmdType, AddInClientID, , , smallIcon, largeIcon)
+                        End Select
+                    Next
             End Select
 
-                ' Add to the user interface, if it's the first time.
-                If firstTime Then
+            ' Add to the user interface, if it's the first time.
+            If firstTime Then
                 AddToUserInterface()
             End If
 
