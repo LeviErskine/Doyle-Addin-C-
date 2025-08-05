@@ -1,4 +1,6 @@
-﻿Module GlobalsHelpers
+﻿Imports Inventor
+
+Module GlobalsHelpers
     ' Inventor application object.
-    Public ThisApplication As Inventor.Application
+    Public ThisApplication As Application
 End Module

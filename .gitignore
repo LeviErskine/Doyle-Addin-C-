@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/global.json
+/.gitignore
+/.idea/.idea.Doyle Addin/.idea/codeStyles/codeStyleConfig.xml

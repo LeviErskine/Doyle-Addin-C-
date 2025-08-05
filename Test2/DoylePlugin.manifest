@@ -2,10 +2,11 @@
 
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
 
-  <assemblyIdentity name="Test2" version="1.0.0.0"></assemblyIdentity>
+    <assemblyIdentity name="Test2" version="1.0.0.0"></assemblyIdentity>
 
-  <clrClass clsid="{513b9d7e-103e-4569-8eb5-ab3929cd33ad}" progid="Test2.StandardAddInServer" threadingModel="Both" name="Test2.Test2.StandardAddInServer" runtimeVersion=""></clrClass>
+    <clrClass clsid="{513b9d7e-103e-4569-8eb5-ab3929cd33ad}" progid="Test2.StandardAddInServer" threadingModel="Both"
+              name="Test2.Test2.StandardAddInServer" runtimeVersion=""></clrClass>
 
-  <file name="DoyleAddin.dll" hashalg="SHA1"></file>
+    <file name="DoyleAddin.dll" hashalg="SHA1"></file>
 
 </assembly>

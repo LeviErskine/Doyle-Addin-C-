@@ -1,165 +1,155 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net8.0-windows8.0</TargetFramework>
-	  <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <OutputType>Library</OutputType>
-    <StartupObject>
-    </StartupObject>
-    <MyType>Windows</MyType>
-    <PublishUrl>http://localhost/InventorAddIn/</PublishUrl>
-    <Install>true</Install>
-    <InstallFrom>Web</InstallFrom>
-    <UpdateEnabled>true</UpdateEnabled>
-    <UpdateMode>Foreground</UpdateMode>
-    <UpdateInterval>7</UpdateInterval>
-    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
-    <UpdatePeriodically>false</UpdatePeriodically>
-    <UpdateRequired>false</UpdateRequired>
-    <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
-    <IsWebBootstrapper>true</IsWebBootstrapper>
-    <UseApplicationTrust>false</UseApplicationTrust>
-    <BootstrapperEnabled>true</BootstrapperEnabled>
-    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-	<UseWindowsForms>true</UseWindowsForms>
-    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
-    <Title>Doyle Addin</Title>
-	  <Version>$(GitVersion_FullSemVer)</Version>
-	  <GetAssemblyVersion>$(GitVersion_AssemblySemVer)</GetAssemblyVersion>
-	  <FileVersion>$(GitVersion_AssemblySemFileVer)</FileVersion>
-    <Description>Doyle Addin for print and dxf updates</Description>
-    <Company>Autodesk, Inc.</Company>
-    <Product>Autodesk Inventor</Product>
-    <Copyright>Copyright ©2024 Autodesk, Inc.</Copyright>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DocumentationFile>.xml</DocumentationFile>
-    <NoWarn>42016,42017,42018,42019,42032,42353,42354,42355</NoWarn>
-    <RegisterForComInterop>False</RegisterForComInterop>
-    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-	  <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <OutputPath>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin</OutputPath>
-	</PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DocumentationFile>.xml</DocumentationFile>
-    <DefineDebug>false</DefineDebug>
-    <NoWarn>42016,42017,42018,42019,42032,42353,42354,42355</NoWarn>
-    <DebugType>none</DebugType>
-    <RegisterForComInterop>False</RegisterForComInterop>
-    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-	  <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <OutputPath>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup>
-    <EnableDefaultItems>false</EnableDefaultItems>
-    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-    <PackageReadmeFile>Readme.md</PackageReadmeFile>
-    <ImportedNamespaces>Docnet.Core=False,Microsoft.VisualBasic=True,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,System.Xml.Linq=True,System.Threading.Tasks=True,Doyle Addin=True</ImportedNamespaces>
-    <NeutralLanguage>en</NeutralLanguage>
-    <RepositoryType>github</RepositoryType>
-    <RepositoryUrl>https://github.com/Bmassner/Doyle-AddIn</RepositoryUrl>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Update="System">
-      <Name>System</Name>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="dxfUpdate.vb" />
-    <Compile Include="GlobalsHelpers.vb" />
-    <Compile Include="My Project\Settings.Designer.vb">
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
-    <Compile Include="PDFToJPG.vb" />
-    <Compile Include="PictureConverter.vb" />
-    <Compile Include="printUpdate.vb" />
-    <Compile Include="StandardAddInServer.vb" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AssemblyInfo.vb" />
-    <Compile Include="Options\UserOptions.vb" />
-    <Compile Include="Options\UserOptionsForm.Designer.vb" />
-    <Compile Include="Options\UserOptionsForm.vb" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\Readme.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Include="My Project\Application.myapp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="DoylePlugin.manifest" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Autodesk.DoyleAddin.Inventor.addin">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="My Project\Settings.settings">
-      <CustomToolNamespace>My</CustomToolNamespace>
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
-    </None>
-    <EmbeddedResource Include="Resources\PrintUpdateIcon.svg" />
-    <EmbeddedResource Include="Resources\DXFUpdateIcon.svg" />
-    <EmbeddedResource Include="Options\UserOptionsForm.resx" />
-    <EmbeddedResource Include="Resources\SettingsIcon.svg" />
-    <None Include="Updater.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
-      <Visible>False</Visible>
-      <ProductName>Windows Installer 3.1</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <COMReference Include="stdole">
-      <Guid>{00020430-0000-0000-C000-000000000046}</Guid>
-      <VersionMajor>2</VersionMajor>
-      <VersionMinor>0</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>primary</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </COMReference>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Docnet.Core" Version="2.7.0-alpha.1">
-    </PackageReference>
-    <PackageReference Include="GitInfo" Version="3.5.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="GitVersion.MsBuild" Version="5.12.0">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Svg" Version="3.4.7" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Autodesk.Inventor.Interop">
-      <HintPath Condition="Exists('$(programfiles)\Autodesk\Inventor 2025\Bin')">$(programfiles)\Autodesk\Inventor 2025\Bin\Autodesk.Inventor.Interop.dll</HintPath>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-      <Private>True</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Import Include="Docnet.Core" />
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0-windows8.0</TargetFramework>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <OutputType>Library</OutputType>
+        <StartupObject>
+        </StartupObject>
+        <MyType>Windows</MyType>
+        <PublishUrl>http://localhost/InventorAddIn/</PublishUrl>
+        <Install>true</Install>
+        <InstallFrom>Web</InstallFrom>
+        <UpdateEnabled>true</UpdateEnabled>
+        <UpdateMode>Foreground</UpdateMode>
+        <UpdateInterval>7</UpdateInterval>
+        <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+        <UpdatePeriodically>false</UpdatePeriodically>
+        <UpdateRequired>false</UpdateRequired>
+        <MapFileExtensions>true</MapFileExtensions>
+        <ApplicationRevision>0</ApplicationRevision>
+        <IsWebBootstrapper>true</IsWebBootstrapper>
+        <UseApplicationTrust>false</UseApplicationTrust>
+        <BootstrapperEnabled>true</BootstrapperEnabled>
+        <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+        <UseWindowsForms>true</UseWindowsForms>
+        <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+        <Title>Doyle Addin</Title>
+        <Version>$(GitVersion_FullSemVer)</Version>
+        <GetAssemblyVersion>$(GitVersion_AssemblySemVer)</GetAssemblyVersion>
+        <FileVersion>$(GitVersion_AssemblySemFileVer)</FileVersion>
+        <Description>Doyle Addin for print and dxf updates</Description>
+        <Company>Autodesk, Inc.</Company>
+        <Product>Autodesk Inventor</Product>
+        <Copyright>Copyright ©2024 Autodesk, Inc.</Copyright>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <DocumentationFile>.xml</DocumentationFile>
+        <NoWarn>42016,42017,42018,42019,42032,42353,42354,42355</NoWarn>
+        <RegisterForComInterop>False</RegisterForComInterop>
+        <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+        <OutputPath>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin</OutputPath>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <DocumentationFile>.xml</DocumentationFile>
+        <DefineDebug>false</DefineDebug>
+        <NoWarn>42016,42017,42018,42019,42032,42353,42354,42355</NoWarn>
+        <DebugType>none</DebugType>
+        <RegisterForComInterop>False</RegisterForComInterop>
+        <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+        <OutputPath>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin</OutputPath>
+    </PropertyGroup>
+    <PropertyGroup>
+        <EnableDefaultItems>false</EnableDefaultItems>
+        <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+        <PackageReadmeFile>Readme.md</PackageReadmeFile>
+        <ImportedNamespaces>Docnet.Core=False,Microsoft.VisualBasic=True,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,System.Xml.Linq=True,System.Threading.Tasks=True,Doyle Addin=True</ImportedNamespaces>
+        <NeutralLanguage>en</NeutralLanguage>
+        <RepositoryType>github</RepositoryType>
+        <RepositoryUrl>https://github.com/Bmassner/Doyle-AddIn</RepositoryUrl>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Update="System">
+            <Name>System</Name>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="dxfUpdate.vb"/>
+        <Compile Include="GlobalsHelpers.vb"/>
+        <Compile Include="PDFToJPG.vb"/>
+        <Compile Include="PictureConverter.vb"/>
+        <Compile Include="printUpdate.vb"/>
+        <Compile Include="StandardAddInServer.vb"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="AssemblyInfo.vb"/>
+        <Compile Include="Options\UserOptions.vb"/>
+        <Compile Include="Options\UserOptionsForm.Designer.vb"/>
+        <Compile Include="Options\UserOptionsForm.vb"/>
+    </ItemGroup>
+    <ItemGroup>
+        <None Include="..\Readme.md">
+            <Pack>True</Pack>
+            <PackagePath>\</PackagePath>
+        </None>
+        <None Include="My Project\Application.myapp"/>
+    </ItemGroup>
+    <ItemGroup>
+        <None Include="DoylePlugin.manifest"/>
+    </ItemGroup>
+    <ItemGroup>
+        <None Include="Autodesk.DoyleAddin.Inventor.addin">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <EmbeddedResource Include="Resources\PrintUpdateIcon.svg"/>
+        <EmbeddedResource Include="Resources\DXFUpdateIcon.svg"/>
+        <EmbeddedResource Include="Options\UserOptionsForm.resx"/>
+        <EmbeddedResource Include="Resources\SettingsIcon.svg"/>
+        <None Include="Updater.bat">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+    <ItemGroup>
+        <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+            <Visible>False</Visible>
+            <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+            <Install>false</Install>
+        </BootstrapperPackage>
+        <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+            <Visible>False</Visible>
+            <ProductName>.NET Framework 3.5 SP1</ProductName>
+            <Install>true</Install>
+        </BootstrapperPackage>
+        <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+            <Visible>False</Visible>
+            <ProductName>Windows Installer 3.1</ProductName>
+            <Install>true</Install>
+        </BootstrapperPackage>
+    </ItemGroup>
+    <ItemGroup>
+        <COMReference Include="stdole">
+            <Guid>{00020430-0000-0000-C000-000000000046}</Guid>
+            <VersionMajor>2</VersionMajor>
+            <VersionMinor>0</VersionMinor>
+            <Lcid>0</Lcid>
+            <WrapperTool>primary</WrapperTool>
+            <Isolated>False</Isolated>
+            <EmbedInteropTypes>False</EmbedInteropTypes>
+        </COMReference>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Docnet.Core" Version="2.7.0-alpha.1">
+        </PackageReference>
+        <PackageReference Include="GitInfo" Version="3.5.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="GitVersion.MsBuild" Version="5.12.0">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Svg" Version="3.4.7"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Reference Include="Autodesk.Inventor.Interop">
+            <HintPath Condition="Exists('$(programfiles)\Autodesk\Inventor 2025\Bin')">$(programfiles)\Autodesk\Inventor 2025\Bin\Autodesk.Inventor.Interop.dll</HintPath>
+            <EmbedInteropTypes>False</EmbedInteropTypes>
+            <Private>True</Private>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup>
+        <Import Include="Docnet.Core"/>
+    </ItemGroup>
 </Project>
