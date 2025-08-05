@@ -7,6 +7,7 @@ Module dxfUpdate
         Dim oDef As SheetMetalComponentDefinition = oPartDoc.ComponentDefinition
         Dim oFactory As iPartFactory = oDef.iPartFactory
         Dim oRow As iPartTableRow
+        Dim failedExports As New List(Of String)
 
         'Check if part is a factory
         If oDef.IsiPartFactory = True Then
@@ -14,99 +15,109 @@ Module dxfUpdate
             'Go through all rows
             For Each oRow In oFactory.TableRows
                 oFactory.DefaultRow = oRow
+                'Debug
+                ' MsgBox(ThisApplication.ActiveDocument._SickNodesCount.ToString, MsgBoxStyle.OkOnly, "Sick Nodes")
+                ' MsgBox(ThisApplication.ActiveDocument._ComatoseNodesCount.ToString, MsgBoxStyle.OkOnly, "Comatose Nodes")
 
-                Dim partMaterial As String = oPartDoc.PropertySets.Item("Design Tracking Properties").Item("Material").Value.ToString
-                MsgBox(partMaterial)
-
-                Dim partAppearance As String = oPartDoc.ActiveAppearance.Name.ToString
-                MsgBox(partAppearance)
-
-                If oDef.FlatPattern.FlatBendResults.Count = 0 And (oDef.FlatPattern.RangeBox.MaxPoint.Z - oDef.FlatPattern.RangeBox.MinPoint.Z) > (oDef.Thickness.Value + 0.003) Then
-                    MsgBox("Invalid")
-                Else
-                    MsgBox("Valid")
-
-                End If
-
-                'Get part number
+                Dim memberDef As SheetMetalComponentDefinition = TryCast(oPartDoc.ComponentDefinition, SheetMetalComponentDefinition)
                 Dim PN As String = oPartDoc.PropertySets.Item("Design Tracking Properties").Item("Part Number").Value.ToString
-                'Set data write output format
-                Dim oFormat As String = "FLAT PATTERN DXF?AcadVersion=2018" _
-                    + "&BendDownLayer=DOWN&BendDownLayerColor=255;0;0" _
-                    + "&BendUpLayer=UP&BendUpLayerColor=255;0;0" _
-                    + "&OuterProfileLayer=OUTER&OuterProfileLayerColor=0;0;255" _
-                    + "&InteriorProfilesLayer=INNER&InteriorProfilesLayerColor=0;0;0" _
-                    + "&ArcCentersLayer=POINT&ArcCentersLayerColor=255;0;255" _
-                    + "&TangentLayer=RADIUS&TangentLayerColor=255;255;0"
-                'Set output path
-                Dim oFileName As String = "X:\" & PN & ".dxf"
+                Dim oFileName As String = UserOptions.Load.DXFExportLocation & PN & ".dxf"
 
-                'Make a flat pattern if one doesn't exist and refold
-
-                If oDef.HasFlatPattern = False Then
-                    Try
-
-                        oDef.Unfold()
-
-                        oDef.FlatPattern.ExitEdit()
-
-                    Catch ex As Exception
-
-                        MsgBox("Failed to create flat pattern")
-                        Return
-
-                    End Try
-
+                ' Check for comatose nodes
+                If oPartDoc._ComatoseNodesCount > 0 Then
+                    failedExports.Add("Broken feature detected for: " & PN)
+                    Continue For
                 End If
 
-                'Create dxf
+                If oPartDoc._SickNodesCount > 0 Then
+                    failedExports.Add("Potentally troublesome feature detected for: " & PN)
+                    Continue For
+                End If
+
+                ' Create flat pattern if missing
+                If Not memberDef.HasFlatPattern Then
+                    Try
+                        memberDef.Unfold()
+                        memberDef.FlatPattern.ExitEdit()
+                    Catch ex As Exception
+                        failedExports.Add("Failed to create flat pattern for: " & PN)
+                        Continue For
+                    End Try
+                End If
+
+                ' Validate flat pattern
+                If memberDef.FlatPattern.FlatBendResults.Count = 0 And
+                    (memberDef.FlatPattern.RangeBox.MaxPoint.Z - memberDef.FlatPattern.RangeBox.MinPoint.Z) > (memberDef.Thickness.Value + 0.003) Then
+                    failedExports.Add("Invalid flat pattern for: " & PN)
+                    Continue For
+                End If
+
+                ' Prepare output path and format
+                Dim oFormat As String = "FLAT PATTERN DXF?AcadVersion=2018" _
+                    & "&BendDownLayer=DOWN&BendDownLayerColor=255;0;0" _
+                    & "&BendUpLayer=UP&BendUpLayerColor=255;0;0" _
+                    & "&OuterProfileLayer=OUTER&OuterProfileLayerColor=0;0;255" _
+                    & "&InteriorProfilesLayer=INNER&InteriorProfilesLayerColor=0;0;0" _
+                    & "&ArcCentersLayer=POINT&ArcCentersLayerColor=255;0;255" _
+                    & "&TangentLayer=RADIUS&TangentLayerColor=255;255;0"
+
+                ' Export DXF
                 Try
-
-                    oDef.DataIO.WriteDataToFile(oFormat, oFileName)
-
+                    memberDef.DataIO.WriteDataToFile(oFormat, oFileName)
                 Catch ex As Exception
-
-                    MsgBox("DXF failed to generate")
-                    Return
-
+                    failedExports.Add("DXF failed to generate for: " & PN)
+                    Continue For
                 End Try
-
-
             Next
 
             'Reset to first member
             oRow = oFactory.TableRows.Item(1)
             oFactory.DefaultRow = oRow
             Dim Total As Integer = oFactory.TableRows.Count
-            MsgBox("Created " & Total)
+
+            If failedExports.Count > 0 Then
+                MsgBox(failedExports.Count & " Members have errors and were skipped." & vbCrLf & String.Join(vbCrLf, failedExports))
+            Else
+                MsgBox("Created " & Total & " DXFs. All exports succeeded.")
+            End If
         Else
-
+            'Debug
+            ' MsgBox(ThisApplication.ActiveDocument._SickNodesCount.ToString, MsgBoxStyle.OkOnly, "Sick Nodes")
+            ' MsgBox(ThisApplication.ActiveDocument._ComatoseNodesCount.ToString, MsgBoxStyle.OkOnly, "Comatose Nodes")
             'All same as above, for non-iparts
-
             Dim PN As String = oPartDoc.PropertySets.Item("Design Tracking Properties").Item("Part Number").Value.ToString
+            Dim oFileName As String = UserOptions.Load.DXFExportLocation & PN & ".dxf"
             Dim oFormat As String = "FLAT PATTERN DXF?AcadVersion=2018" _
-                    + "&BendDownLayer=DOWN&BendDownLayerColor=255;0;0" _
-                    + "&BendUpLayer=UP&BendUpLayerColor=255;0;0" _
-                    + "&OuterProfileLayer=OUTER&OuterProfileLayerColor=0;0;255" _
-                    + "&InteriorProfilesLayer=INNER&InteriorProfilesLayerColor=0;0;0" _
-                    + "&ArcCentersLayer=POINT&ArcCentersLayerColor=255;0;255" _
-                    + "&TangentLayer=RADIUS&TangentLayerColor=255;255;0"
+                        + "&BendDownLayer=DOWN&BendDownLayerColor=255;0;0" _
+                        + "&BendUpLayer=UP&BendUpLayerColor=255;0;0" _
+                        + "&OuterProfileLayer=OUTER&OuterProfileLayerColor=0;0;255" _
+                        + "&InteriorProfilesLayer=INNER&InteriorProfilesLayerColor=0;0;0" _
+                        + "&ArcCentersLayer=POINT&ArcCentersLayerColor=255;0;255" _
+                        + "&TangentLayer=RADIUS&TangentLayerColor=255;255;0"
 
-            Dim oFileName As String = "X:\" & PN & ".dxf"
+            ' Skip export if comatose nodes exist
+            If oPartDoc._ComatoseNodesCount > 0 Or oPartDoc._SickNodesCount > 0 Then
+                MsgBox(oPartDoc.DisplayName & " has errors, fix before export." & vbCrLf & String.Join(vbCrLf, failedExports))
+                Return
+            End If
 
             If oDef.HasFlatPattern = False Then
-                oDef.Unfold()
-                oDef.FlatPattern.ExitEdit()
+                Try
+                    oDef.Unfold()
+                    oDef.FlatPattern.ExitEdit()
+                Catch ex As Exception
+                    MsgBox("Failed to create flat pattern", MsgBoxStyle.OkOnly, "Error")
+                    Return
+                End Try
             End If
 
             Try
                 oDef.DataIO.WriteDataToFile(oFormat, oFileName)
             Catch ex As Exception
-                MsgBox("Check to see if you are connected to the X Drive and try again")
+                MsgBox("DXF failed to generate. Check connection to X drive", MsgBoxStyle.OkOnly, "Error")
                 Return
             End Try
         End If
-
     End Sub
 
 End Module
