@@ -6,15 +6,10 @@ Imports System.Runtime.InteropServices
 Imports Docnet.Core.Models
 
 
-Public Module PDFToImage
-    ''' <summary>
-    ''' Converts the first page of a PDF to a JPEG image using Docnet.Core, with a white background.
-    ''' </summary>
-    ''' <param name="pdfFilePath">The path to the input PDF file.</param>
-    ''' <param name="imageFilePath">The path to the output image file.</param>
+Public Module PdfToImage
     Public Sub ExportFirstPageAsImage(pdfFilePath As String, imageFilePath As String)
-        Dim originalPath As String = Environment.GetEnvironmentVariable("C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin")
-        Dim nativeDllPath As String = "C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\runtimes\win-x64\native"
+        Environment.GetEnvironmentVariable("C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin")
+        Dim nativeDllPath = "C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\runtimes\win-x64\native"
         Dim fullOriginalPath As String = Environment.GetEnvironmentVariable("PATH")
 
         Try
@@ -33,7 +28,7 @@ Public Module PDFToImage
                 Environment.SetEnvironmentVariable("PATH", nativeDllPath & ";" & fullOriginalPath)
 
                 ' Set desired DPI or pixel dimensions
-                Dim dpi As Integer = 3200
+                Const dpi = 3200
 
                 Using docReader = DocLib.Instance.GetDocReader(pdfFilePath, New PageDimensions(dpi, dpi))
                     Using pageReader = docReader.GetPageReader(0)
@@ -43,7 +38,8 @@ Public Module PDFToImage
 
                         ' Create a bitmap from the raw BGRA bytes
                         Using bmp As New Bitmap(width, height, PixelFormat.Format32bppArgb)
-                            Dim bmpData = bmp.LockBits(New Rectangle(0, 0, width, height), Imaging.ImageLockMode.WriteOnly, bmp.PixelFormat)
+                            Dim bmpData = bmp.LockBits(New Rectangle(0, 0, width, height), ImageLockMode.WriteOnly,
+                                                       bmp.PixelFormat)
                             Marshal.Copy(rawBytes, 0, bmpData.Scan0, rawBytes.Length)
                             bmp.UnlockBits(bmpData)
 
