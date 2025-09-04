@@ -28,6 +28,9 @@ Module DxfUpdate
 					failedExports.Add("Failed to create flat pattern for: " & pn)
 				End Try
 			End If
+			If Directory.Exists(oFactory.MemberCacheDir) = False Then
+				Directory.CreateDirectory(oFactory.MemberCacheDir)
+			End If
 			Dim partFiles As String() = Directory.GetFiles(oFactory.MemberCacheDir)
 
 			If total > partFiles.Length Then
