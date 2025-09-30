@@ -9,15 +9,14 @@ Imports IPictureDisp = stdole.IPictureDisp
 Imports File = System.IO.File
 
 
-<ProgId("Test2.StandardAddInServer"),
-	GuidAttribute("513b9d7e-103e-4569-8eb5-ab3929cd33ad")>
+<ProgId("Test2.StandardAddInServer"), GuidAttribute("513b9d7e-103e-4569-8eb5-ab3929cd33ad")>
 Public Class StandardAddInServer
 	Implements ApplicationAddInServer
 
-	Private WithEvents _uiEvents As UserInterfaceEvents
-	Private WithEvents _dxfUpdate As ButtonDefinition
-	Private WithEvents _printUpdate As ButtonDefinition
-	Private WithEvents _optionsButton As ButtonDefinition
+	Private WithEvents uiEvents As UserInterfaceEvents
+	Private WithEvents dxfUpdate As ButtonDefinition
+	Private WithEvents printUpdate As ButtonDefinition
+	Private WithEvents optionsButton As ButtonDefinition
 
 #Region "ApplicationAddInServer Members"
 
@@ -44,31 +43,49 @@ Public Class StandardAddInServer
 			Case "LightTheme", "DarkTheme"
 				Dim themeSuffix As String = If(oTheme.Name = "LightTheme", "Light", "Dark")
 				Dim iconSizes = {16, 32}
-				Dim icons = { _
-					            New With {.Name = "PrintUpdate", .Icon = "Doyle_Addin.PrintUpdateIcon.svg"},
-					            New With {.Name = "DXFUpdate", .Icon = "Doyle_Addin.DXFUpdateIcon.svg"},
-					            New With {.Name = "Settings", .Icon = "Doyle_Addin.SettingsIcon.svg"}
-				            }
+				Dim icons =
+					    {New With {.Name = "PrintUpdate", .Icon = "Doyle_Addin.PrintUpdateIcon.svg"},
+					     New With {.Name = "DXFUpdate", .Icon = "Doyle_Addin.DXFUpdateIcon.svg"},
+					     New With {.Name = "Settings", .Icon = "Doyle_Addin.SettingsIcon.svg"}}
 
 				For Each icon In icons
-					Dim largeIcon As IPictureDisp = PictureConverter.SvgResourceToPictureDisp(icon.Icon, iconSizes(1),
-					                                                                          iconSizes(1), themeSuffix)
-					Dim smallIcon As IPictureDisp = PictureConverter.SvgResourceToPictureDisp(icon.Icon, iconSizes(0),
-					                                                                          iconSizes(0), themeSuffix)
+					Dim largeIcon As IPictureDisp = PictureConverter.SvgResourceToPictureDisp(icon.Icon,
+					                                                                          iconSizes(1),
+					                                                                          iconSizes(1),
+					                                                                          themeSuffix)
+					Dim smallIcon As IPictureDisp = PictureConverter.SvgResourceToPictureDisp(icon.Icon,
+					                                                                          iconSizes(0),
+					                                                                          iconSizes(0),
+					                                                                          themeSuffix)
 
 					Select Case icon.Name
 						Case "PrintUpdate"
-							_printUpdate = controlDefs.AddButtonDefinition("Print Update", "printUpdate",
-							                                               CommandTypesEnum.kShapeEditCmdType,
-							                                               AddInClientId, , , smallIcon, largeIcon)
+							printUpdate = controlDefs.AddButtonDefinition("Print Update",
+							                                              "printUpdate",
+							                                              CommandTypesEnum.kShapeEditCmdType,
+							                                              AddInClientId,
+							                                              ,
+							                                              ,
+							                                              smallIcon,
+							                                              largeIcon)
 						Case "DXFUpdate"
-							_dxfUpdate = controlDefs.AddButtonDefinition("DXF Update", "dxfUpdate",
-							                                             CommandTypesEnum.kShapeEditCmdType,
-							                                             AddInClientId, , , smallIcon, largeIcon)
+							dxfUpdate = controlDefs.AddButtonDefinition("DXF Update",
+							                                            "dxfUpdate",
+							                                            CommandTypesEnum.kShapeEditCmdType,
+							                                            AddInClientId,
+							                                            ,
+							                                            ,
+							                                            smallIcon,
+							                                            largeIcon)
 						Case "Settings"
-							_optionsButton = controlDefs.AddButtonDefinition("Export Options", "userOptions",
-																			 CommandTypesEnum.kNonShapeEditCmdType,
-																			 AddInClientId, , , smallIcon, largeIcon)
+							optionsButton = controlDefs.AddButtonDefinition("Export Options",
+							                                                "userOptions",
+							                                                CommandTypesEnum.kNonShapeEditCmdType,
+							                                                AddInClientId,
+							                                                ,
+							                                                ,
+							                                                smallIcon,
+							                                                largeIcon)
 					End Select
 				Next
 		End Select
@@ -79,7 +96,7 @@ Public Class StandardAddInServer
 		End If
 
 		' Connect to the user-interface events to handle a ribbon reset.
-		_uiEvents = ThisApplication.UserInterfaceManager.UserInterfaceEvents
+		uiEvents = ThisApplication.UserInterfaceManager.UserInterfaceEvents
 
 		' Ensure the option file exists with default values if it doesn't exist
 		If Not File.Exists(UserOptions.OptionsFilePath) Then
@@ -109,18 +126,19 @@ Public Class StandardAddInServer
 			Dim localVerObj As New Version(localVersion)
 			Dim latestVerObj As New Version(latestVersion)
 			If latestVerObj > localVerObj Then
-				Dim result = MessageBox.Show(
-					$"A new version of the Doyle AddIn is available ({latestVersion}) . Update now?",
-					"Update Available",
-					MessageBoxButtons.YesNo,
-					MessageBoxIcon.Question)
+				Dim result = MessageBox.Show($"A new version of the Doyle AddIn is available ({latestVersion}) . Update now?",
+				                             "Update Available",
+				                             MessageBoxButtons.YesNo,
+				                             MessageBoxIcon.Question)
 				If result = DialogResult.Yes Then
 					File.WriteAllText("C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt", "update")
 					ThisApplication.Quit()
 				Else
 					File.WriteAllText("C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt", "update")
-					MessageBox.Show("The update will be installed after you close Inventor.", "Update Scheduled",
-					                MessageBoxButtons.OK, MessageBoxIcon.Information)
+					MessageBox.Show("The update will be installed after you close Inventor.",
+					                "Update Scheduled",
+					                MessageBoxButtons.OK,
+					                MessageBoxIcon.Information)
 				End If
 			Else
 				' System.Windows.Forms.MessageBox.Show("You are running the latest version.", "Debug")
@@ -150,7 +168,7 @@ Public Class StandardAddInServer
 	Public Sub Deactivate() Implements ApplicationAddInServer.Deactivate
 
 		' Release objects.
-		_uiEvents = Nothing
+		uiEvents = Nothing
 		ThisApplication = Nothing
 
 		' Check for pending update marker
@@ -217,18 +235,16 @@ Public Class StandardAddInServer
 		' Define button configurations with document type specificity
 		' DXF button only appears on Part documents
 		Dim dxfButtonConfigs = New List(Of Tuple(Of String, String, ButtonDefinition, String())) From {
-			    Tuple.Create("id_TabSheetMetal", "dxfUpdate", _dxfUpdate,
-			                 Item4),
-			    Tuple.Create("id_TabFlatPattern", "dxfUpdate", _dxfUpdate, Item4Array3),
-			    Tuple.Create("id_TabTools", "dxfUpdate", _dxfUpdate, Item4Array2)
+			    Tuple.Create("id_TabSheetMetal", "dxfUpdate", dxfUpdate, Item4),
+			    Tuple.Create("id_TabFlatPattern", "dxfUpdate", dxfUpdate, Item4Array3),
+			    Tuple.Create("id_TabTools", "dxfUpdate", dxfUpdate, Item4Array2)
 			    }
 
 		' Option button appears on all document types
 		Dim optionsButtonConfigs = New List(Of Tuple(Of String, String, ButtonDefinition, String())) From {
-			    Tuple.Create("id_TabPlaceViews", "printUpdate", _printUpdate, Item4Array1),
-			    Tuple.Create("id_TabAnnotate", "printUpdate", _printUpdate, Item4Array0),
-			    Tuple.Create("id_TabTools", "userOptions", _optionsButton,
-			                 Item4Array)
+			    Tuple.Create("id_TabPlaceViews", "printUpdate", printUpdate, Item4Array1),
+			    Tuple.Create("id_TabAnnotate", "printUpdate", printUpdate, Item4Array0),
+			    Tuple.Create("id_TabTools", "userOptions", optionsButton, Item4Array)
 			    }
 
 		' Add buttons to appropriate ribbons based on document context
@@ -236,7 +252,7 @@ Public Class StandardAddInServer
 			Dim ribbonName = kvp.Key
 			Dim ribbon = kvp.Value
 
-			' Add DXF button only to Part ribbon
+			' Add the DXF button only to Part ribbon
 			If ribbonName = "Part" Then
 				For Each config In dxfButtonConfigs
 					Dim tabName = config.Item1
@@ -248,7 +264,7 @@ Public Class StandardAddInServer
 				Next
 			End If
 
-			' Add Options button to all ribbons
+			' Add an Options button to all ribbons
 			For Each config In optionsButtonConfigs
 				Dim tabName = config.Item1
 				Dim panelName = config.Item2
@@ -261,8 +277,11 @@ Public Class StandardAddInServer
 	End Sub
 
 	' Helper method to add a button to specific ribbon with fallback handling
-	Private Shared Sub AddButtonToRibbon(ribbon As Ribbon, tabName As String, panelName As String,
-	                                     buttonDef As ButtonDefinition, fallbackPanels As String())
+	Private Shared Sub AddButtonToRibbon(ribbon As Ribbon,
+	                                     tabName As String,
+	                                     panelName As String,
+	                                     buttonDef As ButtonDefinition,
+	                                     fallbackPanels As String())
 		Try
 			' Get the tab
 			Dim tab As RibbonTab = ribbon.RibbonTabs.Item(tabName)
@@ -295,28 +314,27 @@ Public Class StandardAddInServer
 
 		Catch ex As Exception
 			' Log specific errors for debugging
-			Debug.Print(
-				$"Failed to add button '{buttonDef.DisplayName}' to tab '{tabName}' in ribbon '{ribbon.InternalName}': { _
+			Debug.Print($"Failed to add button '{buttonDef.DisplayName}' to tab '{tabName}' in ribbon '{ribbon.InternalName}': { _
 				           ex.Message}")
 		End Try
 	End Sub
 
-	Private Sub UiEvents_OnResetRibbonInterface(context As NameValueMap) Handles _uiEvents.OnResetRibbonInterface
+	Private Sub UiEvents_OnResetRibbonInterface(context As NameValueMap) Handles uiEvents.OnResetRibbonInterface
 		' The ribbon was reset, so add back the add-ins user-interface.
 		AddToUserInterface()
 	End Sub
 
 	' Sample handler for the button.
-	Private Shared Sub DXFUpdate_OnExecute(context As NameValueMap) Handles _dxfUpdate.OnExecute
+	Private Shared Sub DXFUpdate_OnExecute(context As NameValueMap) Handles dxfUpdate.OnExecute
 		Call Sub() RunDxfUpdate(ThisApplication)
 		'Call Sub() userName()
 	End Sub
 
-	Private Shared Sub PrintUpdate_OnExecute(context As NameValueMap) Handles _printUpdate.OnExecute
+	Private Shared Sub PrintUpdate_OnExecute(context As NameValueMap) Handles printUpdate.OnExecute
 		Call Sub() RunPrintUpdate(ThisApplication)
 	End Sub
 
-	Private Shared Sub OptionsButton_OnExecute(context As NameValueMap) Handles _optionsButton.OnExecute
+	Private Shared Sub OptionsButton_OnExecute(context As NameValueMap) Handles optionsButton.OnExecute
 		Dim optionsForm As New UserOptionsForm()
 		optionsForm.ShowDialog(New WindowWrapper(ThisApplication.MainFrameHWND))
 	End Sub
@@ -354,8 +372,7 @@ Public Module Globals
 			Me.Handle = handle
 		End Sub
 
-		Public ReadOnly Property Handle As IntPtr _
-			Implements IWin32Window.Handle
+		Public ReadOnly Property Handle As IntPtr Implements IWin32Window.Handle
 	End Class
 
 #End Region
