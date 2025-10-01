@@ -67,6 +67,9 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="..\Optional Features\ObsoletePrint.vb">
+            <Link>Optional Features\ObsoletePrint.vb</Link>
+        </Compile>
         <Compile Include="dxfUpdate.vb"/>
         <Compile Include="GlobalsHelpers.vb"/>
         <Compile Include="PDFToJPG.vb"/>
@@ -94,10 +97,14 @@
         <None Include="Autodesk.DoyleAddin.Inventor.addin">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <EmbeddedResource Include="Resources\ObsoletePrint.svg"/>
         <EmbeddedResource Include="Resources\PrintUpdateIcon.svg"/>
         <EmbeddedResource Include="Resources\DXFUpdateIcon.svg"/>
         <EmbeddedResource Include="Options\UserOptionsForm.resx"/>
         <EmbeddedResource Include="Resources\SettingsIcon.svg"/>
+        <None Include="Resources\ObsoleteLibrary.idw">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
         <None Include="Updater.bat">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>

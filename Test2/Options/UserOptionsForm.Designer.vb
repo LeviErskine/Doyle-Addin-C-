@@ -36,10 +36,13 @@
             DXFExportLocationButton = New System.Windows.Forms.Button()
             BtnCncl = New System.Windows.Forms.Button()
             SCBackground = New System.Windows.Forms.Panel()
+            FeaturesPanel = New System.Windows.Forms.Panel()
+            ChkObsoletePrint = New System.Windows.Forms.CheckBox()
             PrintText = New System.Windows.Forms.Label()
             DXFText = New System.Windows.Forms.Label()
             Destinationbackground.SuspendLayout()
             SCBackground.SuspendLayout()
+            FeaturesPanel.SuspendLayout()
             SuspendLayout()
             ' 
             ' PrintText
@@ -69,7 +72,7 @@
             FutureMsg.Font = New System.Drawing.Font("Tahoma", 12.0F, Drawing.FontStyle.Regular, Drawing.GraphicsUnit.Point, CByte(0))
             FutureMsg.ForeColor = Drawing.Color.White
             FutureMsg.HideSelection = False
-            FutureMsg.Location = New System.Drawing.Point(3, 65)
+            FutureMsg.Location = New System.Drawing.Point(3, 102)
             FutureMsg.Name = "FutureMsg"
             FutureMsg.ReadOnly = True
             FutureMsg.Size = New System.Drawing.Size(344, 20)
@@ -203,20 +206,45 @@
             SCBackground.Controls.Add(BtnSave)
             SCBackground.Controls.Add(BtnCncl)
             SCBackground.Dock = System.Windows.Forms.DockStyle.Bottom
-            SCBackground.Font = New System.Drawing.Font("Tahoma", 9.0F, Drawing.FontStyle.Regular, Drawing.GraphicsUnit.Point, CByte(0))
-            SCBackground.Location = New System.Drawing.Point(3, 85)
+            SCBackground.Font = New System.Drawing.Font("Tahoma", 9F, Drawing.FontStyle.Regular, Drawing.GraphicsUnit.Point, CByte(0))
+            SCBackground.Location = New System.Drawing.Point(3, 122)
             SCBackground.Name = "SCBackground"
             SCBackground.Padding = New System.Windows.Forms.Padding(3)
             SCBackground.Size = New System.Drawing.Size(344, 37)
             SCBackground.TabIndex = 13
             ' 
+            ' FeaturesPanel
+            ' 
+            FeaturesPanel.Controls.Add(ChkObsoletePrint)
+            FeaturesPanel.Dock = System.Windows.Forms.DockStyle.Top
+            FeaturesPanel.Font = New System.Drawing.Font("Tahoma", 9F)
+            FeaturesPanel.Location = New System.Drawing.Point(3, 66)
+            FeaturesPanel.Name = "FeaturesPanel"
+            FeaturesPanel.Padding = New System.Windows.Forms.Padding(8, 5, 3, 3)
+            FeaturesPanel.Size = New System.Drawing.Size(344, 36)
+            FeaturesPanel.TabIndex = 14
+            ' 
+            ' ChkObsoletePrint
+            ' 
+            ChkObsoletePrint.AutoSize = True
+            ChkObsoletePrint.Dock = System.Windows.Forms.DockStyle.Top
+            ChkObsoletePrint.Location = New System.Drawing.Point(8, 5)
+            ChkObsoletePrint.Name = "ChkObsoletePrint"
+            ChkObsoletePrint.Size = New System.Drawing.Size(333, 18)
+            ChkObsoletePrint.TabIndex = 0
+            ChkObsoletePrint.Text = "Enable Obsolete Print"
+            ChkObsoletePrint.UseVisualStyleBackColor = True
+            ' 
             ' UserOptionsForm
             ' 
-            AutoScaleDimensions = New System.Drawing.SizeF(6.0F, 13.0F)
+            AcceptButton = BtnSave
+            AutoScaleDimensions = New System.Drawing.SizeF(6F, 13F)
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
             BackColor = Drawing.Color.FromArgb(CByte(59), CByte(68), CByte(83))
-            ClientSize = New System.Drawing.Size(350, 125)
+            CancelButton = BtnCncl
+            ClientSize = New System.Drawing.Size(350, 162)
             Controls.Add(FutureMsg)
+            Controls.Add(FeaturesPanel)
             Controls.Add(Destinationbackground)
             Controls.Add(SCBackground)
             Font = New System.Drawing.Font("Tahoma", 8.25F, Drawing.FontStyle.Regular, Drawing.GraphicsUnit.Point, CByte(0))
@@ -229,6 +257,8 @@
             Destinationbackground.ResumeLayout(False)
             Destinationbackground.PerformLayout()
             SCBackground.ResumeLayout(False)
+            FeaturesPanel.ResumeLayout(False)
+            FeaturesPanel.PerformLayout()
             ResumeLayout(False)
             PerformLayout()
         End Sub
@@ -245,5 +275,7 @@
         Friend WithEvents FutureMsg As System.Windows.Forms.TextBox
         Friend WithEvents BtnCncl As System.Windows.Forms.Button
         Friend WithEvents SCBackground As System.Windows.Forms.Panel
+        Friend WithEvents FeaturesPanel As System.Windows.Forms.Panel
+        Friend WithEvents ChkObsoletePrint As System.Windows.Forms.CheckBox
     End Class
 End NameSpace
