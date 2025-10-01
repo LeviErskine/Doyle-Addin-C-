@@ -15,6 +15,7 @@ Namespace Options
 			options = UserOptions.Load()
 			PEXLoc.Text = options.PrintExportLocation
 			DXFexLoc.Text = options.DxfExportLocation
+			ChkObsoletePrint.Checked = options.EnableObsoletePrint
 
 			' Apply theme colors
 			ApplyThemeColors()
@@ -45,14 +46,23 @@ Namespace Options
 				SCBackground.BackColor = Color.FromArgb(CByte(245), CByte(245), CByte(245))
 				BtnCncl.FlatAppearance.MouseOverBackColor = Color.White
 				BtnCncl.FlatAppearance.BorderColor = Color.FromArgb(CByte(186), CByte(186), CByte(186))
+				FeaturesPanel.BackColor = Color.FromArgb(CByte(245), CByte(245), CByte(245))
+				ChkObsoletePrint.BackColor = Color.FromArgb(CByte(245), CByte(245), CByte(245))
+				ChkObsoletePrint.ForeColor = Color.Black
 			Else
+				' Dark theme colors (keep existing dark theme as default)
+				FeaturesPanel.BackColor = Color.FromArgb(CByte(59), CByte(68), CByte(83))
+				ChkObsoletePrint.BackColor = Color.FromArgb(CByte(59), CByte(68), CByte(83))
+				ChkObsoletePrint.ForeColor = Color.White
 			End If
 		End Sub
 
 		Private Sub BtnSave_Click(sender As Object, e As EventArgs) Handles BtnSave.Click
 			options.PrintExportLocation = PEXLoc.Text
 			options.DxfExportLocation = DXFexLoc.Text
+			options.EnableObsoletePrint = ChkObsoletePrint.Checked
 			options.Save()
+			DialogResult = DialogResult.OK
 			Close()
 		End Sub
 
@@ -74,6 +84,7 @@ Namespace Options
 		End Sub
 
 		Private Sub BtnCncl_Click(sender As Object, e As EventArgs) Handles BtnCncl.Click
+			DialogResult = DialogResult.Cancel
 			Close()
 		End Sub
 	End Class

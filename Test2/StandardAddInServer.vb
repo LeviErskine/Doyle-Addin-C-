@@ -17,6 +17,7 @@ Public Class StandardAddInServer
 	Private WithEvents dxfUpdate As ButtonDefinition
 	Private WithEvents printUpdate As ButtonDefinition
 	Private WithEvents optionsButton As ButtonDefinition
+	Private WithEvents obsoleteButton As ButtonDefinition
 
 #Region "ApplicationAddInServer Members"
 
@@ -44,9 +45,10 @@ Public Class StandardAddInServer
 				Dim themeSuffix As String = If(oTheme.Name = "LightTheme", "Light", "Dark")
 				Dim iconSizes = {16, 32}
 				Dim icons =
-					    {New With {.Name = "PrintUpdate", .Icon = "Doyle_Addin.PrintUpdateIcon.svg"},
-					     New With {.Name = "DXFUpdate", .Icon = "Doyle_Addin.DXFUpdateIcon.svg"},
-					     New With {.Name = "Settings", .Icon = "Doyle_Addin.SettingsIcon.svg"}}
+					    {New With {.Name = "PrintUpdate", .Icon = "Doyle_Addin.PrintUpdateIcon.svg", .InternalName = "printUpdate"},
+					     New With {.Name = "DXFUpdate", .Icon = "Doyle_Addin.DXFUpdateIcon.svg", .InternalName = "dxfUpdate"},
+					     New With {.Name = "Settings", .Icon = "Doyle_Addin.SettingsIcon.svg", .InternalName = "userOptions"},
+					     New With {.Name = "ObsoletePrint", .Icon = "Doyle_Addin.ObsoletePrint.svg", .InternalName = "ObsoletePrint"}}
 
 				For Each icon In icons
 					Dim largeIcon As IPictureDisp = PictureConverter.SvgResourceToPictureDisp(icon.Icon,
@@ -58,9 +60,19 @@ Public Class StandardAddInServer
 					                                                                          iconSizes(0),
 					                                                                          themeSuffix)
 
+					' Try to remove the existing definition first if it exists
+					Try
+						Dim existingDef = controlDefs.Item(icon.InternalName)
+						If existingDef IsNot Nothing Then
+							existingDef.Delete()
+						End If
+					Catch
+						' Definition doesn't exist, which is fine
+					End Try
+
 					Select Case icon.Name
 						Case "PrintUpdate"
-							printUpdate = controlDefs.AddButtonDefinition("Print Update",
+							printUpdate = controlDefs.AddButtonDefinition("Print" & Chr(10) & "Update",
 							                                              "printUpdate",
 							                                              CommandTypesEnum.kShapeEditCmdType,
 							                                              AddInClientId,
@@ -69,7 +81,7 @@ Public Class StandardAddInServer
 							                                              smallIcon,
 							                                              largeIcon)
 						Case "DXFUpdate"
-							dxfUpdate = controlDefs.AddButtonDefinition("DXF Update",
+							dxfUpdate = controlDefs.AddButtonDefinition("DXF" & Chr(10) & "Update",
 							                                            "dxfUpdate",
 							                                            CommandTypesEnum.kShapeEditCmdType,
 							                                            AddInClientId,
@@ -78,7 +90,7 @@ Public Class StandardAddInServer
 							                                            smallIcon,
 							                                            largeIcon)
 						Case "Settings"
-							optionsButton = controlDefs.AddButtonDefinition("Export Options",
+							optionsButton = controlDefs.AddButtonDefinition("Options",
 							                                                "userOptions",
 							                                                CommandTypesEnum.kNonShapeEditCmdType,
 							                                                AddInClientId,
@@ -86,14 +98,22 @@ Public Class StandardAddInServer
 							                                                ,
 							                                                smallIcon,
 							                                                largeIcon)
+						Case "ObsoletePrint"
+							obsoleteButton = controlDefs.AddButtonDefinition("Obsolete" & Chr(10) & "Print",
+							                                                 "ObsoletePrint",
+							                                                 CommandTypesEnum.kNonShapeEditCmdType,
+							                                                 AddInClientId,
+							                                                 ,
+							                                                 ,
+							                                                 smallIcon,
+							                                                 largeIcon)
 					End Select
 				Next
 		End Select
 
-		' Add to the user interface if it's the first time.
-		If firstTime Then
-			AddToUserInterface()
-		End If
+		' Always add to the user interface (not just the first time)
+		' This ensures buttons appear when add-in is reloaded
+		AddToUserInterface()
 
 		' Connect to the user-interface events to handle a ribbon reset.
 		uiEvents = ThisApplication.UserInterfaceManager.UserInterfaceEvents
@@ -167,6 +187,39 @@ Public Class StandardAddInServer
 	' unloaded either manually by the user or when the Inventor session is terminated.
 	Public Sub Deactivate() Implements ApplicationAddInServer.Deactivate
 
+		' Clean up button definitions
+		Try
+			If printUpdate IsNot Nothing Then
+				printUpdate.Delete()
+				printUpdate = Nothing
+			End If
+		Catch
+		End Try
+
+		Try
+			If dxfUpdate IsNot Nothing Then
+				dxfUpdate.Delete()
+				dxfUpdate = Nothing
+			End If
+		Catch
+		End Try
+
+		Try
+			If optionsButton IsNot Nothing Then
+				optionsButton.Delete()
+				optionsButton = Nothing
+			End If
+		Catch
+		End Try
+
+		Try
+			If obsoleteButton IsNot Nothing Then
+				obsoleteButton.Delete()
+				obsoleteButton = Nothing
+			End If
+		Catch
+		End Try
+
 		' Release objects.
 		uiEvents = Nothing
 		ThisApplication = Nothing
@@ -206,12 +259,10 @@ Public Class StandardAddInServer
 	Private Shared ReadOnly Item4 As String() = New String() {"id_PanelP_SheetMetalManageUnfold"}
 	Private Shared ReadOnly Item4Array As String() = New String() {"id_PanelP_ToolsOptions", "Add-Ins"}
 	Private Shared ReadOnly Item4Array0 As String() = New String() {"Add-Ins"}
-	Private Shared ReadOnly Item4Array1 As String() = New String() {"Add-Ins"}
 	Private Shared ReadOnly Item4Array2 As String() = New String() {"id_PanelP_ToolsOptions"}
 	Private Shared ReadOnly Item4Array3 As String() = New String() {"id_PanelP_FlatPatternExit"}
+	Private Shared ReadOnly Item4Array4 As String() = New String() {"id_PanelD_AnnotateRevision"}
 
-	' Note:this method is now obsolete, you should use the 
-	' ControlDefinition functionality for implementing commands.
 	Public Sub ExecuteCommand(commandId As Integer) Implements ApplicationAddInServer.ExecuteCommand
 	End Sub
 
@@ -221,6 +272,9 @@ Public Class StandardAddInServer
 	' Sub where the user-interface creation is done.  This is called when
 	' the add-in loaded and also if the user interface is reset.
 	Private Sub AddToUserInterface()
+		' Load user options to check feature flags
+		Dim options = UserOptions.Load()
+
 		' Cache frequently used objects
 		Dim uiManager = ThisApplication.UserInterfaceManager
 
@@ -242,10 +296,16 @@ Public Class StandardAddInServer
 
 		' Option button appears on all document types
 		Dim optionsButtonConfigs = New List(Of Tuple(Of String, String, ButtonDefinition, String())) From {
-			    Tuple.Create("id_TabPlaceViews", "printUpdate", printUpdate, Item4Array1),
+			    Tuple.Create("id_TabPlaceViews", "printUpdate", printUpdate, Item4Array0),
 			    Tuple.Create("id_TabAnnotate", "printUpdate", printUpdate, Item4Array0),
 			    Tuple.Create("id_TabTools", "userOptions", optionsButton, Item4Array)
 			    }
+
+		' Obsolete Print button - only add if feature is enabled
+		Dim obsoletePrintConfigs = New List(Of Tuple(Of String, String, ButtonDefinition, String()))()
+		If options.EnableObsoletePrint Then
+			obsoletePrintConfigs.Add(Tuple.Create("id_TabAnnotate", "ObsoletePrint", obsoleteButton, Item4Array4))
+		End If
 
 		' Add buttons to appropriate ribbons based on document context
 		For Each kvp In ribbonMappings
@@ -264,7 +324,7 @@ Public Class StandardAddInServer
 				Next
 			End If
 
-			' Add an Options button to all ribbons
+			' Add Options buttons to all ribbons
 			For Each config In optionsButtonConfigs
 				Dim tabName = config.Item1
 				Dim panelName = config.Item2
@@ -273,6 +333,18 @@ Public Class StandardAddInServer
 
 				AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels)
 			Next
+
+			' Add the Obsolete Print button to Drawing ribbon only if enabled
+			If ribbonName = "Drawing" Then
+				For Each config In obsoletePrintConfigs
+					Dim tabName = config.Item1
+					Dim panelName = config.Item2
+					Dim buttonDef = config.Item3
+					Dim fallbackPanels = config.Item4
+
+					AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels)
+				Next
+			End If
 		Next
 	End Sub
 
@@ -309,34 +381,128 @@ Public Class StandardAddInServer
 				Next
 			End Try
 
-			' Add the button if a panel was found
-			panel?.CommandControls.AddButton(buttonDef, True)
+			' Check if the button already exists in this panel
+			If panel IsNot Nothing Then
+				Dim buttonExists As Boolean = False
+				For Each ctrl As CommandControl In panel.CommandControls
+					Try
+						' Add null checks before accessing properties
+						If _
+							ctrl IsNot Nothing AndAlso ctrl.ControlDefinition IsNot Nothing AndAlso buttonDef IsNot Nothing AndAlso
+							ctrl.ControlDefinition.InternalName = buttonDef.InternalName Then
+							buttonExists = True
+							Exit For
+						End If
+					Catch
+						' Skip this control if there's any issue
+						Continue For
+					End Try
+				Next
+
+				' Add the button only if it doesn't already exist
+				If Not buttonExists Then
+					panel.CommandControls.AddButton(buttonDef, True)
+				End If
+			End If
 
 		Catch ex As Exception
 			' Log specific errors for debugging
-			Debug.Print($"Failed to add button '{buttonDef.DisplayName}' to tab '{tabName}' in ribbon '{ribbon.InternalName}': { _
-				           ex.Message}")
+			Debug.Print($"Failed to add button '{If(buttonDef IsNot Nothing, buttonDef.DisplayName, "Unknown")}' to tab '{tabName _
+				           }' in ribbon '{ribbon.InternalName}': {ex.Message}")
 		End Try
 	End Sub
 
 	Private Sub UiEvents_OnResetRibbonInterface(context As NameValueMap) Handles uiEvents.OnResetRibbonInterface
-		' The ribbon was reset, so add back the add-ins user-interface.
 		AddToUserInterface()
 	End Sub
 
-	' Sample handler for the button.
 	Private Shared Sub DXFUpdate_OnExecute(context As NameValueMap) Handles dxfUpdate.OnExecute
 		Call Sub() RunDxfUpdate(ThisApplication)
-		'Call Sub() userName()
 	End Sub
 
 	Private Shared Sub PrintUpdate_OnExecute(context As NameValueMap) Handles printUpdate.OnExecute
 		Call Sub() RunPrintUpdate(ThisApplication)
 	End Sub
 
-	Private Shared Sub OptionsButton_OnExecute(context As NameValueMap) Handles optionsButton.OnExecute
+	Private Sub OptionsButton_OnExecute(context As NameValueMap) Handles optionsButton.OnExecute
 		Dim optionsForm As New UserOptionsForm()
-		optionsForm.ShowDialog(New WindowWrapper(ThisApplication.MainFrameHWND))
+		Dim result = optionsForm.ShowDialog(New WindowWrapper(ThisApplication.MainFrameHWND))
+
+		' Refresh the ribbon after options are saved
+		If result = DialogResult.OK Then
+			RefreshRibbon()
+		End If
+	End Sub
+
+	Private Sub ObsoleteButton_OnExecute(context As NameValueMap) Handles obsoleteButton.OnExecute
+		Call Sub() ApplyObsoletePrint(ThisApplication)
+	End Sub
+
+	' Helper method to refresh the ribbon UI
+	Private Sub RefreshRibbon()
+		Try
+			' Remove the obsolete print button from all ribbons first
+			RemoveObsoletePrintButton()
+
+			' Re-add buttons with updated settings
+			AddToUserInterface()
+
+			'			MessageBox.Show("Ribbon updated successfully. Changes are now active.",
+			'	"Settings Applied",
+			'MessageBoxButtons.OK,
+			'MessageBoxIcon.Information)'
+		Catch ex As Exception
+			'MessageBox.Show($"Error refreshing ribbon: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+		End Try
+	End Sub
+
+	' Helper method to remove the obsolete print button from ribbons
+	Private Sub RemoveObsoletePrintButton()
+		Try
+			Dim uiManager = ThisApplication.UserInterfaceManager
+			Dim ribbon = uiManager.Ribbons.Item("Drawing")
+
+			If ribbon IsNot Nothing Then
+				Try
+					Dim tab = ribbon.RibbonTabs.Item("id_TabAnnotate")
+					If tab IsNot Nothing Then
+						' Find all panels and remove the obsolete print button
+						For Each panel As RibbonPanel In tab.RibbonPanels
+							Dim controlsToRemove As New List(Of CommandControl)
+
+							' Collect controls to remove (with null checks)
+							For Each ctrl As CommandControl In panel.CommandControls
+								Try
+									If _
+										ctrl IsNot Nothing AndAlso ctrl.ControlDefinition IsNot Nothing AndAlso
+										ctrl.ControlDefinition.InternalName = "ObsoletePrint" Then
+										controlsToRemove.Add(ctrl)
+									End If
+								Catch
+									' Skip this control if there's any issue accessing it
+									Continue For
+								End Try
+							Next
+
+							' Remove collected controls
+							For Each ctrl In controlsToRemove
+								Try
+									ctrl.Delete()
+								Catch ex As Exception
+									Debug.Print($"Failed to delete control: {ex.Message}")
+								End Try
+							Next
+						Next
+					End If
+				Catch ex As Exception
+					' Button might not exist, continue
+					Debug.Print($"Could not remove button from Annotate tab: {ex.Message}")
+				End Try
+			End If
+		Catch ex As Exception
+			' Log error but don't show to the user during refresh
+			Debug.Print($"Error removing obsolete print button: {ex.Message}")
+		End Try
 	End Sub
 
 #End Region
