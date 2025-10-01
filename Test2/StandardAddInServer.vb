@@ -51,14 +51,10 @@ Public Class StandardAddInServer
 					     New With {.Name = "ObsoletePrint", .Icon = "Doyle_Addin.ObsoletePrint.svg", .InternalName = "ObsoletePrint"}}
 
 				For Each icon In icons
-					Dim largeIcon As IPictureDisp = PictureConverter.SvgResourceToPictureDisp(icon.Icon,
-					                                                                          iconSizes(1),
-					                                                                          iconSizes(1),
-					                                                                          themeSuffix)
-					Dim smallIcon As IPictureDisp = PictureConverter.SvgResourceToPictureDisp(icon.Icon,
-					                                                                          iconSizes(0),
-					                                                                          iconSizes(0),
-					                                                                          themeSuffix)
+					Dim largeIcon As IPictureDisp = PictureConverter.SvgResourceToPictureDisp _
+						    (icon.Icon, iconSizes(1), iconSizes(1), themeSuffix)
+					Dim smallIcon As IPictureDisp = PictureConverter.SvgResourceToPictureDisp _
+						    (icon.Icon, iconSizes(0), iconSizes(0), themeSuffix)
 
 					' Try to remove the existing definition first if it exists
 					Try
@@ -72,41 +68,38 @@ Public Class StandardAddInServer
 
 					Select Case icon.Name
 						Case "PrintUpdate"
-							printUpdate = controlDefs.AddButtonDefinition("Print" & Chr(10) & "Update",
-							                                              "printUpdate",
-							                                              CommandTypesEnum.kShapeEditCmdType,
-							                                              AddInClientId,
-							                                              ,
-							                                              ,
-							                                              smallIcon,
-							                                              largeIcon)
+							printUpdate = controlDefs.AddButtonDefinition _
+								("Print" & Chr(10) & "Update",
+								 "printUpdate",
+								 CommandTypesEnum.kShapeEditCmdType,
+								 AddInClientId,
+								 ,
+								 ,
+								 smallIcon,
+								 largeIcon)
 						Case "DXFUpdate"
-							dxfUpdate = controlDefs.AddButtonDefinition("DXF" & Chr(10) & "Update",
-							                                            "dxfUpdate",
-							                                            CommandTypesEnum.kShapeEditCmdType,
-							                                            AddInClientId,
-							                                            ,
-							                                            ,
-							                                            smallIcon,
-							                                            largeIcon)
+							dxfUpdate = controlDefs.AddButtonDefinition _
+								("DXF" & Chr(10) & "Update",
+								 "dxfUpdate",
+								 CommandTypesEnum.kShapeEditCmdType,
+								 AddInClientId,
+								 ,
+								 ,
+								 smallIcon,
+								 largeIcon)
 						Case "Settings"
-							optionsButton = controlDefs.AddButtonDefinition("Options",
-							                                                "userOptions",
-							                                                CommandTypesEnum.kNonShapeEditCmdType,
-							                                                AddInClientId,
-							                                                ,
-							                                                ,
-							                                                smallIcon,
-							                                                largeIcon)
+							optionsButton = controlDefs.AddButtonDefinition _
+								("Options", "userOptions", CommandTypesEnum.kNonShapeEditCmdType, AddInClientId, , , smallIcon, largeIcon)
 						Case "ObsoletePrint"
-							obsoleteButton = controlDefs.AddButtonDefinition("Obsolete" & Chr(10) & "Print",
-							                                                 "ObsoletePrint",
-							                                                 CommandTypesEnum.kNonShapeEditCmdType,
-							                                                 AddInClientId,
-							                                                 ,
-							                                                 ,
-							                                                 smallIcon,
-							                                                 largeIcon)
+							obsoleteButton = controlDefs.AddButtonDefinition _
+								("Obsolete" & Chr(10) & "Print",
+								 "ObsoletePrint",
+								 CommandTypesEnum.kNonShapeEditCmdType,
+								 AddInClientId,
+								 ,
+								 ,
+								 smallIcon,
+								 largeIcon)
 					End Select
 				Next
 		End Select
@@ -146,19 +139,21 @@ Public Class StandardAddInServer
 			Dim localVerObj As New Version(localVersion)
 			Dim latestVerObj As New Version(latestVersion)
 			If latestVerObj > localVerObj Then
-				Dim result = MessageBox.Show($"A new version of the Doyle AddIn is available ({latestVersion}) . Update now?",
-				                             "Update Available",
-				                             MessageBoxButtons.YesNo,
-				                             MessageBoxIcon.Question)
+				Dim result = MessageBox.Show _
+					    ($"A new version of the Doyle AddIn is available ({latestVersion}) . Update now?",
+					     "Update Available",
+					     MessageBoxButtons.YesNo,
+					     MessageBoxIcon.Question)
 				If result = DialogResult.Yes Then
 					File.WriteAllText("C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt", "update")
 					ThisApplication.Quit()
 				Else
 					File.WriteAllText("C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt", "update")
-					MessageBox.Show("The update will be installed after you close Inventor.",
-					                "Update Scheduled",
-					                MessageBoxButtons.OK,
-					                MessageBoxIcon.Information)
+					MessageBox.Show _
+						("The update will be installed after you close Inventor.",
+						 "Update Scheduled",
+						 MessageBoxButtons.OK,
+						 MessageBoxIcon.Information)
 				End If
 			Else
 				' System.Windows.Forms.MessageBox.Show("You are running the latest version.", "Debug")
@@ -349,11 +344,8 @@ Public Class StandardAddInServer
 	End Sub
 
 	' Helper method to add a button to specific ribbon with fallback handling
-	Private Shared Sub AddButtonToRibbon(ribbon As Ribbon,
-	                                     tabName As String,
-	                                     panelName As String,
-	                                     buttonDef As ButtonDefinition,
-	                                     fallbackPanels As String())
+	Private Shared Sub AddButtonToRibbon _
+		(ribbon As Ribbon, tabName As String, panelName As String, buttonDef As ButtonDefinition, fallbackPanels As String())
 		Try
 			' Get the tab
 			Dim tab As RibbonTab = ribbon.RibbonTabs.Item(tabName)
@@ -407,8 +399,9 @@ Public Class StandardAddInServer
 
 		Catch ex As Exception
 			' Log specific errors for debugging
-			Debug.Print($"Failed to add button '{If(buttonDef IsNot Nothing, buttonDef.DisplayName, "Unknown")}' to tab '{tabName _
-				           }' in ribbon '{ribbon.InternalName}': {ex.Message}")
+			Debug.Print _
+				($"Failed to add button '{If(buttonDef IsNot Nothing, buttonDef.DisplayName, "Unknown")}' to tab '{tabName _
+					}' in ribbon '{ribbon.InternalName}': {ex.Message}")
 		End Try
 	End Sub
 

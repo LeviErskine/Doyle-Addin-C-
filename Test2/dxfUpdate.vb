@@ -34,8 +34,8 @@ Module DxfUpdate
 			Dim partFiles As String() = Directory.GetFiles(oFactory.MemberCacheDir)
 
 			If total > partFiles.Length Then
-				Dim result As MsgBoxResult =
-					    MsgBox(
+				Dim result As MsgBoxResult = MsgBox _
+					    (
 						    "Warning: The factory has " & total & " members, but " & partFiles.Length &
 						    " files were found in the folder. Generate files?.",
 						    MsgBoxStyle.YesNo,
@@ -127,9 +127,10 @@ Module DxfUpdate
 				oDef.DataIO.WriteDataToFile(oFormat, oFileName)
 				MsgBox(oPartDoc.DisplayName & " exported successfully.", MsgBoxStyle.Information, "Success")
 			Catch ex As Exception
-				MsgBox("DXF failed to generate. Check connection to X drive" & vbCrLf & "Error: " & ex.Message,
-				       MsgBoxStyle.Critical,
-				       "Error")
+				MsgBox _
+					("DXF failed to generate. Check connection to X drive" & vbCrLf & "Error: " & ex.Message,
+					 MsgBoxStyle.Critical,
+					 "Error")
 			End Try
 		End If
 	End Sub

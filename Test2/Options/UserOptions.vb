@@ -10,8 +10,8 @@ Namespace Options
 		Public Property EnableObsoletePrint As Boolean = True
 
 		Public Shared ReadOnly _
-			OptionsFilePath As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-			                                         "DoyleAddinOptions.xml")
+			OptionsFilePath As String = Path.Combine _
+			(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DoyleAddinOptions.xml")
 
 		Public Sub Save()
 			Dim serializer As New XmlSerializer(GetType(UserOptions))

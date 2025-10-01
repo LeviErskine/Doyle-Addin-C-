@@ -29,7 +29,8 @@ Module PrintUpdate
 
 		fileName = pn & ".pdf"
 		Dim pdfPath As String = oFilePath & "\" & fileName
-		Dim oPdfAddin As TranslatorAddIn = thisApplication.ApplicationAddIns.ItemById("{0AC6FD96-2F4D-42CE-8BE0-8AEA580399E4}")
+		Dim oPdfAddin As TranslatorAddIn = thisApplication.ApplicationAddIns.ItemById _
+			    ("{0AC6FD96-2F4D-42CE-8BE0-8AEA580399E4}")
 		Dim oDocument As Document = thisApplication.ActiveDocument
 		Dim oContext As TranslationContext = thisApplication.TransientObjects.CreateTranslationContext
 		oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism
@@ -57,7 +58,7 @@ Module PrintUpdate
 		If refDocType = DocumentTypeEnum.kPartDocumentObject Then
 			Try
 				Const dpi = 3200
-				Dim pageCount
+				Dim pageCount as Integer
 				Try
 					Using docReader = DocLib.Instance.GetDocReader(pdfPath, New PageDimensions(dpi, dpi))
 						pageCount = docReader.GetPageCount()
