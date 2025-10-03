@@ -1,0 +1,14 @@
+<Addin Type="Standard">
+  <!--Created for Autodesk Inventor Version 29.0-->
+  <ClassId>{513b9d7e-103e-4569-8eb5-ab3929cd33ad}</ClassId>
+  <ClientId>{513b9d7e-103e-4569-8eb5-ab3929cd33ad}</ClientId>
+  <DisplayName>Doyle Addin</DisplayName>
+  <Description>Doyle Addin for print and dxf updates</Description>
+  <Assembly>Doyle Addin.dll</Assembly>
+  <LoadOnStartUp>1</LoadOnStartUp>
+  <UserUnloadable>1</UserUnloadable>
+  <Hidden>0</Hidden>
+  <SupportedSoftwareVersionGreaterThan>28..</SupportedSoftwareVersionGreaterThan>
+  <DataVersion>1</DataVersion>
+  <UserInterfaceVersion>1</UserInterfaceVersion>
+</Addin>

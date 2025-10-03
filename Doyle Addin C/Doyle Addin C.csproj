@@ -1,0 +1,85 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <RootNamespace>Doyle_Addin_C</RootNamespace>
+        <Nullable>enable</Nullable>
+        <UseWindowsForms>true</UseWindowsForms>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Description>Doyle Addin for print and dxf updates</Description>
+        <Company>Doyle MFG</Company>
+        <Product>Doyle Inventor Addin</Product>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <OutputPath>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\</OutputPath>
+      <DocumentationFile>.xml</DocumentationFile>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <OutputPath>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\</OutputPath>
+      <DebugType>none</DebugType>
+      <DocumentationFile>.xml</DocumentationFile>
+      <WarningLevel>1</WarningLevel>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Compile Include="dxfUpdate.vb" />
+      <Compile Include="GlobalsHelpers.vb" />
+      <Compile Include="My Project\AssemblyInfo.vb" />
+      <Compile Include="My Project\Resources.Designer.vb">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>Resources.resx</DependentUpon>
+      </Compile>
+      <Compile Include="My Project\Settings.Designer.vb">
+        <DesignTimeSharedInput>True</DesignTimeSharedInput>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>Settings.settings</DependentUpon>
+      </Compile>
+      <Compile Include="PDFToJPG.vb" />
+      <Compile Include="PictureConverter.vb" />
+      <Compile Include="printUpdate.vb" />
+      <Compile Include="StandardAddInServer.vb" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="My Project\Settings.settings">
+        <CustomToolNamespace>My</CustomToolNamespace>
+        <Generator>SettingsSingleFileGenerator</Generator>
+        <LastGenOutput>Settings.Designer.vb</LastGenOutput>
+      </None>
+      <None Include="..\Readme.md">
+        <Pack>True</Pack>
+        <PackagePath>\</PackagePath>
+        <Link>Readme.md</Link>
+      </None>
+      <None Update="My Project\Autodesk.DoyleAddin.Inventor.addin">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Update="My Project\Resources.resx">
+        <CustomToolNamespace>My.Resources</CustomToolNamespace>
+        <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+        <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+      </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Resource Include="Resources\DXFUpdateIconLarge.png">
+        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      </Resource>
+      <Resource Include="Resources\DXFUpdateIconSmall.png">
+        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      </Resource>
+      <Resource Include="Resources\PrintUpdateIconLarge.png">
+        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      </Resource>
+      <Resource Include="Resources\PrintUpdateIconSmall.png">
+        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      </Resource>
+    </ItemGroup>
+
+</Project>
