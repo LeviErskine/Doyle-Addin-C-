@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+        xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+        xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+        version="1.1"
+        id="svg1"
+        width="32"
+        height="32"
+        viewBox="0 0 32 32"
+        sodipodi:docname="ObsoletePrint.svg"
+        inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+        xml:space="preserve"
+        xmlns="http://www.w3.org/2000/svg"><sodipodi:namedview
+   id="namedview1"
+   pagecolor="#505050"
+   bordercolor="#eeeeee"
+   borderopacity="1"
+   inkscape:showpageshadow="0"
+   inkscape:pageopacity="0"
+   inkscape:pagecheckerboard="0"
+   inkscape:deskcolor="#505050"
+   showgrid="true"
+   inkscape:zoom="16"
+   inkscape:cx="12.96875"
+   inkscape:cy="17.96875"
+   inkscape:window-width="1920"
+   inkscape:window-height="1009"
+   inkscape:window-x="-8"
+   inkscape:window-y="-8"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="g1"><inkscape:grid
+     id="grid116"
+     units="px"
+     originx="0"
+     originy="0"
+     spacingx="1"
+     spacingy="1"
+     empcolor="#0099e5"
+     empopacity="0.30196078"
+     color="#0099e5"
+     opacity="0.14901961"
+     empspacing="5"
+     dotted="false"
+     gridanglex="30"
+     gridanglez="30"
+     visible="true" /></sodipodi:namedview>
+    <defs
+            id="defs1"><rect
+     x="0"
+     y="4"
+     width="25.5"
+     height="6.1455538"
+     id="rect8" />
+        <rect
+                x="0"
+                y="4"
+                width="32"
+                height="24"
+                id="rect7"/>
+        <inkscape:path-effect
+                effect="spiro"
+                id="path-effect14"
+                is_visible="true"
+                lpeversion="1"/>
+        <rect
+                x="0"
+                y="4"
+                width="25.5"
+                height="6.1455538"
+                id="rect8-1"/></defs>
+    <g
+            inkscape:groupmode="layer"
+            inkscape:label="Light"
+            id="g1"
+            style="display:inline"
+            transform="scale(0.125)">
+        <rect
+                style="fill:#666666;fill-opacity:1;stroke-width:4.2;stroke-miterlimit:21.5;paint-order:markers stroke fill"
+                id="rect15"
+                width="256"
+                height="192"
+                x="0"
+                y="32"/>
+        <rect
+                style="display:inline;fill:#f3f3f3;fill-opacity:1;stroke-width:4.2;stroke-miterlimit:21.5;paint-order:markers stroke fill"
+                id="rect14"
+                width="240"
+                height="176"
+                x="8"
+                y="40"/>
+        <rect
+                style="display:inline;fill:#666666;fill-opacity:1;stroke-width:4.2;stroke-miterlimit:21.5;paint-order:markers stroke fill"
+                id="rect13"
+                width="152"
+                height="64"
+                x="104"
+                y="160"/>
+        <rect
+                style="display:inline;fill:#f3f3f3;fill-opacity:1;stroke-width:4.2;stroke-miterlimit:21.5;paint-order:markers stroke fill"
+                id="rect9"
+                width="48"
+                height="24"
+                x="112"
+                y="168"/>
+        <rect
+                style="display:inline;fill:#f3f3f3;fill-opacity:1;stroke-width:4.2;stroke-miterlimit:21.5;paint-order:markers stroke fill"
+                id="rect10"
+                width="80"
+                height="24"
+                x="168"
+                y="168"/>
+        <rect
+                style="display:inline;fill:#f3f3f3;fill-opacity:1;stroke-width:4.2;stroke-miterlimit:21.5;paint-order:markers stroke fill"
+                id="rect11"
+                width="88"
+                height="16"
+                x="112"
+                y="200"/>
+        <rect
+                style="display:inline;fill:#f3f3f3;fill-opacity:1;stroke-width:4.2;stroke-miterlimit:21.5;paint-order:markers stroke fill"
+                id="rect12"
+                width="40"
+                height="16"
+                x="208"
+                y="200"/>
+        <text
+                xml:space="preserve"
+                transform="matrix(8.9273376,-6.1510586,6.116779,8.977368,-31.935701,145.00565)"
+                id="text7-2"
+                style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.33333px;font-family:Tahoma;-inkscape-font-specification:Tahoma;text-align:center;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect8-1);shape-padding:0;display:inline;fill:#ff0000;fill-opacity:1;stroke-width:0.525;stroke-miterlimit:21.5;paint-order:markers stroke fill"
+                inkscape:label="text7"
+                x="0"
+                y="0"><tspan
+     x="0.042976324"
+     y="8.8657588"
+     id="tspan2">OBSOLETE</tspan></text></g>
+    <g
+            inkscape:groupmode="layer"
+            inkscape:label="Dark"
+            id="g4"
+            style="display:inline"
+            transform="scale(0.125)">
+        <rect
+                style="fill:#d9d9d9;fill-opacity:1;stroke-width:4.2;stroke-miterlimit:21.5;paint-order:markers stroke fill"
+                id="rect1"
+                width="256"
+                height="192"
+                x="0"
+                y="32"/>
+        <rect
+                style="fill:#666666;fill-opacity:1;stroke-width:4.2;stroke-miterlimit:21.5;paint-order:markers stroke fill"
+                id="rect2"
+                width="152"
+                height="56"
+                x="104"
+                y="168"/>
+        <rect
+                style="fill:#d9d9d9;fill-opacity:1;stroke-width:4.2;stroke-miterlimit:21.5;paint-order:markers stroke fill"
+                id="rect3"
+                width="48"
+                height="24"
+                x="112"
+                y="176"/>
+        <rect
+                style="fill:#d9d9d9;fill-opacity:1;stroke-width:4.2;stroke-miterlimit:21.5;paint-order:markers stroke fill"
+                id="rect4"
+                width="88"
+                height="24"
+                x="168"
+                y="176"/>
+        <rect
+                style="fill:#d9d9d9;fill-opacity:1;stroke-width:4.2;stroke-miterlimit:21.5;paint-order:markers stroke fill"
+                id="rect5"
+                width="88"
+                height="16"
+                x="112"
+                y="208"/>
+        <rect
+                style="fill:#d9d9d9;fill-opacity:1;stroke-width:4.2;stroke-miterlimit:21.5;paint-order:markers stroke fill"
+                id="rect6"
+                width="48"
+                height="16"
+                x="208"
+                y="208"/>
+        <text
+                xml:space="preserve"
+                transform="matrix(8.9273377,-6.1510586,6.116779,8.9773682,-31.935701,145.00565)"
+                id="text7"
+                style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.33333px;font-family:Tahoma;-inkscape-font-specification:Tahoma;text-align:center;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect8);shape-padding:0;fill:#ff0000;fill-opacity:1;stroke-width:0.525;stroke-miterlimit:21.5;paint-order:markers stroke fill"
+                inkscape:label="text7"
+                x="0"
+                y="0"><tspan
+     x="0.042976324"
+     y="8.8657588"
+     id="tspan3">OBSOLETE</tspan></text></g></svg>
