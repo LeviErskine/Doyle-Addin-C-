@@ -24,9 +24,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Compile Include="dxfUpdate.vb" />
-      <Compile Include="GlobalsHelpers.vb" />
-      <Compile Include="My Project\AssemblyInfo.vb" />
       <Compile Include="My Project\Resources.Designer.vb">
         <DesignTime>True</DesignTime>
         <AutoGen>True</AutoGen>
@@ -37,10 +34,13 @@
         <AutoGen>True</AutoGen>
         <DependentUpon>Settings.settings</DependentUpon>
       </Compile>
-      <Compile Include="PDFToJPG.vb" />
-      <Compile Include="PictureConverter.vb" />
-      <Compile Include="printUpdate.vb" />
-      <Compile Include="StandardAddInServer.vb" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\DXFUpdateIcon.svg" />
+      <EmbeddedResource Include="Resources\ObsoletePrint.svg" />
+      <EmbeddedResource Include="Resources\PrintUpdateIcon.svg" />
+      <EmbeddedResource Include="Resources\SettingsIcon.svg" />
     </ItemGroup>
 
     <ItemGroup>
@@ -57,6 +57,12 @@
       <None Update="My Project\Autodesk.DoyleAddin.Inventor.addin">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="Resources\ObsoleteLibrary.idw">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Updater.bat">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -65,21 +71,13 @@
         <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
         <LastGenOutput>Resources.Designer.vb</LastGenOutput>
       </EmbeddedResource>
+      <EmbeddedResource Update="Options\UserOptionsForm.resx">
+        <SubType>Designer</SubType>
+      </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>
-      <Resource Include="Resources\DXFUpdateIconLarge.png">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </Resource>
-      <Resource Include="Resources\DXFUpdateIconSmall.png">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </Resource>
-      <Resource Include="Resources\PrintUpdateIconLarge.png">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </Resource>
-      <Resource Include="Resources\PrintUpdateIconSmall.png">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </Resource>
+      <Folder Include="Optional Features\" />
     </ItemGroup>
 
 </Project>
