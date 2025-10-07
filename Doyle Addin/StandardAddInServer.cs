@@ -1,12 +1,16 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using File = System.IO.File;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
-using Doyle_Addin.Optional_Features;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 using Doyle_Addin.Options;
 using Inventor;
-using File = System.IO.File;
 
 namespace Doyle_Addin
 {
@@ -15,119 +19,136 @@ namespace Doyle_Addin
     [Guid("513b9d7e-103e-4569-8eb5-ab3929cd33ad")]
     public class StandardAddInServer : ApplicationAddInServer
     {
-        private static Inventor.Application? appInstance;
 
-        private UserInterfaceEvents? uiEvents;
+        private UserInterfaceEvents _uiEvents;
 
-        private UserInterfaceEvents? UiEvents
+        private UserInterfaceEvents uiEvents
         {
+            [MethodImpl(MethodImplOptions.Synchronized)]
+            get
+            {
+                return _uiEvents;
+            }
+
             [MethodImpl(MethodImplOptions.Synchronized)]
             set
             {
-                if (uiEvents != null)
+                if (_uiEvents != null)
                 {
-                    uiEvents.OnResetRibbonInterface -= UiEvents_OnResetRibbonInterface;
+                    _uiEvents.OnResetRibbonInterface -= UiEvents_OnResetRibbonInterface;
                 }
 
-                uiEvents = value;
-                if (uiEvents != null)
+                _uiEvents = value;
+                if (_uiEvents != null)
                 {
-                    uiEvents.OnResetRibbonInterface += UiEvents_OnResetRibbonInterface;
+                    _uiEvents.OnResetRibbonInterface += UiEvents_OnResetRibbonInterface;
                 }
             }
         }
-        private ButtonDefinition? dxfUpdate;
+        private ButtonDefinition _dxfUpdate;
 
-        private ButtonDefinition? DxfUpdate
+        private ButtonDefinition dxfUpdate
         {
             [MethodImpl(MethodImplOptions.Synchronized)]
-            get => dxfUpdate;
+            get
+            {
+                return _dxfUpdate;
+            }
 
             [MethodImpl(MethodImplOptions.Synchronized)]
             set
             {
-                if (dxfUpdate != null)
+                if (_dxfUpdate != null)
                 {
-                    dxfUpdate.OnExecute -= DXFUpdate_OnExecute;
+                    _dxfUpdate.OnExecute -= DXFUpdate_OnExecute;
                 }
 
-                dxfUpdate = value;
-                if (dxfUpdate != null)
+                _dxfUpdate = value;
+                if (_dxfUpdate != null)
                 {
-                    dxfUpdate.OnExecute += DXFUpdate_OnExecute;
+                    _dxfUpdate.OnExecute += DXFUpdate_OnExecute;
                 }
             }
         }
-        private ButtonDefinition? printUpdate;
+        private ButtonDefinition _printUpdate;
 
-        private ButtonDefinition? PrintUpdate
+        private ButtonDefinition printUpdate
         {
             [MethodImpl(MethodImplOptions.Synchronized)]
-            get => printUpdate;
+            get
+            {
+                return _printUpdate;
+            }
 
             [MethodImpl(MethodImplOptions.Synchronized)]
             set
             {
-                if (printUpdate != null)
+                if (_printUpdate != null)
                 {
-                    printUpdate.OnExecute -= PrintUpdate_OnExecute;
+                    _printUpdate.OnExecute -= PrintUpdate_OnExecute;
                 }
 
-                printUpdate = value;
-                if (printUpdate != null)
+                _printUpdate = value;
+                if (_printUpdate != null)
                 {
-                    printUpdate.OnExecute += PrintUpdate_OnExecute;
+                    _printUpdate.OnExecute += PrintUpdate_OnExecute;
                 }
             }
         }
-        private ButtonDefinition? optionsButton;
+        private ButtonDefinition _optionsButton;
 
-        private ButtonDefinition? OptionsButton
+        private ButtonDefinition optionsButton
         {
             [MethodImpl(MethodImplOptions.Synchronized)]
-            get => optionsButton;
+            get
+            {
+                return _optionsButton;
+            }
 
             [MethodImpl(MethodImplOptions.Synchronized)]
             set
             {
-                if (optionsButton != null)
+                if (_optionsButton != null)
                 {
-                    optionsButton.OnExecute -= OptionsButton_OnExecute;
+                    _optionsButton.OnExecute -= OptionsButton_OnExecute;
                 }
 
-                optionsButton = value;
-                if (optionsButton != null)
+                _optionsButton = value;
+                if (_optionsButton != null)
                 {
-                    optionsButton.OnExecute += OptionsButton_OnExecute;
+                    _optionsButton.OnExecute += OptionsButton_OnExecute;
                 }
             }
         }
-        private ButtonDefinition? obsoleteButton;
+        private ButtonDefinition _obsoleteButton;
 
-        private ButtonDefinition? ObsoleteButton
+        private ButtonDefinition obsoleteButton
         {
             [MethodImpl(MethodImplOptions.Synchronized)]
-            get => obsoleteButton;
+            get
+            {
+                return _obsoleteButton;
+            }
 
             [MethodImpl(MethodImplOptions.Synchronized)]
             set
             {
-                if (obsoleteButton != null)
+                if (_obsoleteButton != null)
                 {
-                    obsoleteButton.OnExecute -= ObsoleteButton_OnExecute;
+                    _obsoleteButton.OnExecute -= ObsoleteButton_OnExecute;
                 }
 
-                obsoleteButton = value;
-                if (obsoleteButton != null)
+                _obsoleteButton = value;
+                if (_obsoleteButton != null)
                 {
-                    obsoleteButton.OnExecute += ObsoleteButton_OnExecute;
+                    _obsoleteButton.OnExecute += ObsoleteButton_OnExecute;
                 }
             }
         }
 
         #region ApplicationAddInServer Members
 
-        // Inventor calls this method when it loads the AddIn. The AddInSiteObject provides access 
+        // Inventor calls this method when it loads the AddIn. The AddInSiteObject provides access  
         // To the Inventor Application object. The FirstTime flag indicates if the AddIn is loaded for
         // The first time. However, with the introduction of the ribbon, this argument is always true.
         /// <inheritdoc />
@@ -137,40 +158,29 @@ namespace Doyle_Addin
             CheckForUpdateAndDownloadAsync();
 
             // Initialize AddIn members.
-            var thisApplication = addInSiteObject.Application;
-            appInstance = thisApplication;
+            GlobalsHelpers.ThisApplication = addInSiteObject.Application;
 
             // Get a reference to the ControlDefinitions object. 
-            var controlDefs = thisApplication.CommandManager.ControlDefinitions;
-            var oThemeManager = thisApplication.ThemeManager;
+            var controlDefs = GlobalsHelpers.ThisApplication.CommandManager.ControlDefinitions;
+            ThemeManager oThemeManager;
+            oThemeManager = GlobalsHelpers.ThisApplication.ThemeManager;
 
-            var oTheme = oThemeManager.ActiveTheme;
+            Theme oTheme;
+            oTheme = oThemeManager.ActiveTheme;
 
             switch (oTheme.Name ?? "")
             {
                 case "LightTheme":
                 case "DarkTheme":
-                {
-                    var themeSuffix = oTheme.Name == "LightTheme" ? "Light" : "Dark";
-                    int[] iconSizes = [16, 32];
-                    var icons = new[]
                     {
-                        new { Name = "PrintUpdate", Icon = "Doyle_Addin.PrintUpdateIcon.svg", InternalName = "printUpdate" },
-                        new { Name = "DXFUpdate", Icon = "Doyle_Addin.DXFUpdateIcon.svg", InternalName = "dxfUpdate" },
-                        new { Name = "Settings", Icon = "Doyle_Addin.SettingsIcon.svg", InternalName = "userOptions" },
-                        new
-                        {
-                            Name = "ObsoletePrint", Icon = "Doyle_Addin.ObsoletePrint.svg",
-                            InternalName = "ObsoletePrint"
-                        }
-                    };
+                        string themeSuffix = oTheme.Name == "LightTheme" ? "Light" : "Dark";
+                        int[] iconSizes = new[] { 16, 32 };
+                        var icons = new[] { new { Name = "PrintUpdate", Icon = "Doyle_Addin.PrintUpdateIcon.svg", InternalName = "printUpdate" }, new { Name = "DXFUpdate", Icon = "Doyle_Addin.DXFUpdateIcon.svg", InternalName = "dxfUpdate" }, new { Name = "Settings", Icon = "Doyle_Addin.SettingsIcon.svg", InternalName = "userOptions" }, new { Name = "ObsoletePrint", Icon = "Doyle_Addin.ObsoletePrint.svg", InternalName = "ObsoletePrint" } };
 
                         foreach (var icon in icons)
                         {
-                            var largeIcon = PictureConverter.SvgResourceToPictureDisp(icon.Icon, iconSizes[1],
-                                iconSizes[1], themeSuffix);
-                            var smallIcon = PictureConverter.SvgResourceToPictureDisp(icon.Icon, iconSizes[0],
-                                iconSizes[0], themeSuffix);
+                            var largeIcon = PictureConverter.SvgResourceToPictureDisp(icon.Icon, iconSizes[1], iconSizes[1], themeSuffix);
+                            var smallIcon = PictureConverter.SvgResourceToPictureDisp(icon.Icon, iconSizes[0], iconSizes[0], themeSuffix);
 
                             // Try to remove the existing definition first if it exists
                             try
@@ -186,36 +196,28 @@ namespace Doyle_Addin
                                 // Definition doesn't exist, which is fine
                             }
 
-                            switch (icon.Name)
+                            switch (icon.Name ?? "")
                             {
                                 case "PrintUpdate":
-                                {
-                                    PrintUpdate = controlDefs.AddButtonDefinition("Print" + '\n' + "Update",
-                                        "printUpdate", CommandTypesEnum.kShapeEditCmdType, Globals.AddInClientId(),
-                                        StandardIcon: smallIcon, LargeIcon: largeIcon);
-                                    break;
-                                }
+                                    {
+                                        printUpdate = controlDefs.AddButtonDefinition("Print" + '\n' + "Update", "printUpdate", CommandTypesEnum.kShapeEditCmdType, Globals.AddInClientId(), StandardIcon: smallIcon, LargeIcon: largeIcon);
+                                        break;
+                                    }
                                 case "DXFUpdate":
-                                {
-                                    DxfUpdate = controlDefs.AddButtonDefinition("DXF" + '\n' + "Update", "dxfUpdate",
-                                        CommandTypesEnum.kShapeEditCmdType, Globals.AddInClientId(),
-                                        StandardIcon: smallIcon, LargeIcon: largeIcon);
-                                    break;
-                                }
+                                    {
+                                        dxfUpdate = controlDefs.AddButtonDefinition("DXF" + '\n' + "Update", "dxfUpdate", CommandTypesEnum.kShapeEditCmdType, Globals.AddInClientId(), StandardIcon: smallIcon, LargeIcon: largeIcon);
+                                        break;
+                                    }
                                 case "Settings":
-                                {
-                                    OptionsButton = controlDefs.AddButtonDefinition("Options", "userOptions",
-                                        CommandTypesEnum.kNonShapeEditCmdType, Globals.AddInClientId(),
-                                        StandardIcon: smallIcon, LargeIcon: largeIcon);
-                                    break;
-                                }
+                                    {
+                                        optionsButton = controlDefs.AddButtonDefinition("Options", "userOptions", CommandTypesEnum.kNonShapeEditCmdType, Globals.AddInClientId(), StandardIcon: smallIcon, LargeIcon: largeIcon);
+                                        break;
+                                    }
                                 case "ObsoletePrint":
-                                {
-                                    ObsoleteButton = controlDefs.AddButtonDefinition("Obsolete" + '\n' + "Print",
-                                        "ObsoletePrint", CommandTypesEnum.kNonShapeEditCmdType, Globals.AddInClientId(),
-                                        StandardIcon: smallIcon, LargeIcon: largeIcon);
-                                    break;
-                                }
+                                    {
+                                        obsoleteButton = controlDefs.AddButtonDefinition("Obsolete" + '\n' + "Print", "ObsoletePrint", CommandTypesEnum.kNonShapeEditCmdType, Globals.AddInClientId(), StandardIcon: smallIcon, LargeIcon: largeIcon);
+                                        break;
+                                    }
                             }
                         }
 
@@ -228,26 +230,25 @@ namespace Doyle_Addin
             AddToUserInterface();
 
             // Connect to the user-interface events to handle a ribbon reset.
-           var uiManager = typeof(UserInterfaceManager).InvokeMember("Application",
-                    BindingFlags.GetProperty | BindingFlags.Static |
-                    BindingFlags.NonPublic,
-                    null, null, null) as UserInterfaceManager;
+            uiEvents = GlobalsHelpers.ThisApplication.UserInterfaceManager.UserInterfaceEvents;
 
             // Ensure the option file exists with default values if it doesn't exist
-            if (File.Exists(UserOptions.OptionsFilePath)) return;
-            var defaultOptions = new UserOptions()
+            if (!File.Exists(UserOptions.OptionsFilePath))
             {
-                PrintExportLocation = @"P:\",
-                DxfExportLocation = @"X:\"
-            };
-            defaultOptions.Save();
+                var defaultOptions = new UserOptions()
+                {
+                    PrintExportLocation = @"P:\",
+                    DxfExportLocation = @"X:\"
+                };
+                defaultOptions.Save();
+            }
         }
 
         private static async void CheckForUpdateAndDownloadAsync()
         {
             try
             {
-                var localVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString();
+                string localVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
                 // System.Windows.Forms.MessageBox.Show($"Local version: {localVersion}", "Debug")
 
                 var releaseNullable = await GetLatestReleaseFromGitHub();
@@ -258,31 +259,23 @@ namespace Doyle_Addin
                 }
                 var release = releaseNullable.Value;
 
-                var latestVersion = release.GetProperty("tag_name").GetString()?.TrimStart('v');
+                string latestVersion = release.GetProperty("tag_name").GetString().TrimStart('v');
                 // System.Windows.Forms.MessageBox.Show($"Latest GitHub version: {latestVersion}", "Debug")
 
-                if (localVersion == null) return;
                 var localVerObj = new Version(localVersion);
-                if (latestVersion == null) return;
                 var latestVerObj = new Version(latestVersion);
                 if (latestVerObj > localVerObj)
                 {
-                    var result =
-                        MessageBox.Show(
-                            $@"A new version of the Doyle AddIn is available ({latestVersion}) . Update now?",
-                            @"Update Available", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    var result = MessageBox.Show($"A new version of the Doyle AddIn is available ({latestVersion}) . Update now?", "Update Available", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                     if (result == DialogResult.Yes)
                     {
-                        await File.WriteAllTextAsync(
-                            @"C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt", "update");
-                        appInstance?.Quit();
+                        File.WriteAllText(@"C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt", "update");
+                        GlobalsHelpers.ThisApplication.Quit();
                     }
                     else
                     {
-                        await File.WriteAllTextAsync(
-                            @"C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt", "update");
-                        MessageBox.Show(@"The update will be installed after you close Inventor.", @"Update Scheduled",
-                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        File.WriteAllText(@"C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt", "update");
+                        MessageBox.Show("The update will be installed after you close Inventor.", "Update Scheduled", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
                 else
@@ -290,7 +283,7 @@ namespace Doyle_Addin
                     // System.Windows.Forms.MessageBox.Show("You are running the latest version.", "Debug")
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // Optionally log or show error
             }
@@ -298,19 +291,21 @@ namespace Doyle_Addin
 
         private static async Task<JsonElement?> GetLatestReleaseFromGitHub()
         {
-            const string url = "https://api.github.com/repos/Bmassner/Doyle-AddIn/releases";
-            using var client = new HttpClient();
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("InventorAddinUpdater");
-            var json = await client.GetStringAsync(url);
-            var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
-            if (root.ValueKind == JsonValueKind.Array && root.GetArrayLength() > 0)
+            const string url = "https://api.github.com/repos/LeviErskine/Doyle-Addin-C-/releases";
+            using (var client = new HttpClient())
             {
-                return root[0]; // Use the first release (most recent)
-            }
-            else
-            {
-                return null;
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("InventorAddinUpdater");
+                string json = await client.GetStringAsync(url);
+                var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+                if (root.ValueKind == JsonValueKind.Array && root.GetArrayLength() > 0)
+                {
+                    return root[0]; // Use the first release (most recent)
+                }
+                else
+                {
+                    return default;
+                }
             }
         }
 
@@ -323,58 +318,55 @@ namespace Doyle_Addin
             // Clean up button definitions
             try
             {
-                if (PrintUpdate is not null)
+                if (printUpdate is not null)
                 {
-                    PrintUpdate.Delete();
-                    PrintUpdate = null;
+                    printUpdate.Delete();
+                    printUpdate = null;
                 }
             }
             catch
             {
-                // ignored
             }
 
             try
             {
-                if (DxfUpdate is not null)
+                if (dxfUpdate is not null)
                 {
-                    DxfUpdate.Delete();
-                    DxfUpdate = null;
+                    dxfUpdate.Delete();
+                    dxfUpdate = null;
                 }
             }
             catch
             {
-                // ignored
             }
 
             try
             {
-                if (OptionsButton is not null)
+                if (optionsButton is not null)
                 {
-                    OptionsButton.Delete();
-                    OptionsButton = null;
+                    optionsButton.Delete();
+                    optionsButton = null;
                 }
             }
             catch
             {
-                // ignored
             }
 
             try
             {
-                if (ObsoleteButton is not null)
+                if (obsoleteButton is not null)
                 {
-                    ObsoleteButton.Delete();
-                    ObsoleteButton = null;
+                    obsoleteButton.Delete();
+                    obsoleteButton = null;
                 }
             }
             catch
             {
-                // ignored
             }
 
             // Release objects.
-            UiEvents = null;
+            uiEvents = null;
+            GlobalsHelpers.ThisApplication = null;
 
             // Check for pending update marker
             const string updateMarker = @"C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt";
@@ -392,7 +384,7 @@ namespace Doyle_Addin
                     };
                     Process.Start(psi);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     // Optionally log or show error
                 }
@@ -408,14 +400,20 @@ namespace Doyle_Addin
         // Programs. Typically, this would be done by implementing the AddIn's API
         // interface in a class and returning that class object through this property.
         /// <inheritdoc />
-        public object? Automation => null;
+        public object Automation
+        {
+            get
+            {
+                return null;
+            }
+        }
 
-        private static readonly string[] Item4 = ["id_PanelP_SheetMetalManageUnfold"];
-        private static readonly string[] Item4Array = ["id_PanelP_ToolsOptions", "Add-Ins"];
-        private static readonly string[] Item4Array0 = ["Add-Ins"];
-        private static readonly string[] Item4Array2 = ["id_PanelP_ToolsOptions"];
-        private static readonly string[] Item4Array3 = ["id_PanelP_FlatPatternExit"];
-        private static readonly string[] Item4Array4 = ["id_PanelD_AnnotateRevision"];
+        private static readonly string[] Item4 = new string[] { "id_PanelP_SheetMetalManageUnfold" };
+        private static readonly string[] Item4Array = new string[] { "id_PanelP_ToolsOptions", "Add-Ins" };
+        private static readonly string[] Item4Array0 = new string[] { "Add-Ins" };
+        private static readonly string[] Item4Array2 = new string[] { "id_PanelP_ToolsOptions" };
+        private static readonly string[] Item4Array3 = new string[] { "id_PanelP_FlatPatternExit" };
+        private static readonly string[] Item4Array4 = new string[] { "id_PanelD_AnnotateRevision" };
 
         /// <inheritdoc />
         public void ExecuteCommand(int commandId)
@@ -426,51 +424,36 @@ namespace Doyle_Addin
 
         #region User interface definition
         // Sub where the user-interface creation is done.  This is called when
-        // the add-in is loaded and also if the user interface is reset.
+        // the add-in loaded and also if the user interface is reset.
         private void AddToUserInterface()
         {
             // Load user options to check feature flags
             var options = UserOptions.Load();
 
             // Cache frequently used objects
-            var uiManager = appInstance?.UserInterfaceManager;
-            if (uiManager is null) return;
+            var uiManager = GlobalsHelpers.ThisApplication.UserInterfaceManager;
 
             // Define ribbon mappings for each document type
-            var ribbonMappings = new Dictionary<string, Ribbon>()
-            {
-                { "Part", uiManager.Ribbons["Part"] }, { "Assembly", uiManager.Ribbons["Assembly"] },
-                { "Drawing", uiManager.Ribbons["Drawing"] }, { "ZeroDoc", uiManager.Ribbons["ZeroDoc"] }
-            };
+            var ribbonMappings = new Dictionary<string, Ribbon>() { { "Part", uiManager.Ribbons["Part"] }, { "Assembly", uiManager.Ribbons["Assembly"] }, { "Drawing", uiManager.Ribbons["Drawing"] }, { "ZeroDoc", uiManager.Ribbons["ZeroDoc"] } };
 
             // Define button configurations with document type specificity
             // DXF button only appears on Part documents
-            var dxfButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>()
-            {
-                Tuple.Create("id_TabSheetMetal", "dxfUpdate", DxfUpdate, Item4)!,
-                Tuple.Create("id_TabFlatPattern", "dxfUpdate", DxfUpdate, Item4Array3)!,
-                Tuple.Create("id_TabTools", "dxfUpdate", DxfUpdate, Item4Array2)!
-            };
+            var dxfButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>() { Tuple.Create("id_TabSheetMetal", "dxfUpdate", dxfUpdate, Item4), Tuple.Create("id_TabFlatPattern", "dxfUpdate", dxfUpdate, Item4Array3), Tuple.Create("id_TabTools", "dxfUpdate", dxfUpdate, Item4Array2) };
 
             // Option button appears on all document types
-            var optionsButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>()
-            {
-                Tuple.Create("id_TabPlaceViews", "printUpdate", PrintUpdate, Item4Array0)!,
-                Tuple.Create("id_TabAnnotate", "printUpdate", PrintUpdate, Item4Array0)!,
-                Tuple.Create("id_TabTools", "userOptions", OptionsButton, Item4Array)!
-            };
+            var optionsButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>() { Tuple.Create("id_TabPlaceViews", "printUpdate", printUpdate, Item4Array0), Tuple.Create("id_TabAnnotate", "printUpdate", printUpdate, Item4Array0), Tuple.Create("id_TabTools", "userOptions", optionsButton, Item4Array) };
 
             // Obsolete Print button - only add if feature is enabled
             var obsoletePrintConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>();
             if (options.EnableObsoletePrint)
             {
-                obsoletePrintConfigs.Add(Tuple.Create("id_TabAnnotate", "ObsoletePrint", ObsoleteButton, Item4Array4)!);
+                obsoletePrintConfigs.Add(Tuple.Create("id_TabAnnotate", "ObsoletePrint", obsoleteButton, Item4Array4));
             }
 
             // Add buttons to appropriate ribbons based on document context
             foreach (var kvp in ribbonMappings)
             {
-                var ribbonName = kvp.Key;
+                string ribbonName = kvp.Key;
                 var ribbon = kvp.Value;
 
                 // Add the DXF button only to Part ribbon
@@ -478,10 +461,10 @@ namespace Doyle_Addin
                 {
                     foreach (var config in dxfButtonConfigs)
                     {
-                        var tabName = config.Item1;
-                        var panelName = config.Item2;
+                        string tabName = config.Item1;
+                        string panelName = config.Item2;
                         var buttonDef = config.Item3;
-                        var fallbackPanels = config.Item4;
+                        string[] fallbackPanels = config.Item4;
 
                         AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels);
                     }
@@ -490,10 +473,10 @@ namespace Doyle_Addin
                 // Add Options buttons to all ribbons
                 foreach (var config in optionsButtonConfigs)
                 {
-                    var tabName = config.Item1;
-                    var panelName = config.Item2;
+                    string tabName = config.Item1;
+                    string panelName = config.Item2;
                     var buttonDef = config.Item3;
-                    var fallbackPanels = config.Item4;
+                    string[] fallbackPanels = config.Item4;
 
                     AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels);
                 }
@@ -503,10 +486,10 @@ namespace Doyle_Addin
                 {
                     foreach (var config in obsoletePrintConfigs)
                     {
-                        var tabName = config.Item1;
-                        var panelName = config.Item2;
+                        string tabName = config.Item1;
+                        string panelName = config.Item2;
                         var buttonDef = config.Item3;
-                        var fallbackPanels = config.Item4;
+                        string[] fallbackPanels = config.Item4;
 
                         AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels);
                     }
@@ -515,8 +498,7 @@ namespace Doyle_Addin
         }
 
         // Helper method to add a button to specific ribbon with fallback handling
-        private static void AddButtonToRibbon(Ribbon ribbon, string tabName, string panelName,
-            ButtonDefinition buttonDef, string[] fallbackPanels)
+        private static void AddButtonToRibbon(Ribbon ribbon, string tabName, string panelName, ButtonDefinition buttonDef, string[] fallbackPanels)
         {
             try
             {
@@ -526,7 +508,7 @@ namespace Doyle_Addin
                     return;
 
                 // Try to get the specified panel
-                RibbonPanel? panel = null;
+                RibbonPanel panel = null;
                 try
                 {
                     panel = tab.RibbonPanels[panelName];
@@ -553,42 +535,46 @@ namespace Doyle_Addin
                         }
                         catch
                         {
-                            // ignored
+                            continue;
                         }
                     }
                 }
 
                 // Check if the button already exists in this panel
-                if (panel is null) return;
-                var buttonExists = false;
-                foreach (CommandControl ctrl in panel.CommandControls)
+                if (panel is not null)
                 {
-                    try
+                    bool buttonExists = false;
+                    foreach (CommandControl ctrl in panel.CommandControls)
                     {
-                        // Add null checks before accessing properties
-                        if (ctrl?.ControlDefinition is null || buttonDef is null ||
-                            (ctrl.ControlDefinition.InternalName ?? "") != (buttonDef.InternalName ?? "")) continue;
-                        buttonExists = true;
-                        break;
+                        try
+                        {
+                            // Add null checks before accessing properties
+                            if (ctrl is not null && ctrl.ControlDefinition is not null && buttonDef is not null && (ctrl.ControlDefinition.InternalName ?? "") == (buttonDef.InternalName ?? ""))
+                            {
+                                buttonExists = true;
+                                break;
+                            }
+                        }
+                        catch
+                        {
+                            // Skip this control if there's any issue
+                            continue;
+                        }
                     }
-                    catch
-                    {
-                        // Skip this control if there's any issue
-                    }
-                }
 
-                // Add the button only if it doesn't already exist
-                if (!buttonExists)
-                {
-                    panel.CommandControls.AddButton(buttonDef, true);
+                    // Add the button only if it doesn't already exist
+                    if (!buttonExists)
+                    {
+                        panel.CommandControls.AddButton(buttonDef, true);
+                    }
                 }
             }
 
             catch (Exception ex)
             {
                 // Log specific errors for debugging
-                Debug.Print(
-                    $"Failed to add button '{(buttonDef is not null ? buttonDef.DisplayName : "Unknown")}' to tab '{tabName}' in ribbon '{ribbon.InternalName}': {ex.Message}");
+                Debug.Print($"Failed to add button '{(buttonDef is not null ? buttonDef.DisplayName : "Unknown")}' to tab '{tabName}' in ribbon '{ribbon.InternalName}': {ex.Message}");
+
             }
         }
 
@@ -599,22 +585,18 @@ namespace Doyle_Addin
 
         private static void DXFUpdate_OnExecute(NameValueMap context)
         {
-            if (appInstance != null)
-            {
-                Doyle_Addin.DxfUpdate.RunDxfUpdate(null, appInstance);
-            }
+            new Action(() => DxfUpdate.RunDxfUpdate(GlobalsHelpers.ThisApplication))();
         }
 
         private static void PrintUpdate_OnExecute(NameValueMap context)
         {
-            Doyle_Addin.PrintUpdate.RunPrintUpdate(appInstance);
+            new Action(() => PrintUpdate.RunPrintUpdate(GlobalsHelpers.ThisApplication))();
         }
 
         private void OptionsButton_OnExecute(NameValueMap context)
         {
             var optionsForm = new UserOptionsForm();
-            var hwnd = (nint)(appInstance?.MainFrameHWND ?? 0);
-            var result = optionsForm.ShowDialog(new Globals.WindowWrapper(hwnd));
+            var result = optionsForm.ShowDialog(new Globals.WindowWrapper(GlobalsHelpers.ThisApplication.MainFrameHWND));
 
             // Refresh the ribbon after options are saved
             if (result == DialogResult.OK)
@@ -623,12 +605,9 @@ namespace Doyle_Addin
             }
         }
 
-        private static void ObsoleteButton_OnExecute(NameValueMap context)
+        private void ObsoleteButton_OnExecute(NameValueMap context)
         {
-            if (appInstance != null)
-            {
-                ObsoletePrint.ApplyObsoletePrint(appInstance);
-            }
+            new Action(() => ObsoletePrint.ApplyObsoletePrint(GlobalsHelpers.ThisApplication))();
         }
 
         // Helper method to refresh the ribbon UI
@@ -647,65 +626,69 @@ namespace Doyle_Addin
             // "Settings Applied",
             // MessageBoxButtons.OK,
             // MessageBoxIcon.Information)'
-            catch (Exception)
+            catch (Exception ex)
             {
                 // MessageBox.Show($"Error refreshing ribbon: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
             }
         }
 
         // Helper method to remove the obsolete print button from ribbons
-        private static void RemoveObsoletePrintButton()
+        private void RemoveObsoletePrintButton()
         {
             try
             {
-                var uiManager = appInstance?.UserInterfaceManager;
-                if (uiManager is null) return;
-                                var ribbon = uiManager.Ribbons["Drawing"];
+                var uiManager = GlobalsHelpers.ThisApplication.UserInterfaceManager;
+                var ribbon = uiManager.Ribbons["Drawing"];
 
-                if (ribbon is null) return;
-                try
+                if (ribbon is not null)
                 {
-                    var tab = ribbon.RibbonTabs["id_TabAnnotate"];
-                    if (tab is null) return;
-                    // Find all panels and remove the obsolete print button
-                    foreach (RibbonPanel panel in tab.RibbonPanels)
+                    try
                     {
-                        var controlsToRemove = new List<CommandControl>();
-
-                        // Collect controls to remove (with null checks)
-                        foreach (CommandControl ctrl in panel.CommandControls)
+                        var tab = ribbon.RibbonTabs["id_TabAnnotate"];
+                        if (tab is not null)
                         {
-                            try
+                            // Find all panels and remove the obsolete print button
+                            foreach (RibbonPanel panel in tab.RibbonPanels)
                             {
-                                if (ctrl?.ControlDefinition is { InternalName: "ObsoletePrint" })
+                                var controlsToRemove = new List<CommandControl>();
+
+                                // Collect controls to remove (with null checks)
+                                foreach (CommandControl ctrl in panel.CommandControls)
                                 {
-                                    controlsToRemove.Add(ctrl);
+                                    try
+                                    {
+                                        if (ctrl is not null && ctrl.ControlDefinition is not null && ctrl.ControlDefinition.InternalName == "ObsoletePrint")
+                                        {
+                                            controlsToRemove.Add(ctrl);
+                                        }
+                                    }
+                                    catch
+                                    {
+                                        // Skip this control if there's any issue accessing it
+                                        continue;
+                                    }
                                 }
-                            }
-                            catch
-                            {
-                                // Skip this control if there's any issue accessing it
-                            }
-                        }
 
-                        // Remove collected controls
-                        foreach (var ctrl in controlsToRemove)
-                        {
-                            try
-                            {
-                                ctrl.Delete();
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.Print($"Failed to delete control: {ex.Message}");
+                                // Remove collected controls
+                                foreach (var ctrl in controlsToRemove)
+                                {
+                                    try
+                                    {
+                                        ctrl.Delete();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Debug.Print($"Failed to delete control: {ex.Message}");
+                                    }
+                                }
                             }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    // Button might not exist, continue
-                    Debug.Print($"Could not remove button from Annotate tab: {ex.Message}");
+                    catch (Exception ex)
+                    {
+                        // Button might not exist, continue
+                        Debug.Print($"Could not remove button from Annotate tab: {ex.Message}");
+                    }
                 }
             }
             catch (Exception ex)
@@ -726,24 +709,23 @@ namespace Doyle_Addin
     {
 
         #region Function to get the add-in client ID.
-        // This function uses reflection to get the GuidAttribute associated with the add-in.
+        
         /// <summary>
-        /// 
+        /// This function uses reflection to get the GuidAttribute associated with the add-in. 
         /// </summary>
         /// <returns></returns>
         public static string AddInClientId()
         {
-            var guid = "";
+            string guid = "";
             try
             {
                 var t = typeof(StandardAddInServer);
-                var customAttributes = t.GetCustomAttributes(typeof(GuidAttribute), false);
-                var guidAttribute = (GuidAttribute)customAttributes[0];
-                guid = "{" + guidAttribute.Value + "}";
+                object[] customAttributes = t.GetCustomAttributes(typeof(GuidAttribute), false);
+                GuidAttribute guidAttribute = (GuidAttribute)customAttributes[0];
+                guid = "{" + guidAttribute.Value.ToString() + "}";
             }
             catch
             {
-                // ignored
             }
 
             return guid;
@@ -755,10 +737,20 @@ namespace Doyle_Addin
         // This class is used to wrap a Win32 hWnd as a .NET IWind32Window class.
         // This is primarily used for parenting a dialog to the Inventor window.
         /// <inheritdoc />
-        public class WindowWrapper(nint handle) : IWin32Window
+        public class WindowWrapper : IWin32Window
         {
+
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="handle"></param>
+            public WindowWrapper(nint handle)
+            {
+                Handle = handle;
+            }
+
             /// <inheritdoc />
-            public nint Handle { get; private set; } = handle;
+            public nint Handle { get; private set; }
         }
 
         #endregion

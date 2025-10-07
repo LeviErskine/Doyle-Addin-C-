@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35521.163
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doyle Addin", "Doyle Addin\Doyle Addin.csproj", "{76F67EE3-81F8-458A-AD75-B1B434C7B51D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doyle Addin", "Doyle Addin\Doyle Addin.csproj", "{96ECB110-7F90-01BA-1137-B984071C5A62}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,16 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{76F67EE3-81F8-458A-AD75-B1B434C7B51D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{76F67EE3-81F8-458A-AD75-B1B434C7B51D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{76F67EE3-81F8-458A-AD75-B1B434C7B51D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{76F67EE3-81F8-458A-AD75-B1B434C7B51D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{76F67EE3-81F8-458A-AD75-B1B434C7B51D}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{96ECB110-7F90-01BA-1137-B984071C5A62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96ECB110-7F90-01BA-1137-B984071C5A62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96ECB110-7F90-01BA-1137-B984071C5A62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96ECB110-7F90-01BA-1137-B984071C5A62}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {8DEB3A81-95C5-4783-BD1C-F73796C94BD0}
+		SolutionGuid = {D59E53F0-76E2-4E2E-B4E7-3A70961AB6E0}
 	EndGlobalSection
 EndGlobal
