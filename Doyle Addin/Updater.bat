@@ -2,8 +2,8 @@
 SETLOCAL EnableDelayedExpansion
 timeout /t 5 /nobreak
 REM --- Configuration ---
-SET GITHUB_USER=Bmassner
-SET GITHUB_REPO=Doyle-AddIn
+SET GITHUB_USER=LeviErskine
+SET GITHUB_REPO=Doyle-AddIn-C-
 SET ADDIN_NAME=DoyleAddin
 REM This should be the base name of your add-in files (e.g., DoyleAddin.dll, DoyleAddin.addin)
 
