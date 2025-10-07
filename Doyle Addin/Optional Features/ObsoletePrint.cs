@@ -1,20 +1,17 @@
-﻿using System.IO;
+using System.Diagnostics;
+using Inventor;
+using Application = Inventor.Application;
 using File = System.IO.File;
 using Path = System.IO.Path;
-using System.Linq;
-using Inventor;
-
-namespace Doyle_Addin
+namespace Doyle_Addin.Optional_Features
 {
-
-    static class ObsoletePrint
+    internal static class ObsoletePrint
     {
         // This is the main routine that runs.
-        public static void ApplyObsoletePrint(Application thisApplication)
+        public static void ApplyObsoletePrint(Application application)
         {
             // Get the active drawing document
-            DrawingDocument drawingDoc = thisApplication.ActiveDocument as DrawingDocument;
-            if (drawingDoc is null)
+            if (application.ActiveDocument is not DrawingDocument drawingDoc)
             {
                 return;
             }
@@ -22,14 +19,14 @@ namespace Doyle_Addin
             foreach (Sheet sheet in drawingDoc.Sheets)
             {
                 // Get the appropriate symbol name for this sheet size
-                string symbolName = GetSymbolNameForSheetSize(sheet.Size);
+                var symbolName = GetSymbolNameForSheetSize(sheet.Size);
                 if (string.IsNullOrEmpty(symbolName))
                 {
                     continue; // Skip unsupported sheet sizes
                 }
 
                 // Get or load the symbol definition
-                var symbolDefinition = GetSymbolDefinition(symbolName, drawingDoc, thisApplication);
+                var symbolDefinition = GetSymbolDefinition(symbolName, drawingDoc, application);
                 if (symbolDefinition is null)
                 {
                     continue; // Skip if the symbol cannot be found or loaded
@@ -39,7 +36,7 @@ namespace Doyle_Addin
                 DeleteExistingSymbolInstances(sheet, symbolName);
 
                 // Place the symbol at the center of the sheet
-                PlaceSymbolAtSheetCenter(sheet, symbolDefinition, thisApplication);
+                PlaceSymbolAtSheetCenter(sheet, symbolDefinition, application);
             }
         }
 
@@ -49,38 +46,38 @@ namespace Doyle_Addin
             switch (sheetSize)
             {
                 case DrawingSheetSizeEnum.kADrawingSheetSize:
-                    {
-                        return "OBSOLETE A";
-                    }
+                {
+                    return "OBSOLETE A";
+                }
                 case DrawingSheetSizeEnum.kBDrawingSheetSize:
-                    {
-                        return "OBSOLETE B";
-                    }
+                {
+                    return "OBSOLETE B";
+                }
                 case DrawingSheetSizeEnum.kCDrawingSheetSize:
-                    {
-                        return "OBSOLETE C";
-                    }
+                {
+                    return "OBSOLETE C";
+                }
                 case DrawingSheetSizeEnum.kDDrawingSheetSize:
-                    {
-                        return "OBSOLETE D";
-                    }
+                {
+                    return "OBSOLETE D";
+                }
                 case DrawingSheetSizeEnum.kEDrawingSheetSize:
-                    {
-                        return "OBSOLETE E";
-                    }
+                {
+                    return "OBSOLETE E";
+                }
 
                 default:
-                    {
-                        return string.Empty;
-                    }
+                {
+                    return string.Empty;
+                }
             }
         }
 
         // Gets the symbol definition from the document or library
-        private static SketchedSymbolDefinition GetSymbolDefinition(string symbolName, DrawingDocument drawingDoc, Application thisApplication)
+        private static SketchedSymbolDefinition? GetSymbolDefinition(string symbolName, DrawingDocument drawingDoc, Application application)
         {
             // Step 1: Try to get the symbol from the active document itself
-            SketchedSymbolDefinition symbolDefinition = null;
+            SketchedSymbolDefinition? symbolDefinition = null;
             try
             {
                 symbolDefinition = drawingDoc.SketchedSymbolDefinitions[symbolName];
@@ -96,10 +93,11 @@ namespace Doyle_Addin
             }
 
             // Step 2: Search loaded libraries
-            SketchedSymbolDefinitionLibrary symbolLibrary;
+            SketchedSymbolDefinitionLibrary? symbolLibrary;
             try
             {
-                symbolLibrary = FindFromLibraries(symbolName, drawingDoc.SketchedSymbolDefinitions.SketchedSymbolDefinitionLibraries);
+                symbolLibrary = FindFromLibraries(symbolName,
+                    drawingDoc.SketchedSymbolDefinitions.SketchedSymbolDefinitionLibraries);
             }
             catch
             {
@@ -110,12 +108,13 @@ namespace Doyle_Addin
             // Step 3: If not found in loaded libraries, copy the library and restart
             if (symbolLibrary is null)
             {
-                string libraryPath = CopyObsoleteLibrary();
+                var libraryPath = CopyObsoleteLibrary();
                 if (!string.IsNullOrEmpty(libraryPath))
                 {
                     // Library copied successfully, restart the entire process
-                    ApplyObsoletePrint(thisApplication);
+                    ApplyObsoletePrint(application);
                 }
+
                 return null;
             }
 
@@ -139,7 +138,7 @@ namespace Doyle_Addin
             try
             {
                 // Iterate through all sketched symbols on the sheet (backwards to avoid collection modification issues)
-                for (int i = sheet.SketchedSymbols.Count; i >= 1; i -= 1)
+                for (var i = sheet.SketchedSymbols.Count; i >= 1; i -= 1)
                 {
                     var sketchedSymbol = sheet.SketchedSymbols[i];
                     if ((sketchedSymbol.Definition.Name ?? "") == (symbolName ?? ""))
@@ -155,7 +154,8 @@ namespace Doyle_Addin
         }
 
         // Places the symbol at the center of the specified sheet
-        private static void PlaceSymbolAtSheetCenter(Sheet sheet, SketchedSymbolDefinition symbolDefinition, Application thisApplication)
+        private static void PlaceSymbolAtSheetCenter(Sheet sheet, SketchedSymbolDefinition symbolDefinition,
+            Application thisApplication)
         {
             // Get the center point of the sheet
             var transientGeometry = thisApplication.TransientGeometry;
@@ -172,8 +172,9 @@ namespace Doyle_Addin
         // Returns the full path to the copied file if successful, or empty string if failed
         private static string CopyObsoleteLibrary()
         {
-            string sourcePath = @"C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\Resources\ObsoleteLibrary.idw";
-            string destinationPath = @"C:\Users\Public\Documents\Autodesk\Inventor 2025\Design Data\Symbol Library\ObsoleteLibrary.idw";
+            var sourcePath = @"C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\Resources\ObsoleteLibrary.idw";
+            var destinationPath =
+                @"C:\Users\Public\Documents\Autodesk\Inventor 2025\Design Data\Symbol Library\ObsoleteLibrary.idw";
 
             try
             {
@@ -184,9 +185,10 @@ namespace Doyle_Addin
                 }
 
                 // Ensure destination directory exists
-                string destinationDir = Path.GetDirectoryName(destinationPath);
+                var destinationDir = Path.GetDirectoryName(destinationPath);
                 if (!Directory.Exists(destinationDir))
                 {
+                    Debug.Assert(destinationDir != null, nameof(destinationDir) + " != null");
                     Directory.CreateDirectory(destinationDir);
                 }
 
@@ -200,27 +202,20 @@ namespace Doyle_Addin
             }
         }
 
-        private static SketchedSymbolDefinitionLibrary FindFromLibraries(string symbolDefinitionName, SketchedSymbolDefinitionLibraries allLibraries)
+        private static SketchedSymbolDefinitionLibrary? FindFromLibraries(string symbolDefinitionName,
+            SketchedSymbolDefinitionLibraries allLibraries)
         {
-            foreach (SketchedSymbolDefinitionLibrary library in allLibraries)
-            {
-                // Search for the definition within this specific library
-                var foundDefinition = SearchDefinitions(symbolDefinitionName, library.SketchedSymbolDefinitions);
-                if (foundDefinition is not null)
-                {
-                    // If found, return the library object and exit the function
-                    return library;
-                }
-            }
+            return (from SketchedSymbolDefinitionLibrary library in allLibraries let foundDefinition = SearchDefinitions(symbolDefinitionName, library.SketchedSymbolDefinitions) select foundDefinition).OfType<SketchedSymbolDefinitionLibrary>().FirstOrDefault();
 
             // If the loop finishes, the symbol was not found in any library.
-            return null;
         }
 
         // Helper function to search for a definition by name within a collection.
-        private static LibrarySketchedSymbolDefinition SearchDefinitions(string searchDefinitionName, LibrarySketchedSymbolDefinitions definitions)
+        private static LibrarySketchedSymbolDefinition? SearchDefinitions(string? searchDefinitionName,
+            LibrarySketchedSymbolDefinitions definitions)
         {
-            return definitions.Cast<LibrarySketchedSymbolDefinition>().FirstOrDefault(libraryDefinition => (libraryDefinition.Name ?? "") == (searchDefinitionName ?? ""));
+            return definitions.Cast<LibrarySketchedSymbolDefinition>().FirstOrDefault(libraryDefinition =>
+                (libraryDefinition.Name ?? "") == (searchDefinitionName ?? ""));
 
 
             // If the loop finishes, the definition was not found.
