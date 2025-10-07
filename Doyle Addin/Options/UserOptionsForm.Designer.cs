@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace Doyle_Addin.Options
 {
@@ -8,6 +7,7 @@ namespace Doyle_Addin.Options
     {
 
         // Form overrides dispose to clean up the component list.
+        /// <inheritdoc />
         [DebuggerNonUserCode()]
         protected override void Dispose(bool disposing)
         {
