@@ -1,13 +1,13 @@
-﻿using System.Diagnostics;
-using Inventor;
+﻿using System;
 using Color = System.Drawing.Color;
+using System.Windows.Forms;
+using Inventor;
 
 namespace Doyle_Addin.Options
 {
-    /// <inheritdoc />
     public partial class UserOptionsForm
     {
-        private UserOptions options;
+        private UserOptions options = new UserOptions();
 
         /// <inheritdoc />
         public UserOptionsForm()
@@ -29,12 +29,10 @@ namespace Doyle_Addin.Options
 
         private void ApplyThemeColors()
         {
-            var oThemeManager = typeof(ThemeManager).InvokeMember("Application",
-                System.Reflection.BindingFlags.GetProperty | System.Reflection.BindingFlags.Static |
-                System.Reflection.BindingFlags.NonPublic,
-                null, null, null) as ThemeManager;
-            Debug.Assert(oThemeManager != null, nameof(oThemeManager) + " != null");
-            var oTheme = oThemeManager.ActiveTheme;
+            ThemeManager oThemeManager;
+            oThemeManager = GlobalsHelpers.ThisApplication.ThemeManager;
+            Theme oTheme;
+            oTheme = oThemeManager.ActiveTheme;
             if (oTheme.Name == "LightTheme")
             {
                 // Dark theme colors
@@ -62,7 +60,7 @@ namespace Doyle_Addin.Options
             }
             else
             {
-                // Dark theme colors (keep the existing dark theme as default)
+                // Dark theme colors (keep existing dark theme as default)
                 FeaturesPanel.BackColor = Color.FromArgb(59, 68, 83);
                 ChkObsoletePrint.BackColor = Color.FromArgb(59, 68, 83);
                 ChkObsoletePrint.ForeColor = Color.White;
@@ -81,20 +79,19 @@ namespace Doyle_Addin.Options
 
         private void PrintExportLocationButton_Click(object sender, EventArgs e)
         {
-            var folderBrowser = new FolderBrowserDialog() { Description = @"Select Print Export Location" };
+            var folderBrowser = new FolderBrowserDialog() { Description = "Select Print Export Location" };
             folderBrowser.ShowDialog();
             PEXLoc.Text = folderBrowser.SelectedPath;
         }
 
         private void DXFExportLocationButton_Click(object sender, EventArgs e)
         {
-            var folderBrowser = new FolderBrowserDialog() { Description = @"Select DXF Export Location" };
+            var folderBrowser = new FolderBrowserDialog() { Description = "Select DXF Export Location" };
             folderBrowser.ShowDialog();
             // Assuming you have a text box to display the selected path
             DXFexLoc.Text = folderBrowser.SelectedPath;
         }
 
-        // ReSharper disable once IdentifierTypo
         private void BtnCncl_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
