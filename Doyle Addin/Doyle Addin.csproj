@@ -66,27 +66,23 @@
     <RepositoryUrl>https://github.com/Bmassner/Doyle-AddIn</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualBasic" />
     <Reference Update="System">
       <Name>System</Name>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="My Project\MyNamespace.Static.1.Designer.cs" />
-    <Compile Include="My Project\MyNamespace.Static.2.Designer.cs" />
-    <Compile Include="My Project\MyNamespace.Static.3.Designer.cs" />
     <Compile Include="..\Optional Features\ObsoletePrint.cs">
       <Link>Optional Features\ObsoletePrint.cs</Link>
     </Compile>
-    <Compile Include="dxfUpdate.cs" />
-    <Compile Include="GlobalsHelpers.cs" />
-    <Compile Include="PDFToJPG.cs" />
-    <Compile Include="PictureConverter.cs" />
-    <Compile Include="printUpdate.cs" />
+    <Compile Include="DXFs\dxfUpdate.cs" />
+    <Compile Include="My Project\AssemblyInfo.cs" />
+    <Compile Include="My Project\GlobalsHelpers.cs" />
+    <Compile Include="My Project\SVGconvert.cs" />
+    <Compile Include="Prints\PDFToJPG.cs" />
+    <Compile Include="Prints\printUpdate.cs" />
     <Compile Include="StandardAddInServer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Options\UserOptions.cs" />
     <Compile Include="Options\UserOptionsForm.Designer.cs" />
     <Compile Include="Options\UserOptionsForm.cs" />
@@ -99,9 +95,6 @@
     <None Include="My Project\Application.myapp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="DoylePlugin.manifest" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Autodesk.DoyleAddin.Inventor.addin">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -110,6 +103,7 @@
     <EmbeddedResource Include="Resources\DXFUpdateIcon.svg" />
     <EmbeddedResource Include="Options\UserOptionsForm.resx" />
     <EmbeddedResource Include="Resources\SettingsIcon.svg" />
+    <None Include="My Project\DoylePlugin.manifest" />
     <None Include="Resources\ObsoleteLibrary.idw">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -151,7 +145,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="GitVersion.MsBuild" Version="5.12.0">
+    <PackageReference Include="GitVersion.MsBuild" Version="6.4.0">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Svg" Version="3.4.7" />
