@@ -88,10 +88,6 @@
     <Compile Include="Options\UserOptionsForm.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Readme.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
     <None Include="My Project\Application.myapp" />
   </ItemGroup>
   <ItemGroup>
