@@ -602,7 +602,7 @@ public class StandardAddInServer : ApplicationAddInServer
 
     private static void DXFUpdate_OnExecute(NameValueMap context)
     {
-        new Action(() => Doyle_Addin.DxfUpdate.RunDxfUpdate(GlobalsHelpers.ThisApplication))();
+        new Action(() => DXFs.DxfUpdate.RunDxfUpdate(GlobalsHelpers.ThisApplication))();
     }
 
     private static void PrintUpdate_OnExecute(NameValueMap context)

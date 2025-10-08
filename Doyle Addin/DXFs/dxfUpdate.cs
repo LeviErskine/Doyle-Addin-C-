@@ -7,7 +7,7 @@ using Inventor;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 
-namespace Doyle_Addin;
+namespace Doyle_Addin.DXFs;
 
 internal static class DxfUpdate
 {
