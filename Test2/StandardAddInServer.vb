@@ -164,7 +164,7 @@ Public Class StandardAddInServer
 	End Sub
 
 	Private Shared Async Function GetLatestReleaseFromGitHub() As Task(Of JsonElement?)
-		Const url = "https://api.github.com/repos/Bmassner/Doyle-AddIn/releases"
+		Const url = "https://api.github.com/repos/LeviErskine/Doyle-Addin-C-/releases"
 		Using client As New HttpClient()
 			client.DefaultRequestHeaders.UserAgent.ParseAdd("InventorAddinUpdater")
 			Dim json = Await client.GetStringAsync(url)
