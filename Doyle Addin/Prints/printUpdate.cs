@@ -1,22 +1,22 @@
 ﻿using System;
+using System.Windows.Forms;
 using Docnet.Core;
 using Docnet.Core.Models;
 using Doyle_Addin.Options;
 using Inventor;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using File = System.IO.File;
 
 namespace Doyle_Addin.Prints;
 
 internal static class PrintUpdate
 {
-    public static void RunPrintUpdate(Application thisApplication)
+    public static void RunPrintUpdate(Inventor.Application thisApplication)
     {
         // Check if the current document is a drawing, show error if not
         if (thisApplication.ActiveDocument.DocumentType != DocumentTypeEnum.kDrawingDocumentObject)
         {
-            Interaction.MsgBox("ONLY FOR USE IN DRAWING DOCUMENTS", (MsgBoxStyle)Conversions.ToInteger("Ilogic"));
+            MessageBox.Show(@"ONLY FOR USE IN DRAWING DOCUMENTS", @"Ilogic", MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
             return;
         }
 
@@ -32,9 +32,9 @@ internal static class PrintUpdate
         // Always export PDF
         if (string.IsNullOrEmpty(oFilePath))
         {
-            Interaction.MsgBox(
-                "This file has not been saved yet or save location cannot be found" + Constants.vbCrLf,
-                (MsgBoxStyle)64, "Save error");
+            MessageBox.Show(
+                @"This file has not been saved yet or save location cannot be found" + System.Environment.NewLine,
+                @"Save error", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
 
@@ -64,7 +64,8 @@ internal static class PrintUpdate
         }
         catch
         {
-            Interaction.MsgBox("Failed to Export PDF (Someone might have this file open)");
+            MessageBox.Show(@"Failed to Export PDF (Someone might have this file open)", @"Export failed",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
 
@@ -97,7 +98,8 @@ internal static class PrintUpdate
         }
         catch (Exception ex)
         {
-            Interaction.MsgBox("Failed to convert PDF to JPG: " + ex.Message);
+            MessageBox.Show(@"Failed to convert PDF to JPG: " + ex.Message, @"Conversion failed", MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
         }
     }
 }

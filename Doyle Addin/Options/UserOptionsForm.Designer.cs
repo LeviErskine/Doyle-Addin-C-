@@ -4,7 +4,6 @@ using System.Diagnostics;
 namespace Doyle_Addin.Options
 {
     /// <inheritdoc />
-    [Microsoft.VisualBasic.CompilerServices.DesignerGenerated()]
     public partial class UserOptionsForm : System.Windows.Forms.Form
     {
 
@@ -69,10 +68,10 @@ namespace Doyle_Addin.Options
             FutureMsg.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
             FutureMsg.ForeColor = System.Drawing.Color.White;
             FutureMsg.HideSelection = false;
-            FutureMsg.Location = new System.Drawing.Point(12, 82);
+            FutureMsg.Location = new System.Drawing.Point(12, 87);
             FutureMsg.Name = "FutureMsg";
             FutureMsg.ReadOnly = true;
-            FutureMsg.Size = new System.Drawing.Size(336, 20);
+            FutureMsg.Size = new System.Drawing.Size(356, 20);
             FutureMsg.TabIndex = 11;
             FutureMsg.Text = "More options planned for the future";
             FutureMsg.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -115,10 +114,10 @@ namespace Doyle_Addin.Options
             DXFexLoc.BackColor = System.Drawing.Color.FromArgb(44, 51, 64);
             DXFexLoc.BorderStyle = System.Windows.Forms.BorderStyle.None;
             DXFexLoc.ForeColor = System.Drawing.Color.White;
-            DXFexLoc.Location = new System.Drawing.Point(123, 27);
+            DXFexLoc.Location = new System.Drawing.Point(133, 32);
             DXFexLoc.Name = "DXFexLoc";
             DXFexLoc.PlaceholderText = "X:/";
-            DXFexLoc.Size = new System.Drawing.Size(122, 14);
+            DXFexLoc.Size = new System.Drawing.Size(132, 14);
             DXFexLoc.TabIndex = 9;
             // 
             // PEXLoc
@@ -128,10 +127,10 @@ namespace Doyle_Addin.Options
             PEXLoc.BackColor = System.Drawing.Color.FromArgb(44, 51, 64);
             PEXLoc.BorderStyle = System.Windows.Forms.BorderStyle.None;
             PEXLoc.ForeColor = System.Drawing.Color.White;
-            PEXLoc.Location = new System.Drawing.Point(123, 4);
+            PEXLoc.Location = new System.Drawing.Point(133, 6);
             PEXLoc.Name = "PEXLoc";
             PEXLoc.PlaceholderText = "P:/";
-            PEXLoc.Size = new System.Drawing.Size(122, 14);
+            PEXLoc.Size = new System.Drawing.Size(132, 14);
             PEXLoc.TabIndex = 7;
             PEXLoc.WordWrap = false;
             // 
@@ -141,7 +140,8 @@ namespace Doyle_Addin.Options
             PrintExportLocationButton.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(134, 145, 161);
             PrintExportLocationButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(44, 51, 64);
             PrintExportLocationButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            PrintExportLocationButton.Location = new System.Drawing.Point(248, 1);
+            PrintExportLocationButton.Font = new System.Drawing.Font("Tahoma", 9F);
+            PrintExportLocationButton.Location = new System.Drawing.Point(268, 3);
             PrintExportLocationButton.Margin = new System.Windows.Forms.Padding(0);
             PrintExportLocationButton.MinimumSize = new System.Drawing.Size(0, 20);
             PrintExportLocationButton.Name = "PrintExportLocationButton";
@@ -159,7 +159,8 @@ namespace Doyle_Addin.Options
             DXFExportLocationButton.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(134, 145, 161);
             DXFExportLocationButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(44, 51, 64);
             DXFExportLocationButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            DXFExportLocationButton.Location = new System.Drawing.Point(248, 24);
+            DXFExportLocationButton.Font = new System.Drawing.Font("Tahoma", 9F);
+            DXFExportLocationButton.Location = new System.Drawing.Point(268, 29);
             DXFExportLocationButton.Margin = new System.Windows.Forms.Padding(0);
             DXFExportLocationButton.MinimumSize = new System.Drawing.Size(0, 20);
             DXFExportLocationButton.Name = "DXFExportLocationButton";
@@ -179,7 +180,7 @@ namespace Doyle_Addin.Options
             BtnCncl.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(44, 51, 64);
             BtnCncl.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             BtnCncl.Font = new System.Drawing.Font("Tahoma", 10F);
-            BtnCncl.Location = new System.Drawing.Point(193, 3);
+            BtnCncl.Location = new System.Drawing.Point(213, 3);
             BtnCncl.MaximumSize = new System.Drawing.Size(140, 30);
             BtnCncl.MinimumSize = new System.Drawing.Size(140, 30);
             BtnCncl.Name = "BtnCncl";
@@ -197,18 +198,19 @@ namespace Doyle_Addin.Options
             SCBackground.Controls.Add(BtnCncl);
             SCBackground.Dock = System.Windows.Forms.DockStyle.Bottom;
             SCBackground.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
-            SCBackground.Location = new System.Drawing.Point(12, 102);
+            SCBackground.Location = new System.Drawing.Point(12, 107);
             SCBackground.Name = "SCBackground";
             SCBackground.Padding = new System.Windows.Forms.Padding(3);
-            SCBackground.Size = new System.Drawing.Size(336, 36);
+            SCBackground.Size = new System.Drawing.Size(356, 36);
             SCBackground.TabIndex = 13;
             // 
             // ChkObsoletePrint
             // 
             ChkObsoletePrint.AutoSize = true;
+            ChkObsoletePrint.Font = new System.Drawing.Font("Tahoma", 9F);
             ChkObsoletePrint.Location = new System.Drawing.Point(3, 3);
             ChkObsoletePrint.Name = "ChkObsoletePrint";
-            ChkObsoletePrint.Size = new System.Drawing.Size(129, 17);
+            ChkObsoletePrint.Size = new System.Drawing.Size(144, 18);
             ChkObsoletePrint.TabIndex = 0;
             ChkObsoletePrint.Text = "Enable Obsolete Print";
             ChkObsoletePrint.UseVisualStyleBackColor = true;
@@ -231,16 +233,17 @@ namespace Doyle_Addin.Options
             Destinationbackground.RowCount = 2;
             Destinationbackground.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             Destinationbackground.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            Destinationbackground.Size = new System.Drawing.Size(336, 46);
+            Destinationbackground.Size = new System.Drawing.Size(356, 52);
             Destinationbackground.TabIndex = 15;
             // 
             // DXFText
             // 
             DXFText.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            DXFText.Location = new System.Drawing.Point(3, 24);
+            DXFText.Font = new System.Drawing.Font("Tahoma", 9F);
+            DXFText.Location = new System.Drawing.Point(3, 29);
             DXFText.MinimumSize = new System.Drawing.Size(115, 20);
             DXFText.Name = "DXFText";
-            DXFText.Size = new System.Drawing.Size(115, 20);
+            DXFText.Size = new System.Drawing.Size(124, 20);
             DXFText.TabIndex = 10;
             DXFText.Text = "DXF Export Location";
             DXFText.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -248,10 +251,11 @@ namespace Doyle_Addin.Options
             // PrintText
             // 
             PrintText.Anchor = System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            PrintText.Location = new System.Drawing.Point(3, 1);
+            PrintText.Font = new System.Drawing.Font("Tahoma", 9F);
+            PrintText.Location = new System.Drawing.Point(3, 3);
             PrintText.MinimumSize = new System.Drawing.Size(115, 20);
             PrintText.Name = "PrintText";
-            PrintText.Size = new System.Drawing.Size(115, 20);
+            PrintText.Size = new System.Drawing.Size(124, 20);
             PrintText.TabIndex = 9;
             PrintText.Text = "Print Export Location";
             PrintText.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -263,11 +267,11 @@ namespace Doyle_Addin.Options
             FeaturesPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             FeaturesPanel.Controls.Add(ChkObsoletePrint, 0, 0);
             FeaturesPanel.Dock = System.Windows.Forms.DockStyle.Top;
-            FeaturesPanel.Location = new System.Drawing.Point(12, 58);
+            FeaturesPanel.Location = new System.Drawing.Point(12, 64);
             FeaturesPanel.Name = "FeaturesPanel";
             FeaturesPanel.RowCount = 1;
             FeaturesPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            FeaturesPanel.Size = new System.Drawing.Size(336, 23);
+            FeaturesPanel.Size = new System.Drawing.Size(356, 24);
             FeaturesPanel.TabIndex = 16;
             // 
             // UserOptionsForm
@@ -277,7 +281,7 @@ namespace Doyle_Addin.Options
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             BackColor = System.Drawing.Color.FromArgb(59, 68, 83);
             CancelButton = BtnCncl;
-            ClientSize = new System.Drawing.Size(360, 150);
+            ClientSize = new System.Drawing.Size(380, 155);
             Controls.Add(FeaturesPanel);
             Controls.Add(FutureMsg);
             Controls.Add(SCBackground);
@@ -285,7 +289,6 @@ namespace Doyle_Addin.Options
             Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
             ForeColor = System.Drawing.Color.White;
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-            MaximumSize = new System.Drawing.Size(360, 150);
             MinimumSize = new System.Drawing.Size(360, 150);
             Name = "UserOptionsForm";
             Padding = new System.Windows.Forms.Padding(12);
