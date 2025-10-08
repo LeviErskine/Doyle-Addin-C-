@@ -52,8 +52,9 @@ Module ObsoletePrint
 	End Function
 
 	' Gets the symbol definition from the document or library
-	Private Function GetSymbolDefinition _
-		(symbolName As String, drawingDoc As DrawingDocument, thisApplication As Application) As SketchedSymbolDefinition
+	Private Function GetSymbolDefinition(symbolName As String,
+	                                     drawingDoc As DrawingDocument,
+	                                     thisApplication As Application) As SketchedSymbolDefinition
 		' Step 1: Try to get the symbol from the active document itself
 		Dim symbolDefinition As SketchedSymbolDefinition = Nothing
 		Try
@@ -112,8 +113,9 @@ Module ObsoletePrint
 	End Sub
 
 	' Places the symbol at the center of the specified sheet
-	Private Sub PlaceSymbolAtSheetCenter _
-		(sheet As Sheet, symbolDefinition As SketchedSymbolDefinition, thisApplication As Application)
+	Private Sub PlaceSymbolAtSheetCenter(sheet As Sheet,
+	                                     symbolDefinition As SketchedSymbolDefinition,
+	                                     thisApplication As Application)
 		' Get the center point of the sheet
 		Dim transientGeometry As TransientGeometry = thisApplication.TransientGeometry
 		Dim centerPoint As Point2d = transientGeometry.CreatePoint2d(sheet.Width/2, sheet.Height/2)
@@ -156,8 +158,8 @@ Module ObsoletePrint
 		As SketchedSymbolDefinitionLibrary
 		For Each library As SketchedSymbolDefinitionLibrary In allLibraries
 			' Search for the definition within this specific library
-			Dim foundDefinition As LibrarySketchedSymbolDefinition = SearchDefinitions _
-				    (symbolDefinitionName, library.SketchedSymbolDefinitions)
+			Dim foundDefinition As LibrarySketchedSymbolDefinition = SearchDefinitions(symbolDefinitionName,
+			                                                                           library.SketchedSymbolDefinitions)
 			If foundDefinition IsNot Nothing Then
 				' If found, return the library object and exit the function
 				Return library
@@ -172,8 +174,8 @@ Module ObsoletePrint
 	Private Function SearchDefinitions(searchDefinitionName As String, definitions As LibrarySketchedSymbolDefinitions) _
 		As LibrarySketchedSymbolDefinition
 		Return _
-			definitions.Cast (Of LibrarySketchedSymbolDefinition)().FirstOrDefault _
-				(Function(libraryDefinition) libraryDefinition.Name = searchDefinitionName)
+			definitions.Cast (Of LibrarySketchedSymbolDefinition)().FirstOrDefault(
+				Function(libraryDefinition) libraryDefinition.Name = searchDefinitionName)
 
 		' If the loop finishes, the definition was not found.
 	End Function

@@ -97,6 +97,7 @@
     <EmbeddedResource Include="Resources\ObsoletePrint.svg" />
     <EmbeddedResource Include="Resources\PrintUpdateIcon.svg" />
     <EmbeddedResource Include="Resources\DXFUpdateIcon.svg" />
+    <EmbeddedResource Include="Options\UserOptionsForm.resx" />
     <EmbeddedResource Include="Resources\SettingsIcon.svg" />
     <None Include="My Project\DoylePlugin.manifest" />
     <None Include="Resources\ObsoleteLibrary.idw">
