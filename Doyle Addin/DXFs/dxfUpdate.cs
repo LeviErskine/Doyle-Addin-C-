@@ -21,10 +21,9 @@ internal static class DxfUpdate
         var oDoc = thisApplication.Documents;
         var pn = oPartDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString();
         var oFileName = UserOptions.Load().DxfExportLocation + pn + ".dxf";
-
-
+        
         // Check if a part is a factory
-        if (!oDef.IsiPartFactory) return;
+        if (!oDef.IsiPartFactory) goto NonIPart;
         var total = oFactory.TableRows.Count;
         oDoc.CloseAll(true);
         oPartDoc.ReleaseReference();
@@ -114,8 +113,7 @@ internal static class DxfUpdate
                 failedExports.Add("DXF failed to generate for: " + partnumber);
             }
         }
-
-
+        
         if (failedExports.Count > 0)
         {
             MessageBox.Show(failedExports.Count + @" Members have errors and were skipped." +
@@ -125,7 +123,9 @@ internal static class DxfUpdate
         {
             MessageBox.Show(@"Created " + total + @" DXFs. All exports succeeded.");
         }
+        return;
 
+NonIPart:
         {
             // Debug
             // MsgBox(ThisApplication.ActiveDocument._SickNodesCount.ToString, MsgBoxStyle.OkOnly, "Sick Nodes")
@@ -163,8 +163,7 @@ internal static class DxfUpdate
                     return;
                 }
             }
-
-
+            
             try
             {
                 oDef.DataIO.WriteDataToFile(oFormat, oFileName);
