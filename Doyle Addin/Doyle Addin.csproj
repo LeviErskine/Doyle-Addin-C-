@@ -151,6 +151,18 @@
     <Compile Include="Genius\Classes\src0.cs" />
     <Compile Include="Genius\Classes\wkgCls0.cs" />
     <Compile Include="Genius\Classes\zzCsv000.cs" />
+    <Compile Include="Genius\Forms\fmEmpty.cs" />
+    <Compile Include="Genius\Forms\fmGetList.cs" />
+    <Compile Include="Genius\Forms\fmMatlQty.cs" />
+    <Compile Include="Genius\Forms\fmSelectorList.cs" />
+    <Compile Include="Genius\Forms\fmSelectorV2.cs" />
+    <Compile Include="Genius\Forms\fmTest0.cs" />
+    <Compile Include="Genius\Forms\fmTest04.cs" />
+    <Compile Include="Genius\Forms\fmTest05.cs" />
+    <Compile Include="Genius\Forms\fmTest1.cs" />
+    <Compile Include="Genius\Forms\fmTest2.cs" />
+    <Compile Include="Genius\Forms\fmTest3.cs" />
+    <Compile Include="Genius\Forms\fmTestStockSel0.cs" />
     <Compile Include="My Project\AssemblyInfo.cs" />
     <Compile Include="My Project\GlobalsHelpers.cs" />
     <Compile Include="My Project\SVGconvert.cs" />
@@ -258,8 +270,5 @@
   </ItemGroup>
   <ItemGroup>
     <Import Include="Docnet.Core" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Genius\Forms\" />
   </ItemGroup>
 </Project>
