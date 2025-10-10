@@ -1,19 +1,13 @@
-﻿using System;
-using System.Windows.Forms;
-using Docnet.Core;
-using Docnet.Core.Models;
-using Doyle_Addin.Options;
-using Inventor;
-using File = System.IO.File;
+﻿using Doyle_Addin.Options;
 
 namespace Doyle_Addin.Prints;
 
 internal static class PrintUpdate
 {
-    public static void RunPrintUpdate(Inventor.Application thisApplication)
+    public static void RunPrintUpdate()
     {
         // Check if the current document is a drawing, show error if not
-        if (thisApplication.ActiveDocument.DocumentType != DocumentTypeEnum.kDrawingDocumentObject)
+        if (ThisApplication.ActiveDocument.DocumentType != kDrawingDocumentObject)
         {
             MessageBox.Show(@"ONLY FOR USE IN DRAWING DOCUMENTS", @"Ilogic", MessageBoxButtons.OK,
                 MessageBoxIcon.Warning);
@@ -21,7 +15,7 @@ internal static class PrintUpdate
         }
 
         // Set reference to active document
-        DrawingDocument oDDoc = (DrawingDocument)thisApplication.ActiveDocument;
+        DrawingDocument oDDoc = (DrawingDocument)ThisApplication.ActiveDocument;
 
         // Gets referenced model document type (part or assembly)
         var refDocType = oDDoc.ReferencedDocuments[1].DocumentType;
@@ -33,7 +27,7 @@ internal static class PrintUpdate
         if (string.IsNullOrEmpty(oFilePath))
         {
             MessageBox.Show(
-                @"This file has not been saved yet or save location cannot be found" + System.Environment.NewLine,
+                @"This file has not been saved yet or save location cannot be found" + Environment.NewLine,
                 @"Save error", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
@@ -41,12 +35,12 @@ internal static class PrintUpdate
         var fileName = pn + ".pdf";
         var pdfPath = oFilePath + @"\" + fileName;
         var oPdfAddin =
-            (TranslatorAddIn)thisApplication.ApplicationAddIns.ItemById["{0AC6FD96-2F4D-42CE-8BE0-8AEA580399E4}"];
-        Document oDocument = thisApplication.ActiveDocument;
-        var oContext = thisApplication.TransientObjects.CreateTranslationContext();
+            (TranslatorAddIn)ThisApplication.ApplicationAddIns.ItemById["{0AC6FD96-2F4D-42CE-8BE0-8AEA580399E4}"];
+        Document oDocument = ThisApplication.ActiveDocument;
+        var oContext = ThisApplication.TransientObjects.CreateTranslationContext();
         oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism;
-        var oOptions = thisApplication.TransientObjects.CreateNameValueMap();
-        var oDataMedium = thisApplication.TransientObjects.CreateDataMedium();
+        var oOptions = ThisApplication.TransientObjects.CreateNameValueMap();
+        var oDataMedium = ThisApplication.TransientObjects.CreateDataMedium();
 
         // Set PDF options
         oOptions.Value["All_Color_AS_Black"] = 0;
@@ -70,7 +64,7 @@ internal static class PrintUpdate
         }
 
         // If the referenced document is a part, convert PDF to JPG
-        if (refDocType != DocumentTypeEnum.kPartDocumentObject) return;
+        if (refDocType != kPartDocumentObject) return;
         try
         {
             const int dpi = 3200;

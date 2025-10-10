@@ -1,12 +1,7 @@
-﻿using System;
-using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using Docnet.Core;
-using Docnet.Core.Models;
+﻿
+
+
+
 
 namespace Doyle_Addin.Prints;
 

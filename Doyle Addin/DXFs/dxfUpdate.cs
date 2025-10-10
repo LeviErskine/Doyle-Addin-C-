@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Windows.Forms;
+﻿
 using Doyle_Addin.Options;
-using Inventor;
-using Application = Inventor.Application;
-using Environment = System.Environment;
 
 namespace Doyle_Addin.DXFs;
 
@@ -14,7 +7,7 @@ internal static class DxfUpdate
 {
     public static void RunDxfUpdate(Application thisApplication)
     {
-        var oPartDoc = (PartDocument)thisApplication.ActiveDocument;
+        var oPartDoc = (PartDocument)ThisApplication.ActiveDocument;
         var oDef = (SheetMetalComponentDefinition)oPartDoc.ComponentDefinition;
         var oFactory = oDef.iPartFactory;
         var failedExports = new List<string>();

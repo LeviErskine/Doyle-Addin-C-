@@ -1,7 +1,6 @@
-﻿using System;
-using Color = System.Drawing.Color;
-using System.Windows.Forms;
+﻿
 using Doyle_Addin.My_Project;
+
 
 namespace Doyle_Addin.Options;
 

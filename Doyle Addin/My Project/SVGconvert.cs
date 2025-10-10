@@ -1,12 +1,4 @@
-﻿using System;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using stdole;
-using Svg;
-
+﻿
 namespace Doyle_Addin.My_Project;
 
 // ReSharper disable once IdentifierTypo

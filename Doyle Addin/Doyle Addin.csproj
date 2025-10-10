@@ -69,12 +69,88 @@
     <Reference Update="System">
       <Name>System</Name>
     </Reference>
+    <Reference Include="InventorAddInUtils">
+      <HintPath>..\..\..\..\..\Program Files\Autodesk\Inventor 2025\Bin\InventorAddInUtils.dll</HintPath>
+    </Reference>
+    <Reference Include="InventorRegUtils">
+      <HintPath>..\..\..\..\..\Program Files\Autodesk\Inventor 2025\Redist\inventorregutils.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Optional Features\ObsoletePrint.cs">
       <Link>Optional Features\ObsoletePrint.cs</Link>
     </Compile>
     <Compile Include="DXFs\dxfUpdate.cs" />
+    <Compile Include="Genius\Classes\aaaNotes.cs" />
+    <Compile Include="Genius\Classes\aiBoxData.cs" />
+    <Compile Include="Genius\Classes\aiPropLink.cs" />
+    <Compile Include="Genius\Classes\aiPropSetter.cs" />
+    <Compile Include="Genius\Classes\app.cs" />
+    <Compile Include="Genius\Classes\AssyComponentsCollector.cs" />
+    <Compile Include="Genius\Classes\dcPopulator.cs" />
+    <Compile Include="Genius\Classes\dcSplitter.cs" />
+    <Compile Include="Genius\Classes\dvl0.cs" />
+    <Compile Include="Genius\Classes\dvl1.cs" />
+    <Compile Include="Genius\Classes\dvl2.cs" />
+    <Compile Include="Genius\Classes\dvl4.cs" />
+    <Compile Include="Genius\Classes\dvlAiNameValMap.cs" />
+    <Compile Include="Genius\Classes\dvlBomView.cs" />
+    <Compile Include="Genius\Classes\dvlContentCenterCheck.cs" />
+    <Compile Include="Genius\Classes\dvlDict0.cs" />
+    <Compile Include="Genius\Classes\dvlGnsIfc201904.cs" />
+    <Compile Include="Genius\Classes\dvlIModel.cs" />
+    <Compile Include="Genius\Classes\dvlObjMakers.cs" />
+    <Compile Include="Genius\Classes\dvlVault.cs" />
+    <Compile Include="Genius\Classes\fmDvl00.cs" />
+    <Compile Include="Genius\Classes\fmIfcMatlQty01.cs" />
+    <Compile Include="Genius\Classes\fmIfcTest04A.cs" />
+    <Compile Include="Genius\Classes\fmIfcTest05A.cs" />
+    <Compile Include="Genius\Classes\Functions.cs" />
+    <Compile Include="Genius\Classes\gnsIfcAiDoc.cs" />
+    <Compile Include="Genius\Classes\gnsIfcAiPart_V0_1.cs" />
+    <Compile Include="Genius\Classes\gnsIfcAiPart_V0_2.cs" />
+    <Compile Include="Genius\Classes\ifcAiProperty.cs" />
+    <Compile Include="Genius\Classes\ifcDatum.cs" />
+    <Compile Include="Genius\Classes\iLogicIfc.cs" />
+    <Compile Include="Genius\Classes\JsonConverter.cs" />
+    <Compile Include="Genius\Classes\kyPick.cs" />
+    <Compile Include="Genius\Classes\kyPickAiAssyMember.cs" />
+    <Compile Include="Genius\Classes\kyPickAiDocContentCtr.cs" />
+    <Compile Include="Genius\Classes\kyPickAiDocPurchased.cs" />
+    <Compile Include="Genius\Classes\kyPickAiDocWithRM.cs" />
+    <Compile Include="Genius\Classes\kyPickAiPartMember.cs" />
+    <Compile Include="Genius\Classes\kyPickAiPartVsAssy.cs" />
+    <Compile Include="Genius\Classes\kyPickAiSheetMetal.cs" />
+    <Compile Include="Genius\Classes\kyPickAiShMtl4sure.cs" />
+    <Compile Include="Genius\Classes\kyPickInGenius.cs" />
+    <Compile Include="Genius\Classes\lib0.cs" />
+    <Compile Include="Genius\Classes\lib1.cs" />
+    <Compile Include="Genius\Classes\libAddIns4inventor.cs" />
+    <Compile Include="Genius\Classes\libCastIfcDatum.cs" />
+    <Compile Include="Genius\Classes\libCastOb.cs" />
+    <Compile Include="Genius\Classes\libClipboardAPI.cs" />
+    <Compile Include="Genius\Classes\libClipboardWin10.cs" />
+    <Compile Include="Genius\Classes\libCutTimeFlatPtn.cs" />
+    <Compile Include="Genius\Classes\libDcGeneral.cs" />
+    <Compile Include="Genius\Classes\libDict.cs" />
+    <Compile Include="Genius\Classes\libFmSelectors.cs" />
+    <Compile Include="Genius\Classes\libFSys.cs" />
+    <Compile Include="Genius\Classes\libSQLinVB.cs" />
+    <Compile Include="Genius\Classes\libVbCodeXport.cs" />
+    <Compile Include="Genius\Classes\mod0.cs" />
+    <Compile Include="Genius\Classes\mod1.cs" />
+    <Compile Include="Genius\Classes\mod3.cs" />
+    <Compile Include="Genius\Classes\modAiVba.cs" />
+    <Compile Include="Genius\Classes\modDcFilters.cs" />
+    <Compile Include="Genius\Classes\modGPUpdateAT.cs" />
+    <Compile Include="Genius\Classes\modGPUpdateATrev.cs" />
+    <Compile Include="Genius\Classes\modMacros.cs" />
+    <Compile Include="Genius\Classes\Module1.cs" />
+    <Compile Include="Genius\Classes\sql0.cs" />
+    <Compile Include="Genius\Classes\sql1.cs" />
+    <Compile Include="Genius\Classes\src0.cs" />
+    <Compile Include="Genius\Classes\wkgCls0.cs" />
+    <Compile Include="Genius\Classes\zzCsv000.cs" />
     <Compile Include="My Project\AssemblyInfo.cs" />
     <Compile Include="My Project\GlobalsHelpers.cs" />
     <Compile Include="My Project\SVGconvert.cs" />
@@ -134,6 +210,33 @@
       <Isolated>False</Isolated>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </COMReference>
+    <COMReference Include="Scripting">
+      <VersionMinor>0</VersionMinor>
+      <VersionMajor>1</VersionMajor>
+      <Guid>420b2830-e718-11cf-893d-00a0c9054228</Guid>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="ADODB">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>1</VersionMinor>
+      <VersionMajor>6</VersionMajor>
+      <Guid>b691e011-1797-432e-907a-4d8c69339129</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="VBIDE">
+      <WrapperTool>tlbimp</WrapperTool>
+      <VersionMinor>3</VersionMinor>
+      <VersionMajor>5</VersionMajor>
+      <Guid>0002e157-0000-0000-c000-000000000046</Guid>
+      <Lcid>0</Lcid>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Docnet.Core" Version="2.7.0-alpha.1"></PackageReference>
@@ -155,5 +258,8 @@
   </ItemGroup>
   <ItemGroup>
     <Import Include="Docnet.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Genius\Forms\" />
   </ItemGroup>
 </Project>
