@@ -1,272 +1,277 @@
-﻿class libCastOb
+﻿using ADODB;
+using VBIDE;
+using Scripting;
+using Parameter = Inventor.Parameter;
+using Property = Inventor.Property;
+
+namespace Doyle_Addin.Genius.Classes;
+
+/// <summary>
+/// 
+/// </summary>
+public class libCastOb
 {
-    public object obOf(Variant vr)
+    public static dynamic obOf(dynamic vr)
     {
-        if (IsObject(vr))
-            obOf = vr;
-        else
-            obOf = null;
+        return vr;
     }
 
-    public Scripting.Dictionary dcOb(Variant vr)
+    public static Dictionary dcOb(dynamic vr)
     {
-        if (IsObject(vr))
+        if (vr != null)
         {
-            if (vr == null)
-                dcOb = null/* TODO Change to default(_) if this is not a reference type */;
-            else if (vr is Scripting.Dictionary)
-                dcOb = vr;
-            else
-                dcOb = null/* TODO Change to default(_) if this is not a reference type */;
+            return vr switch
+            {
+                Dictionary => vr,
+                _ => null
+            };
         }
-        else
-            dcOb = null/* TODO Change to default(_) if this is not a reference type */;
+
+        return null;
     }
 
-    public ADODB.Field fdOb(Variant vr)
+    public static Field fdOb(dynamic vr)
     {
-        if (IsObject(vr))
-        {
-            if (vr is ADODB.Field)
-                fdOb = vr;
-            else
-                fdOb = null/* TODO Change to default(_) if this is not a reference type */;
-        }
-        else
-            fdOb = null/* TODO Change to default(_) if this is not a reference type */;
+        var field = vr as Field;
+        return field;
     }
 
-    public Inventor.Document aiDocument(object doc)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="doc"></param>
+    /// <returns></returns>
+    public static Document aiDocument(dynamic doc)
     {
-        if (doc == null)
-            aiDocument = doc;
-        else if (doc is Inventor.Document)
-            aiDocument = doc;
-        else
-            aiDocument = null/* TODO Change to default(_) if this is not a reference type */;
+        return doc is null or Document ? (Document)doc : null;
     }
     // For Each itm In ActiveDocsComponents(ThisApplication): Debug.Print aiDocument(obOf(itm)).FullFileName: Next
 
-    public Inventor.Document aiDocActive()
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public static Document aiDocActive()
     {
-        aiDocActive = ThisApplication.ActiveDocument;
+        return ThisApplication.ActiveDocument;
     }
 
-    public Inventor.PartDocument aiDocPart(Inventor.Document doc)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="doc"></param>
+    /// <returns></returns>
+    public static PartDocument aiDocPart(Document doc)
     {
-        if (doc == null)
-            aiDocPart = doc;
-        else if (doc is Inventor.PartDocument)
-            aiDocPart = doc;
-        else
-            aiDocPart = null/* TODO Change to default(_) if this is not a reference type */;
+        return doc is null or PartDocument ? (PartDocument)doc : null;
     }
 
-    public Inventor.PartDocument aiDocPartFromCCtr(Inventor.Document doc)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="doc"></param>
+    /// <returns></returns>
+    public static PartDocument aiDocPartFromCCtr(Document doc)
     {
-        Inventor.PartDocument rt;
-
         if (doc == null)
-            aiDocPartFromCCtr = doc;
-        else
+            return null;
+        var rt = aiDocPart(doc);
+        if (rt == null || rt.ComponentDefinition.IsContentMember)
+            return rt;
+        return null;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="doc"></param>
+    /// <returns></returns>
+    public static AssemblyDocument aiDocAssy(Document doc)
+    {
+        return doc is null or AssemblyDocument ? (AssemblyDocument)doc : null;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="doc"></param>
+    /// <returns></returns>
+    public static DrawingDocument aiDocDwg(Document doc)
+    {
+        return doc is null or DrawingDocument ? (DrawingDocument)doc : null;
+    }
+
+    private static ComponentDefinition aiCompDefinition(dynamic doc)
+    {
+        // REV[2022.08.31.1313] OBSOLETED
+        // - no calls found to this function
+        // - aiCompDefOf serves same purpose
+        // in (slightly?) more robust manner
+        // - changed scope to Private
+        // to prevent future usage
+        // outside local scope
+        // 
+        return doc as ComponentDefinition;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="doc"></param>
+    /// <returns></returns>
+    public static ComponentDefinition aiCompDefOf(dynamic doc) // Inventor.Document
+    {
+        switch (doc)
         {
-            rt = aiDocPart(doc);
-            if (rt == null)
-                aiDocPartFromCCtr = rt;
-            else if (rt.ComponentDefinition.IsContentMember)
-                aiDocPartFromCCtr = rt;
-            else
-                aiDocPartFromCCtr = null/* TODO Change to default(_) if this is not a reference type */;
-        }
-    }
-
-    public Inventor.AssemblyDocument aiDocAssy(Inventor.Document doc)
-    {
-        if (doc == null)
-            aiDocAssy = doc;
-        else if (doc is Inventor.AssemblyDocument)
-            aiDocAssy = doc;
-        else
-            aiDocAssy = null/* TODO Change to default(_) if this is not a reference type */;
-    }
-
-    public Inventor.DrawingDocument aiDocDwg(Inventor.Document doc)
-    {
-        if (doc == null)
-            aiDocDwg = doc;
-        else if (doc is Inventor.DrawingDocument)
-            aiDocDwg = doc;
-        else
-            aiDocDwg = null/* TODO Change to default(_) if this is not a reference type */;
-    }
-
-    private Inventor.ComponentDefinition aiCompDefinition(object doc)
-    {
-        /// REV[2022.08.31.1313] OBSOLETED
-        /// -   no calls found to this function
-        /// -   aiCompDefOf serves same purpose
-        /// in (slightly?) more robust manner
-        /// -   changed scope to Private
-        /// to prevent future usage
-        /// outside local scope
-        /// 
-        if (doc is Inventor.ComponentDefinition)
-            aiCompDefinition = doc;
-        else
-            aiCompDefinition = null/* TODO Change to default(_) if this is not a reference type */;
-    }
-
-    public Inventor.ComponentDefinition aiCompDefOf(object doc) // Inventor.Document
-    {
-        /// aiCompDefOf -- Return the ComponentDefinition
-        /// of ANY Inventor Document which has one.
-        /// NOTE: currently returns ComponentDefinition objects
-        /// only from Part and Assembly Documents.
-        /// NOTE[2022.08.31.1202]: copied comments from redundant
-        /// function obAiCompDefAny prior to its deprecation
-        /// 
-        if (doc == null)
-            aiCompDefOf = null/* TODO Change to default(_) if this is not a reference type */;
-        else if (doc is Inventor.ComponentDefinition)
-            aiCompDefOf = doc;
-        else if (doc is Inventor.Document)
-        {
+            // aiCompDefOf -- Return the ComponentDefinition
+            // of ANY Inventor Document which has one.
+            // NOTE: currently returns ComponentDefinition objects
+            // only from Part and Assembly Documents.
+            // NOTE[2022.08.31.1202]: copied comments from redundant
+            // function obAiCompDefAny prior to its deprecation
+            // 
+            case null:
+                return null;
+            case ComponentDefinition:
+                return doc;
+            case Document:
             {
-                var withBlock = aiDocument(doc);
-                if (withBlock.DocumentType == kAssemblyDocumentObject)
-                    aiCompDefOf = aiDocAssy(doc).ComponentDefinition;
-                else if (withBlock.DocumentType == kPartDocumentObject)
-                    aiCompDefOf = aiDocPart(doc).ComponentDefinition;
-                else
-                    aiCompDefOf = null/* TODO Change to default(_) if this is not a reference type */;
+                {
+                    var withBlock = aiDocument(doc);
+                    return withBlock.DocumentType switch
+                    {
+                        kAssemblyDocumentObject => (ComponentDefinition)aiDocAssy(doc).ComponentDefinition,
+                        kPartDocumentObject => (ComponentDefinition)aiDocPart(doc).ComponentDefinition,
+                        _ => null
+                    };
+                }
             }
+            default:
+                return null;
         }
-        else
-            aiCompDefOf = null/* TODO Change to default(_) if this is not a reference type */;
     }
 
-    public Inventor.ComponentDefinition obAiCompDefAny(Inventor.Document AiDoc)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="AiDoc"></param>
+    /// <returns></returns>
+    public static ComponentDefinition obAiCompDefAny(Document AiDoc)
     {
-        /// obAiCompDefAny -- Return the ComponentDefinition
-        /// of ANY Inventor Document which has one.
-        /// NOTE: currently returns ComponentDefinition objects
-        /// only from Part and Assembly Documents.
-        /// NOTE[2022.08.31.1203]: rediscovered original
-        /// implementation aiCompDefOf; copied comments
-        /// there prior to deprecation of this implementation
-        /// 
+        // obAiCompDefAny -- Return the ComponentDefinition
+        // of ANY Inventor Document which has one.
+        // NOTE: currently returns ComponentDefinition objects
+        // only from Part and Assembly Documents.
+        // NOTE[2022.08.31.1203]: rediscovered original
+        // implementation aiCompDefOf; copied comments
+        // there prior to deprecation of this implementation
+        // 
         if (AiDoc == null)
-            obAiCompDefAny = null/* TODO Change to default(_) if this is not a reference type */;
-        else if (AiDoc.DocumentType == kAssemblyDocumentObject)
-            obAiCompDefAny = aiDocAssy(AiDoc).ComponentDefinition;
-        else if (AiDoc.DocumentType == kPartDocumentObject)
-            obAiCompDefAny = aiDocPart(AiDoc).ComponentDefinition;
-        else
-            obAiCompDefAny = null/* TODO Change to default(_) if this is not a reference type */;
+            return null;
+        return AiDoc.DocumentType switch
+        {
+            kAssemblyDocumentObject => (ComponentDefinition)aiDocAssy(AiDoc).ComponentDefinition,
+            kPartDocumentObject => (ComponentDefinition)aiDocPart(AiDoc).ComponentDefinition,
+            _ => null
+        };
     }
 
-    public Inventor.PartComponentDefinition aiCompDefPart(object doc)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="doc"></param>
+    /// <returns></returns>
+    public static PartComponentDefinition aiCompDefPart(dynamic doc)
     {
-        /// REV[2022.08.31.1247]
-        /// added ElseIf check for PartDocument
-        /// to accept Inventor Document as well
-        /// as ComponentDefinition
-        /// applied same to functions {
-        /// aiCompDefPart
-        /// }
-        /// 
-        /// 
+        // REV[2022.08.31.1247]
+        // added ElseIf check for PartDocument
+        // to accept Inventor Document as well
+        // as ComponentDefinition
+        // applied same to functions {
+        // aiCompDefPart
+        // }
+        // 
+        // 
         if (doc == null)
-            aiCompDefPart = null/* TODO Change to default(_) if this is not a reference type */;
-        else if (doc is Inventor.PartComponentDefinition)
-            aiCompDefPart = doc;
-        else if (doc is Inventor.PartDocument)
-            aiCompDefPart = aiDocPart(doc).ComponentDefinition;
-        else
-            aiCompDefPart = null/* TODO Change to default(_) if this is not a reference type */;
+            return null;
+        if (doc is PartComponentDefinition)
+            return doc;
+        return doc is PartDocument ? (PartComponentDefinition)aiDocPart(doc).ComponentDefinition : null;
     }
 
-    public Inventor.SheetMetalComponentDefinition aiCompDefShtMetal(object ob)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="ob"></param>
+    /// <returns></returns>
+    public static SheetMetalComponentDefinition aiCompDefShtMetal(dynamic ob)
     {
         if (ob == null)
-            aiCompDefShtMetal = null/* TODO Change to default(_) if this is not a reference type */;
-        else if (ob is Inventor.SheetMetalComponentDefinition)
-            aiCompDefShtMetal = ob;
-        else if (ob is Inventor.PartDocument)
-            aiCompDefShtMetal = aiCompDefShtMetal(aiDocPart(ob).ComponentDefinition);
-        else
-            aiCompDefShtMetal = null/* TODO Change to default(_) if this is not a reference type */;
+            return null;
+        return ob switch
+        {
+            SheetMetalComponentDefinition => ob,
+            PartDocument => aiCompDefShtMetal(aiDocPart(ob).ComponentDefinition),
+            _ => null
+        };
     }
 
-    public Inventor.AssemblyComponentDefinition aiCompDefAssy(object ob)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="ob"></param>
+    /// <returns></returns>
+    public static AssemblyComponentDefinition aiCompDefAssy(dynamic ob)
     {
         if (ob == null)
-            aiCompDefAssy = null/* TODO Change to default(_) if this is not a reference type */;
-        else if (ob is Inventor.AssemblyComponentDefinition)
-            aiCompDefAssy = ob;
-        else if (ob is Inventor.AssemblyDocument)
-            aiCompDefAssy = aiDocAssy(ob).ComponentDefinition;
-        else
-            aiCompDefAssy = null/* TODO Change to default(_) if this is not a reference type */;
+            return null;
+        return ob switch
+        {
+            AssemblyComponentDefinition => ob,
+            AssemblyDocument => aiDocAssy(ob).ComponentDefinition,
+            _ => null
+        };
     }
 
-    public Inventor.Property aiProperty(object ob)
+    public static Property aiProperty(dynamic ob)
     {
         if (ob == null)
             // Stop
-            aiProperty = null/* TODO Change to default(_) if this is not a reference type */;
-        else if (ob is Inventor.Property)
-            aiProperty = ob;
-        else
+            return null;
+        return ob is Property property
+            ? property
+            :
             // Stop 'because this is NOT a Property!
-            aiProperty = null/* TODO Change to default(_) if this is not a reference type */;
+            null;
     }
 
-    public Inventor.Plane aiPlane(object ob)
+    public static Plane aiPlane(dynamic ob)
     {
-        if (ob is Inventor.Plane)
-            aiPlane = ob;
-        else
-            aiPlane = null/* TODO Change to default(_) if this is not a reference type */;
+        return ob as Plane;
     }
 
-    public Inventor.ComponentOccurrence aiCompOcc(object ob)
+    public static ComponentOccurrence aiCompOcc(dynamic ob)
     {
-        if (ob is Inventor.ComponentOccurrence)
-            aiCompOcc = ob;
-        else
-            aiCompOcc = null/* TODO Change to default(_) if this is not a reference type */;
+        return ob as ComponentOccurrence;
     }
 
-    public Inventor.Property obAiProp(object ob)
+    public Property obAiProp(dynamic ob)
     {
-        if (ob is Inventor.Property)
-            obAiProp = ob;
-        else
-            obAiProp = null/* TODO Change to default(_) if this is not a reference type */;
+        return ob as Property;
     }
 
-    public Inventor.Parameter obAiParam(object ob)
+    public static Parameter obAiParam(dynamic ob)
     {
-        if (ob is Inventor.Parameter)
-            obAiParam = ob;
-        else
-            obAiParam = null/* TODO Change to default(_) if this is not a reference type */;
+        return ob as Parameter;
     }
 
-    public VBIDE.VBProject obVbProject(object ob)
+    public static VBProject obVbProject(dynamic ob)
     {
-        if (ob is VBIDE.VBProject)
-            obVbProject = ob;
-        else
-            obVbProject = null/* TODO Change to default(_) if this is not a reference type */;
+        return ob as VBProject;
     }
 
-    public VBIDE.CodeModule obVbCodeMod(object ob)
+    public static CodeModule obVbCodeMod(dynamic ob)
     {
-        if (ob is VBIDE.CodeModule)
-            obVbCodeMod = ob;
-        else
-            obVbCodeMod = null/* TODO Change to default(_) if this is not a reference type */;
+        return ob as CodeModule;
     }
 }

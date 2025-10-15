@@ -1,7 +1,9 @@
-﻿class gnsIfcAiPart : gnsIfcAiDoc
+﻿namespace Doyle_Addin.Genius.Classes;
+
+class gnsIfcAiPart : gnsIfcAiDoc
 {
-    private Scripting.IDictionary gnsIfcAiDoc_Props(Inventor.Document AiDoc, Scripting.IDictionary dc = null/* TODO Change to default(_) if this is not a reference type */)
+    private IDictionary gnsIfcAiDoc_Props(Document AiDoc, IDictionary dc = null)
     {
-        gnsIfcAiDoc_Props = dcGeniusPropsPartRev20180530(aiDocPart(AiDoc), dc);
+        return dcGeniusPropsPartRev20180530(aiDocPart(AiDoc), dc);
     }
 }

@@ -1,343 +1,327 @@
-﻿class dvl0
-{
-    public Scripting.Dictionary d0g0f0(Inventor.SheetMetalComponentDefinition cd, Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */)
-    {
-        /// New Sheet Metal Part processing function
-        /// Reference function d0g0f0
-        /// 
-        Scripting.Dictionary rt;
-        // '
-        Inventor.PartDocument pt;
-        Inventor.PropertySet ps;
-        Inventor.Parameter prThk;
-        // '
-        VbMsgBoxResult ck;
-        long ec;
-        string ed;
-        // Dim op As Boolean
-        Inventor.View v1;
-        Inventor.View v2;
-        // '
-        double dLength;
-        double dWidth;
-        double dArea;
-        string strWidth;
-        string strLength;
-        string strArea;
-        // '
-        double dHeight;
-        double dfHtThk;
-        string strDVNs;
-        // '
+﻿using Doyle_Addin.Genius.Forms;
+using Microsoft.VisualBasic;
+using Point = Inventor.Point;
+using static Doyle_Addin.Genius.Classes.lib0;
+using static Inventor.ViewOrientationTypeEnum;
 
-        if (dc == null)
-            d0g0f0 = d0g0f0(cd, new Scripting.Dictionary());
-        else
+namespace Doyle_Addin.Genius.Classes;
+
+/// <summary>
+/// 
+/// </summary>
+public class dvl0
+{
+    private Dictionary d0g0f0(SheetMetalComponentDefinition cd, Dictionary dc = null)
+    {
+        while (true)
         {
-            rt = dc;
+            // New Sheet Metal Part processing function
+            // Reference function d0g0f0
+            // 
+            // '
+            // '
+            // Dim op As Boolean
+            // '
+            // '
+            // '
+
+            if (dc == null)
+            {
+                dc = new Dictionary();
+                continue;
+            }
+
+            var rt = dc;
             if (cd == null)
             {
             }
             else
             {
-                pt = cd.Document;
-                ps = pt.PropertySets.Item(gnCustom);
-                v1 = d0g1f0(pt);
+                var pt = (PartDocument)cd.Document;
+                var ps = pt.PropertySets.GetType(gnCustom);
+                var v1 = d0g1f0(pt);
                 // op = pt.Open
 
+                Information.Err().Clear();
+                var prThk = cd.Thickness;
+                long ec = Information.Err().Number;
+                var ed = Information.Err().Description;
 
-                Information.Err.Clear();
-                prThk = cd.Thickness;
-                ec = Information.Err.Number;
-                ed = Information.Err.Description;
-
-
-                if (ec == 0)
+                if (ec != 0) return rt;
+                if (!cd.HasFlatPattern)
                 {
-                    if (!cd.HasFlatPattern)
+                    MsgBoxResult ck = newFmTest2().AskAbout(pt,
+                        null /* Conversion error: Set to default value for this argument */,
+                        "NO FLAT PATTERN!" + Constants.vbCrLf + "Try to generate one?");
+                    if (ck == Constants.vbYes)
                     {
-                        ck = newFmTest2().AskAbout(pt, null/* Conversion error: Set to default value for this argument */, "NO FLAT PATTERN!" + Constants.vbNewLine + "Try to generate one?");
-                        if (ck == Constants.vbYes)
+                        // If Not op Then Stop
+                        // Want to see if forcing an Unfold
+                        // causes an unopened document to open.
+                        // Also want to see how Open Property
+                        // relates to a referenced Document
+                        // not (yet) separately opened.
+
+                        Information.Err().Clear();
+                        cd.Unfold();
+                        if (Information.Err().Number == 0)
                         {
-                            // If Not op Then Stop
-                            // Want to see if forcing an Unfold
-                            // causes an unopened document to open.
-                            // Also want to see how Open Property
-                            // relates to a referenced Document
-                            // not (yet) separately opened.
+                            if (cd.HasFlatPattern) cd.FlatPattern.ExitEdit();
+                        }
+                        else
+                            Debugger.Break(); // Couldn't make Flat Pattern
 
-                            Information.Err.Clear();
-                            cd.Unfold();
-                            if (Information.Err.Number == 0)
-                            {
-                                if (cd.HasFlatPattern)
-                                    cd.FlatPattern.ExitEdit();
-                            }
-                            else
-                                System.Diagnostics.Debugger.Break();// Couldn't make Flat Pattern
-                            Information.Err.Clear();
+                        Information.Err().Clear();
 
-                            v2 = d0g1f0(pt);
-                            if (!v2 == null)
+                        var v2 = d0g1f0(pt);
+                        if (v2 == null)
+                        {
+                            if (v1 == null) v2.Close();
+                        }
+                    }
+                }
+
+                if (cd.HasFlatPattern)
+                {
+                    {
+                        var withBlock = cd.FlatPattern;
+                        // First, make sure it's VALID
+                        double dLength;
+                        double dWidth;
+                        double dHeight;
+                        double dArea;
+                        double dfHtThk;
+                        {
+                            var withBlock1 = withBlock.Body.RangeBox;
+                            // Check height against thickness
+                            // Valid flat pattern should return
+                            // zero or VERY minimal difference
+                            dHeight = (withBlock1.MaxPoint.Z - withBlock1.MinPoint.Z);
+                            dfHtThk = double.Abs(dHeight - prThk.Value);
+
+                            // the extent of the face.
+                            // Extract the width, length and area from the range.
+                            dLength = (withBlock1.MaxPoint.X - withBlock1.MinPoint.X);
+                            dWidth = (withBlock1.MaxPoint.Y - withBlock1.MinPoint.Y);
+                            dArea = dLength * dWidth;
+                        }
+                        // Stop
+                        // At this point, we should have enough
+                        // to check at least a few things,
+                        // and possibly pick out stock.
+                        // 
+                        if (dfHtThk > 0.01)
+                        {
+                            // Stop 'and prep for machined (non sheet metal) specs
+                            // Pretty sure dimension values
+                            // come through in centimeters
+                            // so try converting them here
+                            // sort3dimsUp
+                            d0g1f4(cd);
+                            rt = d0g1f3(pt,
+                                sort3dimsUp(dHeight / cvLenIn2cm, dWidth / cvLenIn2cm, dLength / cvLenIn2cm), rt);
+                        }
+
+                        if (dArea > 0)
+                        {
+                            // an invalid flat pattern SHOULD have no geometry,
+                            // which means it SHOULD have no area to speak of.
+                            // '
+                            // One would think this obvious, in retrospect,
+                            // but one would not be surprised to be proven wrong.
+                            // Again.
+
                             {
-                                if (v1 == null)
-                                    v2.Close();
+                                // Convert values into document units.
+                                // This will result in strings that are identical
+                                // to the strings shown in the Extent dialog.
+                                {
+                                    var withBlock2 = pt.UnitsOfMeasure;
+                                    var strWidth = withBlock2.GetStringFromValue(dWidth,
+                                        withBlock2.GetStringFromType(withBlock2.LengthUnits));
+                                    var strLength = withBlock2.GetStringFromValue(dLength,
+                                        withBlock2.GetStringFromType(withBlock2.LengthUnits));
+                                    var strArea = withBlock2.GetStringFromValue(dArea,
+                                        withBlock2.GetStringFromType(withBlock2.LengthUnits) + "^2");
+
+                                    var strDVNs = dfHtThk > 0.01
+                                        ? withBlock2.GetStringFromValue(dfHtThk,
+                                            withBlock2.GetStringFromType(withBlock2.LengthUnits))
+                                        : "";
+                                }
                             }
                         }
                         else
                         {
+                            if (MessageBox.Show(
+                                    Join(
+                                        new[]
+                                        {
+                                            "The flat pattern for this", "part has no features,",
+                                            "and is likely not valid.", "", "Pause here to review?",
+                                            "(Click 'NO' to just keep going)"
+                                        }, Constants.vbCrLf), Constants.vbYesNo, "Invalid Flat Pattern") ==
+                                Constants.vbYes) Debugger.Break(); // and let the user look into it
+                            Debug.Print(aiDocument(withBlock.Document).FullDocumentName);
                         }
                     }
 
-                    if (cd.HasFlatPattern)
-                    {
-                        {
-                            var withBlock = cd.FlatPattern;
-                            // First, make sure it's VALID
-                            {
-                                var withBlock1 = withBlock.Body.RangeBox;
-                                // Check height against thickness
-                                // Valid flat pattern should return
-                                // zero or VERY minimal difference
-                                dHeight = (withBlock1.MaxPoint.Z - withBlock1.MinPoint.Z);
-                                dfHtThk = Abs(dHeight - prThk.Value);
+                    // Add area to custom property set
+                    // rt = dcWithProp(aiPropSet, pnRmQty, dArea * cvArSqCm2SqFt, rt)
 
-                                // the extent of the face.
-                                // Extract the width, length and area from the range.
-                                dLength = (withBlock1.MaxPoint.X - withBlock1.MinPoint.X);
-                                dWidth = (withBlock1.MaxPoint.Y - withBlock1.MinPoint.Y);
-                                dArea = dLength * dWidth;
-                            }
-                            // Stop
-                            /// At this point, we should have enough
-                            /// to check at least a few things,
-                            /// and possibly pick out stock.
-                            /// 
-                            if (dfHtThk > 0.01)
-                            {
-                                // Stop 'and prep for machined (non sheet metal) specs
-                                /// Pretty sure dimension values
-                                /// come through in centimeters
-                                /// so try converting them here
-                                // sort3dimsUp
-                                d0g1f4(cd);
-                                rt = d0g1f3(pt, sort3dimsUp(dHeight / cvLenIn2cm, dWidth / cvLenIn2cm, dLength / cvLenIn2cm), rt);
-                            }
-                            else
-                            {
-                            }
+                    // Add Width to custom property set
+                    // rt = dcWithProp(aiPropSet, pnWidth, strWidth, rt)
 
-                            if (dArea > 0)
-                            {
-                                /// an invalid flat pattern SHOULD have no geometry,
-                                /// which means it SHOULD have no area to speak of.
-                                /// '
-                                /// One would think this obvious, in retrospect,
-                                /// but one would not be surprised to be proven wrong.
-                                /// Again.
+                    // Add Length to custom property set
+                    // rt = dcWithProp(aiPropSet, pnLength, strLength, rt)
 
-                                {
-                                    var withBlock1 = pt;
+                    // Add AreaDescription to custom property set
+                    // rt = dcWithProp(aiPropSet, pnArea, strArea, rt)
 
-                                    // Convert values into document units.
-                                    // This will result in strings that are identical
-                                    // to the strings shown in the Extent dialog.
-                                    {
-                                        var withBlock2 = withBlock1.UnitsOfMeasure;
-                                        strWidth = withBlock2.GetStringFromValue(dWidth, withBlock2.GetStringFromType(withBlock2.LengthUnits));
-                                        strLength = withBlock2.GetStringFromValue(dLength, withBlock2.GetStringFromType(withBlock2.LengthUnits));
-                                        strArea = withBlock2.GetStringFromValue(dArea, withBlock2.GetStringFromType(withBlock2.LengthUnits) + "^2");
-
-                                        if (dfHtThk > 0.01)
-                                            strDVNs = withBlock2.GetStringFromValue(dfHtThk, withBlock2.GetStringFromType(withBlock2.LengthUnits));
-                                        else
-                                            strDVNs = "";
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                if (MsgBox(Join(Array("The flat pattern for this", "part has no features,", "and is likely not valid.", "", "Pause here to review?", "(Click 'NO' to just keep going)"), Constants.vbNewLine), Constants.vbYesNo, "Invalid Flat Pattern") == Constants.vbYes)
-                                    System.Diagnostics.Debugger.Break();// and let the user look into it
-                                Debug.Print(aiDocument(withBlock.Document).FullDocumentName);
-                            }
-                        }
-
-                        // Add area to custom property set
-                        // rt = dcWithProp(aiPropSet, pnRmQty, dArea * cvArSqCm2SqFt, rt)
-
-                        // Add Width to custom property set
-                        // rt = dcWithProp(aiPropSet, pnWidth, strWidth, rt)
-
-                        // Add Length to custom property set
-                        // rt = dcWithProp(aiPropSet, pnLength, strLength, rt)
-
-                        // Add AreaDescription to custom property set
-                        // rt = dcWithProp(aiPropSet, pnArea, strArea, rt)
-
-                        if (Strings.Len(strDVNs) > 0)
-                        {
-                        }
-                    }
-                    else
+                    if (Strings.Len(strDVNs) > 0)
                     {
                     }
                 }
-                else
-                    System.Diagnostics.Debugger.Break();
             }
-            d0g0f0 = rt;
+
+            else
+            Debugger.Break();
+
+            return rt;
+
+            break;
         }
     }
     // For Each dc In aiDocAssy(aiDocActive).ComponentDefinition.Occurrences: Debug.Print aiDocument(aiCompOcc(obOf(dc)).Definition.Document).Open, aiDocument(aiCompOcc(obOf(dc)).Definition.Document).FullDocumentName: Next
     // Looks like Open property will NOT distinguish documents in tab list from those not
     // All entries came up True
 
-    public Inventor.View d0g1f0(Inventor.Document rf)
+    private static  Inventor.View d0g1f0(Document rf)
     {
-        Inventor.View rt;
-        Inventor.View vw;
-
-        rt = null/* TODO Change to default(_) if this is not a reference type */;
-        foreach (var vw in ThisApplication.Views)
+        Inventor.View rt = null;
+        foreach (Inventor.View vw in ThisApplication.Views.Cast<dynamic>().Where(vw => vw.Document == rf))
         {
-            if (vw.Document == rf)
-                rt = vw;
+            rt = vw;
         }
-        d0g1f0 = rt;
+
+        return rt;
     }
 
-    public Inventor.SheetMetalComponentDefinition d0g1f1(Inventor.PartDocument rf)
+    public static  SheetMetalComponentDefinition d0g1f1(PartDocument rf)
     {
-        if (rf == null)
-            d0g1f1 = null/* TODO Change to default(_) if this is not a reference type */;
-        else
-            d0g1f1 = aiCompDefShtMetal(rf.ComponentDefinition);
+        return rf == null ? null : aiCompDefShtMetal(rf.ComponentDefinition);
     }
 
-    public Variant noVal(VbVarType vt = )
+    public static  dynamic noVal(VbVarType vt = )
     {
         if (vt & Constants.vbArray)
-            noVal = Array();
-        else
-            switch (vt)
+            return Array.Empty<dynamic>();
+        switch (vt)
+        {
+            case dynamic _ when Constants.vbString:
             {
-                case object _ when Constants.vbString:
-                    {
-                        noVal = "";
-                        break;
-                    }
-
-                case object _ when Constants.vbLong:
-                    {
-                        noVal = System.Convert.ToInt64(0);
-                        break;
-                    }
-
-                case object _ when Constants.vbVariant:
-                    {
-                        noVal = Empty;
-                        break;
-                    }
-
-                case object _ when Constants.vbInteger:
-                    {
-                        noVal = System.Convert.ToInt32(0);
-                        break;
-                    }
-
-                case object _ when Constants.vbSingle:
-                    {
-                        noVal = System.Convert.ToSingle(0);
-                        break;
-                    }
-
-                case object _ when Constants.vbDouble:
-                    {
-                        noVal = System.Convert.ToDouble(0);
-                        break;
-                    }
-
-                case object _ when Constants.vbDecimal:
-                    {
-                        noVal = System.Convert.ToDecimal(0);
-                        break;
-                    }
-
-                case object _ when Constants.vbCurrency:
-                    {
-                        noVal = CCur(0);
-                        break;
-                    }
-
-                case object _ when Constants.vbBoolean:
-                    {
-                        noVal = System.Convert.ToBoolean(0);
-                        break;
-                    }
-
-                case object _ when Constants.vbByte:
-                    {
-                        noVal = System.Convert.ToByte(0);
-                        break;
-                    }
-
-                case Constants.vbEmpty:
-                    {
-                        noVal = Empty;
-                        break;
-                    }
-
-                case object _ when Constants.vbNull:
-                    {
-                        noVal = Null;
-                        break;
-                    }
-
-                case object _ when Constants.vbObject:
-                    {
-                        noVal = null/* TODO Change to default(_) if this is not a reference type */;
-                        break;
-                    }
-
-                case object _ when Constants.vbDate:
-                    {
-                        System.Diagnostics.Debugger.Break(); // noVal = Empty
-                        break;
-                    }
-
-                case object _ when vbError:
-                    {
-                        System.Diagnostics.Debugger.Break(); // noVal = Empty
-                        break;
-                    }
-
-                case object _ when vbDataObject:
-                    {
-                        System.Diagnostics.Debugger.Break(); // noVal = Empty
-                        break;
-                    }
-
-                case object _ when Constants.vbUserDefinedType:
-                    {
-                        System.Diagnostics.Debugger.Break(); // noVal = Empty
-                        break;
-                    }
+                return "";
+                break;
             }
+
+            case dynamic _ when Constants.vbLong:
+            {
+                return Convert.ToInt64(0);
+                break;
+            }
+
+            case dynamic _ when Constants.vbVariant:
+            {
+                return null;
+                break;
+            }
+
+            case dynamic _ when Constants.vbInteger:
+            {
+                return Convert.ToInt32(0);
+                break;
+            }
+
+            case dynamic _ when Constants.vbSingle:
+            {
+                return Convert.ToSingle(0);
+                break;
+            }
+
+            case dynamic _ when Constants.vbDouble:
+            {
+                return Convert.ToDouble(0);
+                break;
+            }
+
+            case dynamic _ when Constants.vbDecimal:
+            {
+                return Convert.ToDecimal(0);
+                break;
+            }
+
+            case dynamic _ when Constants.vbCurrency:
+            {
+                return CCur(0);
+                break;
+            }
+
+            case dynamic _ when Constants.vbBoolean:
+            {
+                return Convert.ToBoolean(0);
+                break;
+            }
+
+            case dynamic _ when Constants.vbByte:
+            {
+                return Convert.ToByte(0);
+                break;
+            }
+
+            case Constants.vbEmpty:
+            {
+                return null;
+                break;
+            }
+
+            case dynamic _ when Constants.vbNull:
+            {
+                return Null;
+                break;
+            }
+
+            case dynamic _ when Constants.vbObject:
+            {
+                return null;
+                break;
+            }
+
+            case dynamic _ when Constants.vbDate:
+
+            case dynamic _ when vbError:
+
+            case dynamic _ when vbDataObject:
+
+            case dynamic _ when Constants.vbUserDefinedType:
+            {
+                Debugger.Break(); // noVal = null
+                break;
+            }
+        }
     }
 
-    public double[] pt3d(double d0 = 0#, double d1 = 0#, double d2 = 0#)
+    private static  double[] pt3d(double d0 = 0, double d1 = 0, double d2 = 0)
     {
-        double[] rt = new double[3];
+        var rt = new double[3];
 
         rt[0] = d0;
         rt[1] = d1;
         rt[2] = d2;
 
-        pt3d = rt;
+        return rt;
     }
 
-    public double[] sort3dimsUp(double d0, double d1, double d2)
+    private static double[] sort3dimsUp(double d0, double d1, double d2)
     {
         double[] rt;
 
@@ -352,10 +336,11 @@
             rt[1] = d1;
             rt[2] = d2;
         }
-        sort3dimsUp = rt;
+
+        return rt;
     }
 
-    public double[] sort3dimsDn(double d0, double d1, double d2)
+    public static  double[] sort3dimsDn(double d0, double d1, double d2)
     {
         double[] rt;
 
@@ -370,69 +355,68 @@
             rt[1] = d1;
             rt[2] = d2;
         }
-        sort3dimsDn = rt;
+
+        return rt;
     }
 
-    public double[] aiBoxDims(Inventor.Box RefBox)
+    public static  double[] aiBoxDims(Box RefBox)
     {
-        double[] rt;
-        Inventor.Point mx;
-        Inventor.Point mn;
+        var rt = Array.Empty<double>();
+        Point mx;
+        Point mn;
 
         {
-            var withBlock = RefBox;
-            mx = withBlock.MaxPoint;
-            mn = withBlock.MinPoint;
+            mx = RefBox.MaxPoint;
+            mn = RefBox.MinPoint;
         }
 
         rt[0] = mx.X - mn.X;
         rt[1] = mx.Y - mn.Y;
         rt[2] = mx.Z - mn.Z;
 
-        aiBoxDims = rt;
+        return rt;
     }
 
-    public Inventor.Box aiBoxSortDown(Inventor.Box RefBox)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="RefBox"></param>
+    /// <returns></returns>
+    public static Box aiBoxSortDown(Box RefBox)
     {
-        Inventor.Box rt;
-        Inventor.Point mx;
-        Inventor.Point mn;
+        Box rt;
 
         {
             var withBlock = ThisApplication.TransientGeometry;
             rt = withBlock.CreateBox();
             {
-                var withBlock1 = RefBox;
-                mx = withBlock1.MaxPoint;
-                mn = withBlock1.MinPoint;
+                var mx = RefBox.MaxPoint;
+                var mn = RefBox.MinPoint;
                 rt.PutBoxData(pt3d(), sort3dimsDn(mx.X - mn.X, mx.Y - mn.Y, mx.Z - mn.Z));
             }
         }
 
-        aiBoxSortDown = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcSteelType2Spec6()
+    public static  Dictionary dcSteelType2Spec6()
     {
-        Scripting.Dictionary rt;
-
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
-            var withBlock = rt;
-            withBlock.Add("Steel, Mild", "MS");
-            withBlock.Add("Stainless Steel", "SS");
-            withBlock.Add("Stainless Steel, Austenitic", "SS");
+            rt.Add("Steel, Mild", "MS");
+            rt.Add("Stainless Steel", "SS");
+            rt.Add("Stainless Steel, Austenitic", "SS");
         }
 
-        dcSteelType2Spec6 = rt;
+        return rt;
     }
 
-    public string steelSpec6(string stl, long Ask = 0)
+    public static  string steelSpec6(string stl, long Ask = 0)
     {
         string rt;
         // With dcSteelType2Spec6()
         // If .Exists(stl) Then
-        // steelSpec6 = .Item(stl)
+        // steelSpec6 = .get_Item(stl)
         // Else
         // steelSpec6 = ""
         // End If
@@ -441,152 +425,120 @@
         switch (stl)
         {
             case "Stainless Steel":
-                {
-                    rt = "SS";
-                    break;
-                }
-
             case "Stainless Steel, Austenitic":
-                {
-                    rt = "SS";
-                    break;
-                }
-
             case "Stainless Steel 304":
-                {
-                    rt = "SS";
-                    break;
-                }
+            {
+                rt = "SS";
+                break;
+            }
 
             case "Steel, Mild":
-                {
-                    rt = "MS";
-                    break;
-                }
-
+            {
+                rt = "MS";
+                break;
+            }
             case "Rubber":
-                {
-                    rt = "";  // LG
-                    break;
-                }
-
             case "Rubber, Silicone":
-                {
-                    rt = "";  // LG
-                    break;
-                }
-
             case "UHMW, White":
-                {
-                    rt = "";  // LG
-                    break;
-                }
+            {
+                rt = ""; // LG
+                break;
+            }
 
             default:
+            {
+                if (Ask)
                 {
-                    if (Ask)
-                    {
-                        Debug.Print("=== UNKNOWN MATERIAL ===");
-                        Debug.Print("   (" + stl + ")");
-                        Debug.Print("Please supply a code for Specification 6,");
-                        Debug.Print("if applicable, on the line below, and");
-                        Debug.Print("press [ENTER] or [RETURN] to modify.");
-                        Debug.Print("Press [F5] when ready to continue.");
-                        Debug.Print("rt  = \"\" '<-( place code between double quotes )");
-                        System.Diagnostics.Debugger.Break();
-                    }
-                    else
-                        rt = "";
-                    break;
+                    Debug.Print("=== UNKNOWN MATERIAL ===");
+                    Debug.Print(" (" + stl + ")");
+                    Debug.Print("Please supply a code for Specification 6,");
+                    Debug.Print("if applicable, on the line below, and");
+                    Debug.Print("press [ENTER] or [RETURN] to modify.");
+                    Debug.Print("Press [F5] when ready to continue.");
+                    Debug.Print("rt = \"\" '<-( place code between double quotes )");
+                    Debugger.Break();
                 }
+                else
+                    rt = "";
+
+                break;
+            }
         }
 
-        steelSpec6 = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary d0g1f3(Inventor.PartDocument rf, double[] dm, Scripting.Dictionary dc = )
+    public static  Dictionary d0g1f3(PartDocument rf, double[] dm, Dictionary dc = )
     {
-        Scripting.Dictionary rt;
+        Dictionary rt;
         // '
-        double aspect;
-        double offSqr;
-        double length;
         // '
-        string rmType;
-        string rmSpc6;
-        string rmItem;
-        string rmUnit;
-        string rmQty;
 
         if (dc == null)
-            rt = d0g1f3(rf, dm, new Scripting.Dictionary());
+            rt = d0g1f3(rf, dm, new Dictionary());
         else
         {
             rt = dc;
 
-            aspect = dm[1] / dm[0];
-            offSqr = aspect - 1#;
-            length = dm[2];
-            rmType = rf.PropertySets(gnDesign).Item(pnMaterial).Value;
-            rmSpc6 = steelSpec6(rmType);
+            var aspect = dm[1] / dm[0];
+            var offSqr = aspect - 1;
+            var length = dm[2];
+            string rmType = rf.PropertySets(gnDesign).get_Item(pnMaterial).Value;
+            var rmSpc6 = steelSpec6(rmType);
 
             // Debug.Print ".Add """ & rmType & """, """""
             Debug.Print("Material: " + rmType + " (" + rmSpc6 + ")");
-            /// 
+            // 
             Debug.Print("Cross Section: " + Format(dm[1], "0.000") + " X " + Format(dm[0], "0.000"));
             Debug.Print("Length: " + Format(dm[2], "0.000"));
-            if (offSqr < 0.01)
-                Debug.Print("Likely Square or Round");
-            else if (offSqr > 20)
-                Debug.Print("Likely Sheet or Plate");
-            else
-                Debug.Print("Likely Rectangular, Uneven?");
+            switch (offSqr)
+            {
+                case < 0.01:
+                    Debug.Print("Likely Square or Round");
+                    break;
+                case > 20:
+                    Debug.Print("Likely Sheet or Plate");
+                    break;
+                default:
+                    Debug.Print("Likely Rectangular, Uneven?");
+                    break;
+            }
 
-            rmItem = rmType + "???"; // User has to help from info given
-            rmQty = Format(dm[2], "0.000");
-            rmUnit = "IN";
+            var rmItem = rmType + "???";
+            var rmQty = Format(dm[2], "0.000");
+            const string rmUnit = "IN";
 
             dc.Add("RM", rmItem);
             dc.Add("RMQTY", rmQty);
             dc.Add("RMUNIT", rmUnit);
-            System.Diagnostics.Debugger.Break();
+            Debugger.Break();
         }
-        d0g1f3 = rt;
+
+        return rt;
     }
 
-    public Scripting.Dictionary d0g1f4(Inventor.SheetMetalComponentDefinition cd)
+    private static  Dictionary d0g1f4(SheetMetalComponentDefinition cd)
     {
-        Inventor.SurfaceBody sb;
-        Inventor.Face fc;
-        Inventor.Point pt;
-
-        Inventor.ReferenceKeyManager rkMgr;
-        long kyContx;
         byte[] kyBytes;
-        string kyLabel;
+        var d0 = new Dictionary();
+        var d1 = new Dictionary();
 
-        Scripting.Dictionary d0;
-        Scripting.Dictionary d1;
-        Variant ky;
-        Variant k1;
+        var rkMgr = aiDocument(cd.Document).ReferenceKeyManager;
 
-        d0 = new Scripting.Dictionary();
-        d1 = new Scripting.Dictionary();
+        var kyContx = rkMgr.CreateKeyContext;
 
-        rkMgr = aiDocument(cd.Document).ReferenceKeyManager;
-
-        kyContx = rkMgr.CreateKeyContext;
-
-        foreach (var sb in cd.SurfaceBodies)
+        foreach (SurfaceBody sb in cd.SurfaceBodies)
         {
             foreach (var fc in sb.Faces)
             {
-                fc.GetReferenceKey(kyBytes, kyContx);
-                kyLabel = rkMgr.KeyToString(kyBytes);
+                fc.GetHashCode(kyBytes, kyContx);
+                var kyLabel = rkMgr.KeyToString(kyBytes);
                 d1.Add(kyLabel, fc);
                 {
                     var withBlock = fc.Evaluator;
-                    Debug.Print(TypeName(fc.Geometry) + "(" + System.Convert.ToHexString(0 + IIf(withBlock.IsExtrudedShape, 1, 0) + IIf(withBlock.IsRevolvedShape, 2, 0)) + ")");
+                    Debug.Print(Information.TypeName(fc.Geometry) + "(" +
+                                Convert.ToHexString(0 + IIf(withBlock.IsExtrudedShape, 1, 0) +
+                                                    IIf(withBlock.IsRevolvedShape, 2, 0)) + ")");
                     {
                         var withBlock1 = withBlock.RangeBox;
                         d0.Add(d0.Count, withBlock1.MaxPoint);
@@ -595,39 +547,35 @@
                 }
             }
 
-            foreach (var ky in d0.Keys)
+            foreach (dynamic ky in d0.Keys)
             {
-                pt = d0.Item(ky);
-                foreach (var k1 in d1.Keys) // fc In sb.Faces
+                Point pt = d0.get_Item(ky);
+                foreach (dynamic k1 in d1.Keys) // fc In sb.Faces
                 {
-                    fc = d1.Item(k1);
+                    Face fc = d1.get_Item(k1);
                     // If d1.Exists(k1) Then
                     if (!fc.Evaluator.RangeBox.Contains(pt))
                         d1.Remove(k1);
                 }
-                System.Diagnostics.Debugger.Break();
+
+                Debugger.Break();
             }
         }
     }
 
-    public Scripting.Dictionary d0g1f5(Inventor.SurfaceBody sb)
+    public static  Dictionary d0g1f5(SurfaceBody sb)
     {
-        Inventor.Face fc;
-        Inventor.Point pt;
+        var dFc = new Dictionary();
+        var dPt = new Dictionary();
 
-        Scripting.Dictionary dFc;
-        Scripting.Dictionary dPt;
-        Variant kPt;
-
-        dFc = new Scripting.Dictionary();
-        dPt = new Scripting.Dictionary();
-
-        foreach (var fc in sb.Faces)
+        foreach (Face fc in sb.Faces)
         {
             dFc.Add(fc.InternalName, fc);
             {
                 var withBlock = fc.Evaluator;
-                Debug.Print(TypeName(fc.Geometry) + "(" + System.Convert.ToHexString(0 + IIf(withBlock.IsExtrudedShape, 1, 0) + IIf(withBlock.IsRevolvedShape, 2, 0)) + ")");
+                Debug.Print(TypeName(fc.Geometry) + "(" +
+                            Convert.ToHexString(0 + IIf(withBlock.IsExtrudedShape, 1, 0) +
+                                                IIf(withBlock.IsRevolvedShape, 2, 0)) + ")");
                 {
                     var withBlock1 = withBlock.RangeBox;
                     dPt.Add(dPt.Count, withBlock1.MaxPoint);
@@ -636,95 +584,89 @@
             }
         }
 
-        foreach (var kPt in dPt.Keys)
+        foreach (dynamic kPt in dPt.Keys)
         {
-            pt = dPt.Item(kPt);
+            Point pt = dPt.get_Item(kPt);
             foreach (var fc in sb.Faces)
             {
-                if (dFc.Exists(fc.InternalName))
-                {
-                    if (!fc.Evaluator.RangeBox.Contains(pt))
-                    {
-                        dFc.Remove(fc.InternalName);
-                        if (dFc.Count == 0)
-                            System.Diagnostics.Debugger.Break();
-                    }
-                }
+                if (!dFc.Exists(fc.InternalName)) continue;
+                if (fc.Evaluator.RangeBox.Contains(pt)) continue;
+                dFc.Remove(fc.InternalName);
+                if (dFc.Count == 0)
+                    Debugger.Break();
             }
-            System.Diagnostics.Debugger.Break();
+
+            Debugger.Break();
         }
 
-        d0g1f5 = dFc;
+        return dFc;
     }
 
-    public string d0g1f6(Inventor.Face fc)
+    public static  string d0g1f6(Face fc)
     {
         byte[] kyBytes;
-        long kyContx;
         string rt;
 
         {
-            var withBlock = aiDocument(fc.SurfaceBody.ComponentDefinition.Document).ReferenceKeyManager // .CreateKeyContext
-       ;
-            kyContx = withBlock.CreateKeyContext;
+            var withBlock =
+                    aiDocument(fc.SurfaceBody.ComponentDefinition.Document).ReferenceKeyManager // .CreateKeyContext
+                ;
+            var kyContx = withBlock.CreateKeyContext;
             fc.GetReferenceKey(kyBytes, kyContx);
             rt = withBlock.KeyToString(kyBytes);
         }
-        d0g1f6 = rt;
+        return rt;
     }
 
-    public Inventor.Point aiPoint(object ob)
+    public static  Point aiPoint(dynamic ob)
     {
-        if (ob is Inventor.Point)
-            aiPoint = ob;
-        else
-            aiPoint = null/* TODO Change to default(_) if this is not a reference type */;
+        return ob as Point;
     }
 
-    /// d0g2: Testing
+    // d0g2: Testing
 
-    /// 
+    // 
 
-    /// 
+    // 
 
-    public void d0g2f1()
+    public static  void d0g2f1()
     {
-        /// Verify 3-way sorting function sort3dimsUp
-        double[] ck;
-        ck = sort3dimsUp(2, 3, 5); System.Diagnostics.Debugger.Break();
-        ck = sort3dimsUp(2, 5, 3); System.Diagnostics.Debugger.Break();
-        ck = sort3dimsUp(3, 2, 5); System.Diagnostics.Debugger.Break();
-        ck = sort3dimsUp(3, 5, 2); System.Diagnostics.Debugger.Break();
-        ck = sort3dimsUp(5, 2, 3); System.Diagnostics.Debugger.Break();
-        ck = sort3dimsUp(5, 3, 2); System.Diagnostics.Debugger.Break();
+        // Verify 3-way sorting function sort3dimsUp
+        var ck = sort3dimsUp(2, 3, 5);
+        Debugger.Break();
+        ck = sort3dimsUp(2, 5, 3);
+        Debugger.Break();
+        ck = sort3dimsUp(3, 2, 5);
+        Debugger.Break();
+        ck = sort3dimsUp(3, 5, 2);
+        Debugger.Break();
+        ck = sort3dimsUp(5, 2, 3);
+        Debugger.Break();
+        ck = sort3dimsUp(5, 3, 2);
+        Debugger.Break();
     }
 
-    public void d0g2f2()
+    public static  void d0g2f2()
     {
-        /// Testing new spec pickup system
-        Variant ky;
+        // Testing a new spec pickup system
 
         {
-            var withBlock = dcAiDocComponents(ThisApplication.ActiveDocument, null/* Conversion error: Set to default value for this argument */, 0);
-            foreach (var ky in withBlock.Keys)
+            var withBlock = dcAiDocComponents(ThisApplication.ActiveDocument);
+            foreach (string ky in withBlock.Keys)
             {
                 Debug.Print(ky);
-                withBlock.Item(ky) = d0g0f0(aiCompDefShtMetal(aiCompDefOf(aiDocPart(withBlock.Item(ky)))));
-                if (withBlock.Item(ky) == null)
+                withBlock.get_Item(ky) = d0g0f0(aiCompDefShtMetal(aiCompDefOf(aiDocPart(withBlock.get_Item(ky)))));
+                if (withBlock.get_Item(ky) == null)
                     withBlock.Remove(ky);
-                else
-                {
-                }
             }
         }
     }
 
-    public void d0g2f3()
+    public static  void d0g2f3()
     {
-        /// Checking some behaviors
-        /// on string arrays
-        /// vs variants
-        Variant ky;
+        // Checking some behaviors
+        // on string arrays
+        // vs variants
         {
             var withBlock = new aiPropSetter();
             Debug.Print(Join(withBlock.PropList(), "|"));
@@ -733,245 +675,211 @@
         }
     }
 
-    public Scripting.Dictionary d0g2f4(Scripting.Dictionary dc)
+    public static  Dictionary d0g2f4(Dictionary dc)
     {
-        /// Return Dictionary of ALLOCATED Property
-        /// Values (True/False) attached to all components
-        /// and subcomponents of the active Document.
-        /// 
-        /// Where the ALLOCATED Property is not present,
-        /// represent it as "<default>"
-        /// 
-        Scripting.Dictionary rt;
-        Inventor.Property pr;
-        Variant ky;
+        // Return Dictionary of ALLOCATED Property
+        // Values (True/False) attached to all components
+        // and subcomponents of the active Document.
+        // 
+        // Where the ALLOCATED Property is not present,
+        // represent it as "<default>"
+        // 
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dc.Keys)
             {
                 // Debug.Print ky
                 {
-                    var withBlock1 = aiDocument(withBlock.Item(ky)).PropertySets.Item(gnCustom);
-                    Information.Err.Clear();
-                    pr = withBlock1.Item("ALLOCATED");
-                    if (Information.Err.Number == 0)
-                        rt.Add(ky, System.Convert.ToHexString(pr.Value) + "|" + ky);
+                    var withBlock1 = aiDocument(dc.get_Item(ky)).PropertySets.get_Item(gnCustom);
+                    Information.Err().Clear();
+                    Property pr = withBlock1.get_Item("ALLOCATED");
+                    if (Information.Err().Number == 0)
+                        rt.Add(ky, Convert.ToHexString(pr.Value) + "|" + ky);
                     else
                         rt.Add(ky, "<default>" + "|" + ky);
                 }
             }
         }
-        d0g2f4 = rt;
+        return rt;
     }
-    // Debug.Print Join(d0g2f4(dcAiDocComponents(ThisApplication.ActiveDocument)).Items, vbNewLine)
+    // Debug.Print Join(d0g2f4(dcAiDocComponents(ThisApplication.ActiveDocument)).Items, vbCrLf)
 
-    public Scripting.Dictionary d0g2f6(Scripting.Dictionary dc, string pn, string gn = gnCustom, string df = "<NOPROP>")
+    public static  Dictionary d0g2f6(Dictionary dc, string pn, string gn = gnCustom, string df = "<NOPROP>")
     {
-        /// Return Dictionary of named Property Values
-        /// attached to all Inventor Documents
-        /// in supplied Dictionary.
-        /// 
-        /// 
-        /// Where the ALLOCATED Property is not present,
-        /// represent it as "<default>"
-        /// 
-        Inventor.Document ad;
-        Scripting.Dictionary rt;
-        Inventor.Property pr;
-        Variant ky;
+        // Return Dictionary of named Property Values
+        // attached to all Inventor Documents
+        // in supplied Dictionary.
+        // 
+        // 
+        // Where the ALLOCATED Property is not present,
+        // represent it as "<default>"
+        // 
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dc.Keys)
             {
-                ad = aiDocument(withBlock.Item(ky));
+                Document ad = aiDocument(dc.get_Item(ky));
                 if (ad == null)
                 {
                 }
-                else
+
                 {
-                }
-                {
-                    var withBlock1 = ad.PropertySets.Item(gn);
-                    Information.Err.Clear();
-                    pr = withBlock1.Item("ALLOCATED");
-                    if (Information.Err.Number == 0)
-                        rt.Add(ky, System.Convert.ToHexString(pr.Value) + "|" + ky);
+                    var withBlock1 = ad.PropertySets.get_Item(gn);
+                    Information.Err().Clear();
+                    var pr = withBlock1.get_Item("ALLOCATED");
+                    if (Information.Err().Number == 0)
+                        rt.Add(ky, Convert.ToHexString(pr.Value) + "|" + ky);
                     else
                         rt.Add(ky, "<default>" + "|" + ky);
                 }
             }
         }
-        d0g2f6 = rt;
+        return rt;
     }
-    // Debug.Print Join(d0g2f6(dcAiDocComponents(ThisApplication.ActiveDocument)).Items, vbNewLine)
+    // Debug.Print Join(d0g2f6(dcAiDocComponents(ThisApplication.ActiveDocument)).Items, vbCrLf)
 
-    public Scripting.Dictionary d0g2f5(Scripting.Dictionary dc)
+    public static  Dictionary d0g2f5(Dictionary dc)
     {
-        /// Attempt to "transpose" contents of Dictionary
-        /// and return a dictionary of Items mapped
-        /// to sub-Dictionaries containing all keys
-        /// which mapped to each value
-        /// 
-        Scripting.Dictionary rt;
-        Variant ky;
-        Variant kv;
+        // Attempt to "transpose" contents of Dictionary
+        // and return a dictionary of Items mapped
+        // to sub-Dictionaries containing all keys
+        // which mapped to each value
+        // 
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dc.Keys)
             {
-                kv = d0g2f5a(withBlock.Item(ky));
+                var kv = d0g2f5a(dc.get_Item(ky));
                 {
-                    var withBlock1 = rt;
-                    if (!withBlock1.Exists(kv))
-                        withBlock1.Add(kv, new Scripting.Dictionary());
+                    if (!rt.Exists(kv))
+                        rt.Add(kv, new Dictionary());
 
                     {
-                        var withBlock2 = dcOb(withBlock1.Item(kv));
-                        withBlock2.Add.Count(null/* Conversion error: Set to default value for this argument */, ky);
+                        var withBlock2 = dcOb(rt.get_Item(kv));
+                        withBlock2.Add.Count(null /* Conversion error: Set to default value for this argument */, ky);
                     }
                 }
             }
         }
     }
 
-    public Variant d0g2f5a(Variant vr)
+    private static  dynamic d0g2f5a(dynamic vr)
     {
-        /// Return any Variant that is NOT an Object
-        /// Object handling MAY be addressed later.
-        /// 
-        if (IsObject(vr))
-            System.Diagnostics.Debugger.Break();
+        // Return any dynamic that is NOT an dynamic
+        // dynamic handling MAY be addressed later.
+        // 
+        if (vr != null)
+            Debugger.Break();
         else
-            d0g2f5a = vr;
+            return null;
     }
 
-    public Scripting.Dictionary dcMaterialUsage(Scripting.Dictionary dc)
+    public static  Dictionary dcMaterialUsage(Dictionary dc)
     {
-        Scripting.Dictionary rt;
-        Inventor.PartDocument pt;
-        Variant ky;
-        string pn;
-        string mt;
-
-        rt = new Scripting.Dictionary();
-        foreach (var ky in dc)
+        var rt = new Dictionary();
+        foreach (PartDocument pt in from dynamic ky in dc select aiDocPart(obOf(dc.get_Item(ky))))
         {
-            pt = aiDocPart(obOf(dc.Item(ky)));
             if (pt == null)
             {
             }
             else
             {
-                pn = pt.PropertySets(gnDesign).Item(pnPartNum).Value;
-                mt = pt.PropertySets(gnDesign).Item(pnMaterial).Value;
+                string pn = pt.PropertySets(gnDesign).get_Item(pnPartNum).Value;
+                string mt = pt.PropertySets(gnDesign).get_Item(pnMaterial).Value;
                 {
-                    var withBlock = rt;
-                    if (withBlock.Exists(mt))
-                        withBlock.Item(mt) = withBlock.Item(mt) + Constants.vbNewLine + Constants.vbTab + pn;
+                    if (rt.Exists(mt))
+                        rt.get_Item(mt) = rt.get_Item(mt) + Constants.vbCrLf + Constants.vbTab + pn;
                     else
-                        withBlock.Add(mt, mt + Constants.vbNewLine + Constants.vbTab + pn);
+                        rt.Add(mt, mt + Constants.vbCrLf + Constants.vbTab + pn);
                 }
-                pt = null/* TODO Change to default(_) if this is not a reference type */;
+                pt = null;
             }
         }
-        dcMaterialUsage = rt;
+
+        return rt;
     }
     // lsDump dcMaterialUsage(dcAiDocsOfType(kPartDocumentObject, dcAiDocComponents(aiDocActive()))).Items
 
-    public Scripting.Dictionary d0g3f0()
+    public static  Dictionary d0g3f0()
     {
-        Scripting.Dictionary rt;
-        Inventor.Asset mt;
-
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
             var withBlock = ThisApplication.ActiveMaterialLibrary;
-            foreach (var mt in withBlock.MaterialAssets)
+            foreach (Asset mt in withBlock.MaterialAssets)
                 rt.Add(mt.DisplayName, mt);
         }
-        d0g3f0 = rt;
+        return rt;
     }
     // lsDump d0g3f0().Keys
 
-    public Scripting.Dictionary dcGrpByPtNum(Scripting.Dictionary dc)
+    public static  Dictionary dcGrpByPtNum(Dictionary dc)
     {
         // '
-        // '  Returns Dictionary of Dictionaries
-        // '  grouping Inventor Documents in
-        // '  supplied Dictionary by their Part
-        // '  Numbers.
+        // ' Returns Dictionary of Dictionaries
+        // ' grouping Inventor Documents in
+        // ' supplied Dictionary by their Part
+        // ' Numbers.
         // '
-        // '  Ideally, each Document's Part Number
-        // '  should be unique, and each sub Dictionary
-        // '  should contain only one Document, however,
-        // '  it is possible for more than one Document
-        // '  to have the same Part Number.
+        // ' Ideally, each Document's Part Number
+        // ' should be unique, and each sub Dictionary
+        // ' should contain only one Document, however,
+        // ' it is possible for more than one Document
+        // ' to have the same Part Number.
         // '
-        // '  By returning a Dictionary of Dictionaries,
-        // '  this function provides a way for the client
-        // '  to detect and respond to any conflicts.
+        // ' By returning a Dictionary of Dictionaries,
+        // ' this function provides a way for the client
+        // ' to detect and respond to any conflicts.
         // '
-        Scripting.Dictionary rt;
-        Inventor.Document pt;
-        Variant ky;
-        string pn;
-        string dn;
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dc.Keys)
             {
-                pt = aiDocument(withBlock.Item(ky));
-                dn = pt.FullDocumentName;
-                pn = System.Convert.ToHexString(aiDocPropVal(pt, pnPartNum, gnDesign));
+                Document pt = aiDocument(dc.get_Item(ky));
+                var dn = pt.FullDocumentName;
+                var pn = Convert.ToHexString(aiDocPropVal(pt, pnPartNum, gnDesign));
                 {
-                    var withBlock1 = rt;
-                    if (!withBlock1.Exists(pn))
-                        withBlock1.Add(pn, new Scripting.Dictionary());
+                    if (!rt.Exists(pn))
+                        rt.Add(pn, new Dictionary());
 
                     {
-                        var withBlock2 = dcOb(withBlock1.Item(pn));
+                        var withBlock2 = dcOb(rt.get_Item(pn));
                         if (withBlock2.Exists(dn))
-                            System.Diagnostics.Debugger.Break(); // because something went wrong
+                            Debugger.Break(); // because something went wrong
                         else
                             withBlock2.Add(dn, pt);
                     }
                 }
-                Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */
+                Debug.Print("");
             }
         }
 
-        dcGrpByPtNum = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcRemapByPtNum(Scripting.Dictionary dc)
+    /// <summary>
+    ///' Returns Dictionary of Inventor
+    ///' Documents keyed on Part Number
+    /// </summary>
+    /// <param name="dc"></param>
+    /// <returns></returns>
+    public static  Dictionary dcRemapByPtNum(Dictionary dc)
     {
-        // '  Returns Dictionary of Inventor
-        // '  Documents keyed on Part Number
-        Scripting.Dictionary rt;
-        Scripting.Dictionary xt;
-        Inventor.Document pt;
-        Variant ky;
-        string pn;
 
-        rt = new Scripting.Dictionary();
-        xt = new Scripting.Dictionary();
+
+        var rt = new Dictionary();
+        var xt = new Dictionary();
         {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dc.Keys)
             {
-                pt = aiDocument(withBlock.Item(ky));
-                pn = System.Convert.ToHexString(aiDocPropVal(pt, pnPartNum, gnDesign));
-                /// 
+                Document pt = aiDocument(dc.get_Item(ky));
+                var pn = Convert.ToHexString(aiDocPropVal(pt, pnPartNum, gnDesign));
+                // 
 
-                /// 
+                // 
                 // If pt.DocumentType = kPartDocumentObject Then
                 // ''' UPDATE[2021.06.22]
                 // ''' moving hardware component check outside of
@@ -987,11 +895,11 @@
                 // ''' this is a high risk.
                 // If aiDocPart(pt).ComponentDefinition.IsContentMember Then
                 // 'it's commodity hardware
-                // With cnGnsDoyle().Execute('            "select Family from vgMfiItems where Item = '"'            & pn & "';"'        )
+                // With cnGnsDoyle().Execute(' "select Family from vgMfiItems where Item = '"' & pn & "';"' )
                 // If .BOF And .EOF Then
                 // 'probably not in Genius
                 // 'keep it -- may need added
-                // ElseIf Split(.GetString('                adClipString, , "", vbVerticalTab'            ), vbVerticalTab)(0) = "D-HDWR" Then
+                // ElseIf Split(.GetString(' adClipString, , "", vbVerticalTab' ), vbVerticalTab)(0) = "D-HDWR" Then
                 // pt = Nothing 'and move on
                 // Else
                 // Debug.Print ; 'Breakpoint Landing
@@ -999,10 +907,10 @@
                 // End If
                 // End If
                 // End With
-                // ElseIf pt.PropertySets.Item(gnDesign).Item(pnFamily).Value = "D-HDWR" Then
+                // ElseIf pt.PropertySets.get_Item(gnDesign).get_Item(pnFamily).Value = "D-HDWR" Then
                 // 'it's in commodity hardware family
                 // pt = Nothing 'and move on
-                // ElseIf InStr(1, "|D-HDWR|D-PTS|R-PTS|", "|" & pt.PropertySets.Item(gnDesign).Item(pnFamily).Value & "|") > 0 Then
+                // ElseIf InStr(1, "|D-HDWR|D-PTS|R-PTS|", "|" & pt.PropertySets.get_Item(gnDesign).get_Item(pnFamily).Value & "|") > 0 Then
                 // 'it's PROBABLY hardware
                 // 'but keep it, just in case
                 // Debug.Print ; 'Breakpoint Landing
@@ -1014,114 +922,111 @@
                 // Debug.Print ; 'Breakpoint Landing
                 // 'Stop
                 // End If
-                /// 
+                // 
 
-                /// 
+                // 
                 if (Strings.Len(pn) > 0)
                 {
                     {
-                        var withBlock1 = rt;
-                        if (withBlock1.Exists(pn))
+                        if (rt.Exists(pn))
                         {
                             {
-                                var withBlock2 = xt // report' it here
-;
-                                if (!withBlock2.Exists(pn))
-                                    withBlock2.Add(pn, new Scripting.Dictionary());
+                                if (!xt.Exists(pn))
+                                    xt.Add(pn, new Dictionary());
 
                                 {
-                                    var withBlock3 = dcOb(withBlock2.Item(pn));
+                                    var withBlock3 = dcOb(xt.get_Item(pn));
                                     withBlock3.Add(pt.FullDocumentName, pt);
                                 }
                             }
                         }
                         else
-                            withBlock1.Add(pn, pt);
+                            rt.Add(pn, pt);
                     }
-                    Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */
+                    Debug.Print("");
                 }
                 else
                 {
-                    Debug.Print(InputBox("This component has no part number:" + Constants.vbNewLine + pt.DisplayName + Constants.vbNewLine + System.Convert.ToHexString(aiDocPropVal(pt, pnDesc, gnDesign)) + Constants.vbNewLine + Constants.vbNewLine + "Copy file path from text box for later review.", pt.DisplayName, pt.FullDocumentName));
+                    Debug.Print(InputBox(
+                        "This component has no part number:" + Constants.vbCrLf + pt.DisplayName + Constants.vbCrLf +
+                        Convert.ToHexString(aiDocPropVal(pt, pnDesc, gnDesign)) + Constants.vbCrLf + Constants.vbCrLf +
+                        "Copy file path from text box for later review.", pt.DisplayName, pt.FullDocumentName));
                     if (getFromClipBdWin10() == pt.FullDocumentName)
                     {
                     }
-                    else if (MsgBox("Are you sure you want to continue" + Constants.vbNewLine + "without recording this file path?", Constants.vbExclamation + Constants.vbYesNo, "File Path not copied!") == Constants.vbNo)
-                        System.Diagnostics.Debugger.Break();
+                    else if (MessageBox.Show(
+                                 "Are you sure you want to continue" + Constants.vbCrLf +
+                                 "without recording this file path?", Constants.vbExclamation + Constants.vbYesNo,
+                                 "File Path not copied!") == Constants.vbNo)
+                        Debugger.Break();
                 }
             }
         }
 
         if (xt.Count > 0)
-            Debug.Print(MsgBox(Join(Array("The following Part Numbers are", "assigned to more than one Model:", "", Constants.vbTab + Join(xt.Keys, Constants.vbNewLine + Constants.vbTab), ""), Constants.vbNewLine), Constants.vbOKOnly | Constants.vbInformation, "Duplicate Part Numbers!"));
+            Debug.Print(MessageBox.Show(
+                Join(
+                    new[]
+                    {
+                        "The following Part Numbers are", "assigned to more than one Model:", "",
+                        Constants.vbTab + Join(xt.Keys, Constants.vbCrLf + Constants.vbTab), ""
+                    }, Constants.vbCrLf), Constants.vbOKOnly | Constants.vbInformation, "Duplicate Part Numbers!"));
 
-        dcRemapByPtNum = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcRemapByFilePath(Scripting.Dictionary dc)
+    public static  Dictionary dcRemapByFilePath(Dictionary dc)
     {
-        // '  Returns Dictionary of Inventor
-        // '  Documents re-keyed to File Path.
-        // '  Typically for a Dictionary
-        // '  previously remapped to another
-        // '  key (most likely Part Number)
-        Scripting.Dictionary rt;
-        Inventor.Document pt;
-        Variant ky;
-        string pn;
+        // ' Returns Dictionary of Inventor
+        // ' Documents re-keyed to File Path.
+        // ' Typically for a Dictionary
+        // ' previously remapped to another
+        // ' key (most likely Part Number)
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dc.Keys)
             {
-                pt = aiDocument(withBlock.Item(ky));
-                pn = pt.FullDocumentName;
+                Document pt = aiDocument(dc.get_Item(ky));
+                var pn = pt.FullDocumentName;
                 rt.Add(pn, pt);
             }
         }
-        dcRemapByFilePath = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcRemapByPtNumFilePath(Scripting.Dictionary dc)
+    public static  Dictionary dcRemapByPtNumFilePath(Dictionary dc)
     {
-        // '  Returns Dictionary of Inventor
-        // '  Documents keyed on Part Number
-        // '  combined with original key
-        // '  (which SHOULD be full doc path)
-        Scripting.Dictionary rt;
-        Inventor.Document pt;
-        Variant ky;
-        string pn;
+        // ' Returns Dictionary of Inventor
+        // ' Documents keyed on Part Number
+        // ' combined with original key
+        // ' (which SHOULD be full doc path)
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dc.Keys)
             {
-                pt = aiDocument(withBlock.Item(ky));
-                pn = System.Convert.ToHexString(aiDocPropVal(pt, pnPartNum, gnDesign)) + Constants.vbTab + pt.FullDocumentName; // ky
+                Document pt = aiDocument(dc.get_Item(ky));
+                var pn = Convert.ToHexString(aiDocPropVal(pt, pnPartNum, gnDesign)) + Constants.vbTab +
+                         pt.FullDocumentName; // ky
                 rt.Add(pn, pt);
             }
         }
-        dcRemapByPtNumFilePath = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcGeniusItems()
+    public static  Dictionary dcGeniusItems()
     {
-        // '  Generates Dictionary of Items in Genius
-        // '  Formerly d0g3f2
-        Scripting.Dictionary rt;
-        ADODB.Field ky;
-        ADODB.Field vl;
+        // ' Generates Dictionary of Items in Genius
+        // ' Formerly d0g3f2
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
             var withBlock = cnGnsDoyle();
             {
                 var withBlock1 = withBlock.Execute("select Item, ItemID from vgMfiItems");
-                ky = withBlock1.Fields("Item");
-                vl = withBlock1.Fields("ItemID");
+                ADODB.Field ky = withBlock1.Fields("Item");
+                ADODB.Field vl = withBlock1.Fields("ItemID");
                 while (!withBlock1.EOF | withBlock1.BOF)
                 {
                     rt.Add(ky.Value, vl.Value);
@@ -1129,79 +1034,66 @@
                 }
             }
         }
-        dcGeniusItems = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary[] d0g3f3(Scripting.Dictionary dc)
+    public static  Dictionary[] d0g3f3(Dictionary dc)
     {
-        // '  Appears intended to separate
-        // '  parts in Genius from those
-        // '  not there yet. I don't think
-        // '  this one was working quite
-        // '  right yet. New kyPick system
-        // '  should handle this properly,
-        // '  now, in any case.
-        Variant ky;
-        Scripting.Dictionary[] rt = new Scripting.Dictionary[2];
+        // ' Appears intended to separate
+        // ' parts in Genius from those
+        // ' not there yet. I don't think
+        // ' this one was working quite
+        // ' right yet. New kyPick system
+        // ' should handle this properly,
+        // ' now, in any case.
+        var rt = new Dictionary[2];
 
-        rt[0] = new Scripting.Dictionary();
-        rt[1] = new Scripting.Dictionary();
+        rt[0] = new Dictionary();
+        rt[1] = new Dictionary();
         {
             var withBlock = dcGeniusItems();
             foreach (var ky in dc)
             {
                 if (withBlock.Exists(ky))
-                    rt[1].Add(ky, withBlock.Item(ky));
+                    rt[1].Add(ky, withBlock.get_Item(ky));
                 else
                     rt[0].Add(ky, "");
             }
         }
-        d0g3f3 = rt;
+        return rt;
     }
 
-    public long deConstrainAssyComponent(Inventor.ComponentOccurrence co)
+    private static  long deConstrainAssyComponent(ComponentOccurrence co)
     {
-        // '  Deletes all constraints on an occurrence
-        // '  !!!DO NOT USE ON ANY PRODUCTION MODEL!!!
-        Inventor.AssemblyConstraint cs;
-        long ct;
-
-        ct = 0;
-        foreach (var cs in co.Constraints)
+        // ' Deletes all constraints on an occurrence
+        // ' !!!DO NOT USE ON ANY PRODUCTION MODEL!!!
+        long ct = 0;
+        foreach (AssemblyConstraint cs in co.Constraints)
         {
             cs.Delete();
             ct = ct + 1;
         }
 
-        deConstrainAssyComponent = ct;
+        return ct;
     }
 
-    public long deConstrainAssyDocument(Inventor.AssemblyDocument ad)
+    public static  long deConstrainAssyDocument(AssemblyDocument ad)
     {
-        // '  Calls deConstrainAssyComponent over all occurrences
-        // '  in an assembly to remove all their constraints
-        // '  !!!DO NOT USE ON ANY PRODUCTION MODEL!!!
-        // '  !!!That goes DOUBLE for THIS function!!!
-        Inventor.ComponentOccurrence co;
-        long ct;
+        // ' Calls deConstrainAssyComponent over all occurrences
+        // ' in an assembly to remove all their constraints
+        // ' !!!DO NOT USE ON ANY PRODUCTION MODEL!!!
+        // ' !!!That goes DOUBLE for THIS function!!!
+        ComponentOccurrence co;
 
-        ct = 0;
-        foreach (var co in ad.ComponentDefinition.Occurrences)
-            ct = ct + deConstrainAssyComponent(co);
-
-        deConstrainAssyDocument = ct;
+        return ad.ComponentDefinition.Occurrences.Cast<dynamic>()
+            .Aggregate<dynamic, long>(0, (current, co) => current + deConstrainAssyComponent(co));
     }
 
-    public Scripting.Dictionary dcPartsInGeniusOrNot()
+    public static  Dictionary dcPartsInGeniusOrNot()
     {
-        Scripting.Dictionary dcInGns;
-        Scripting.Dictionary dcNotIn;
-        Scripting.Dictionary rt;
-        Variant ky;
-
-        rt = new Scripting.Dictionary();
-        dcInGns = new Scripting.Dictionary();
-        dcNotIn = dcRemapByPtNum(dcAiDocComponents(aiDocActive()));
+        var rt = new Dictionary();
+        var dcInGns = new Dictionary();
+        var dcNotIn = dcRemapByPtNum(dcAiDocComponents(aiDocActive()));
         // dcNotIn = dcAiDocComponents(aiDocActive())
         // dcNotIn = dcAssyDocsByPtNum(aiDocActive())
         {
@@ -1209,12 +1101,9 @@
             foreach (var ky in withBlock.Keys)
             {
                 {
-                    var withBlock1 = dcNotIn;
-                    if (withBlock1.Exists(ky))
-                    {
-                        dcInGns.Add(ky, withBlock1.Item(ky));
-                        withBlock1.Remove(ky);
-                    }
+                    if (!dcNotIn.Exists(ky)) continue;
+                    dcInGns.Add(ky, dcNotIn.get_Item(ky));
+                    dcNotIn.Remove(ky);
                 }
             }
         }
@@ -1222,58 +1111,61 @@
 
         rt.Add("INGNS", dcInGns);
         rt.Add("NOTIN", dcNotIn);
-        dcPartsInGeniusOrNot = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary d0g4f1()
+    public static  Dictionary d0g4f1()
     {
-        Scripting.Dictionary rt;
-        ADODB.Connection cn;
-        ADODB.Recordset rs;
-
-        rt = new Scripting.Dictionary();
-        cn = cnGnsDoyle();
-        rs = cn.Execute("select Item from vgMfiItems");
-        d0g4f1 = rt;
+        var rt = new Dictionary();
+        var cn = cnGnsDoyle();
+        var rs = cn.Execute("select Item from vgMfiItems");
+        return rt;
     }
 
-    public Inventor.ComponentOccurrence compOccFromProxy(Inventor.ComponentOccurrence oc)
+    public static  ComponentOccurrence compOccFromProxy(ComponentOccurrence oc)
     {
-        Inventor.ComponentOccurrenceProxy px;
+        ComponentOccurrenceProxy px;
 
         // If TypeOf oc Is Inventor.ComponentOccurrenceProxy Then
         // px = oc
         // Stop
         // compOccFromProxy = compOccFromProxy(px.ContainingOccurrence)
         // Else
-        compOccFromProxy = oc;
+        return oc;
     }
 
-    public kyPick nuPicker(kyPick ob = null/* TODO Change to default(_) if this is not a reference type */)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="ob"></param>
+    /// <returns></returns>
+    public static  kyPick nuPicker(kyPick ob = null)
     {
-        if (ob == null)
-            nuPicker = new kyPick();
-        else
-            nuPicker = ob;
+        return ob ?? new kyPick();
     }
 
-    public dcSplitter nuSplitter(dcSplitter ob = null/* TODO Change to default(_) if this is not a reference type */)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="ob"></param>
+    /// <returns></returns>
+    public static  dcSplitter nuSplitter(dcSplitter ob = null)
     {
-        if (ob == null)
-            nuSplitter = new dcSplitter();
-        else
-            nuSplitter = ob;
+        return ob ?? new dcSplitter();
     }
 
-    public Scripting.Dictionary dcAiPartDocsWithRMv0(Scripting.Dictionary dcIn, long WantOut = 0)
+    public static Dictionary dcAiPartDocsWithRMv0(Dictionary dcIn, long WantOut = 0)
     {
-        Variant ky;
-        Scripting.Dictionary[] rt = new Scripting.Dictionary[2];
-
-        if (WantOut < 0 | WantOut > 1)
-            dcAiPartDocsWithRMv0 = dcAiPartDocsWithRMv0(dcIn, 1);
-        else
+        while (true)
         {
+            var rt = new Dictionary[2];
+
+            if (WantOut < 0 | WantOut > 1)
+            {
+                WantOut = 1;
+                continue;
+            }
+
             // With nuSplitter().WithSel(New kyPickAiDocWithRM)
             {
                 var withBlock = new kyPickAiDocWithRM();
@@ -1282,297 +1174,291 @@
                 foreach (var ky in dcIn.Keys)
                 {
                     {
-                        var withBlock1 = withBlock.dcFor(dcIn.Item(ky));
+                        var withBlock1 = withBlock.dcFor(dcIn.get_Item(ky));
                         if (withBlock1.Exists(ky))
-                            System.Diagnostics.Debugger.Break();
+                            Debugger.Break();
                         else
-                            withBlock1.Add(ky, dcIn.Item(ky));
+                            withBlock1.Add(ky, dcIn.get_Item(ky));
                     }
                 }
             }
-            dcAiPartDocsWithRMv0 = rt[WantOut];
+            return rt[WantOut];
+            break;
         }
     }
     // Debug.Print txDumpLs(dcAiPartDocsWithRMv0(dcAiDocComponents(aiDocActive()), 1).Keys)
 
-    public kyPick kyScanned(Scripting.Dictionary dcIn, kyPick pkr = null/* TODO Change to default(_) if this is not a reference type */)
+    public static  kyPick kyScanned(Dictionary dcIn, kyPick pkr = null)
     {
-        if (pkr == null)
-            kyScanned = kyScanned(dcIn, new kyPick());
-        else
-            kyScanned = pkr.AfterScanning(dcIn);
+        while (true)
+        {
+            if (pkr == null)
+            {
+                pkr = new kyPick();
+            }
+            else
+                return pkr.AfterScanning(dcIn);
+        }
     }
     // Debug.Print txDumpLs(kyScanned(dcAiDocComponents(aiDocActive()), New kyPickAiPartVsAssy).dcIn().Keys)
 
-    public Scripting.Dictionary dcAiDocsPicked(Scripting.Dictionary dcIn, kyPick pkr = null/* TODO Change to default(_) if this is not a reference type */, long WantOut = 0)
+    public static  Dictionary dcAiDocsPicked(Dictionary dcIn, kyPick pkr = null, long WantOut = 0)
     {
-        Variant ky;
-        Scripting.Dictionary[] rt = new Scripting.Dictionary[2];
-
-        if (pkr == null)
-            dcAiDocsPicked = dcAiDocsPicked(dcIn, new kyPick(), WantOut);
-        else if (WantOut < 0 | WantOut > 1)
-            dcAiDocsPicked = dcAiDocsPicked(dcIn, pkr, 1);
-        else
+        while (true)
         {
+            var rt = new Dictionary[2];
+
+            if (pkr == null)
             {
-                var withBlock = pkr;
-                rt[0] = withBlock.dcIn();
-                rt[1] = withBlock.dcOut();
-                foreach (var ky in dcIn.Keys)
+                pkr = new kyPick();
+            }
+            else if (WantOut < 0 | WantOut > 1)
+            {
+                WantOut = 1;
+            }
+            else
+            {
                 {
+                    rt[0] = pkr.dcIn();
+                    rt[1] = pkr.dcOut();
+                    foreach (var ky in dcIn.Keys)
                     {
-                        var withBlock1 = withBlock.dcFor(dcIn.Item(ky));
-                        if (withBlock1.Exists(ky))
-                            System.Diagnostics.Debugger.Break();
-                        else
-                            withBlock1.Add(ky, dcIn.Item(ky));
+                        {
+                            var withBlock1 = pkr.dcFor(dcIn.get_Item(ky));
+                            if (withBlock1.Exists(ky))
+                                Debugger.Break();
+                            else
+                                withBlock1.Add(ky, dcIn.get_Item(ky));
+                        }
                     }
                 }
+                return rt[WantOut];
             }
-            dcAiDocsPicked = rt[WantOut];
         }
     }
     // Debug.Print txDumpLs(dcAiDocsPicked(dcAiDocComponents(aiDocActive()), 1).Keys)
     // Debug.Print txDumpLs(dcAiDocsPicked(dcAiDocComponents(aiDocActive()), New kyPickAiDocContentCtr, 0).Keys)
 
-    public Scripting.Dictionary dcAiPartDocsWithRM(Scripting.Dictionary dcIn, long WantOut = 0)
+    public static  Dictionary dcAiPartDocsWithRM(Dictionary dcIn, long WantOut = 0)
     {
-        dcAiPartDocsWithRM = dcAiDocsPicked(dcAiDocsPicked(dcIn, new kyPickAiPartVsAssy(), 0), new kyPickAiDocWithRM(), WantOut);
+        return dcAiDocsPicked(dcAiDocsPicked(dcIn, new kyPickAiPartVsAssy(), 0), new kyPickAiDocWithRM(), WantOut);
     }
     // Debug.Print txDumpLs(dcAiPartDocsWithRM(dcAiDocComponents(aiDocActive()), 1).Keys)
 
-    public void d0g5f0()
+    public static  void d0g5f0()
     {
     }
 
-    public Scripting.Dictionary dcAiDocGrpsByForm(Scripting.Dictionary dcIn)
+    public static Dictionary dcAiDocGrpsByForm(Dictionary dcIn)
     {
-        /// dcAiDocGrpsByForm -- Separate a Dictionary
-        /// of Inventor Documents into
-        /// categorical sub-Dictionaries
-        /// according to various criteria:
-        /// -   PRCH    Purchased Items
-        /// -   ASSY    Assemblies
-        /// -   HDWR    Hardware (Content Center)
-        /// -   DBAR    Structural Parts (was BSTK)
-        /// Subtype NOT Sheet Metal
-        /// (some "Sheet Metal" Parts
-        /// might also technically
-        /// belong here. see below)
-        /// -   MAYB    Likely Structural Parts
-        /// Sheet Metal subtype, but
-        /// has either no flat pattern,
-        /// or an invalid one.
-        /// -   SHTM    Sheet Metal Parts
-        /// Indicated both by Subtype
-        /// and presence of a valid
-        /// flat pattern.
-        /// 
-        /// Presence in Genius, a distinction
-        /// originally intended to be made here,
-        /// is now planned to be made to a separate
-        /// Dictionary, possibly also subcategorized,
-        /// to be processed in conjunction with
-        /// the results of this function.
-        /// 
-        /// The notion of passing different subgroups
-        /// of this Dictionary to separate handlers
-        /// for more specialized processing, while
-        /// still an option, is no longer considered
-        /// its primary role. Instead, the set is
-        /// expected to be used in a form application
-        /// which will present the various groups to
-        /// the user for review, and modification as
-        /// desired or necessary.
-        /// 
-        /// REV[2022.03.08.1212] All new text
-        /// in function description above.
-        /// see notes_2022-0308_general-01.txt
-        /// for prior description
-        /// 
-        Scripting.Dictionary rt;
+        // dcAiDocGrpsByForm -- Separate a Dictionary
+        // of Inventor Documents into
+        // categorical sub-Dictionaries
+        // according to various criteria:
+        // - PRCH Purchased Items
+        // - ASSY Assemblies
+        // - HDWR Hardware (Content Center)
+        // - DBAR Structural Parts (was BSTK)
+        // Subtype NOT Sheet Metal
+        // (some "Sheet Metal" Parts
+        // might also technically
+        // belong here. see below)
+        // - MAYB Likely Structural Parts
+        // Sheet Metal subtype, but
+        // has either no flat pattern,
+        // or an invalid one.
+        // - SHTM Sheet Metal Parts
+        // Indicated both by Subtype
+        // and presence of a valid
+        // flat pattern.
+        // 
+        // Presence in Genius, a distinction
+        // originally intended to be made here,
+        // is now planned to be made to a separate
+        // Dictionary, possibly also subcategorized,
+        // to be processed in conjunction with
+        // the results of this function.
+        // 
+        // The notion of passing different subgroups
+        // of this Dictionary to separate handlers
+        // for more specialized processing, while
+        // still an option, is no longer considered
+        // its primary role. Instead, the set is
+        // expected to be used in a form application
+        // which will present the various groups to
+        // the user for review, and modification as
+        // desired or necessary.
+        // 
+        // REV[2022.03.08.1212] All new text
+        // in function description above.
+        // see notes_2022-0308_general-01.txt
+        // for prior description
+        // 
         // Dim pkGns As kyPick
-        kyPick pkBuy;
         kyPick pkPrt;
         kyPick pkCtC;
         kyPick pkSht;
         kyPick pkMbe;
 
-        rt = new Scripting.Dictionary();
-
-        /// REV[2022.03.08.1112]
-        /// Disabled split on presence
-        /// in Genius. Believe better
-        /// addressed separately
-        // '  separate items already in Genius
-        // '  from those not yet in
-        // pkGns = nuPicker('    New kyPickInGenius').AfterScanning(dcIn)
-        // '  NOTE: no further processing
-        // '  implemented on this yet
-        // '  MIGHT be better applied
-        // '  at a different stage?
-
-        /// REV[2022.03.08.1115]
-        /// Add division on Purchased Parts
-        /// with "out" Dictionary replacing
-        /// main for Part/Assy separation.
-        pkBuy = nuPicker(new kyPickAiDocPurchased()).AfterScanning(dcIn);
+        var rt = new Dictionary();
+        // REV[2022.03.08.1112]
+        // Disabled split on presence
+        // in Genius. Believe better
+        // addressed separately
+        // ' separate items already in Genius
+        // ' from those not yet in
+        // pkGns = nuPicker(' New kyPickInGenius').AfterScanning(dcIn)
+        // ' NOTE: no further processing
+        // ' implemented on this yet
+        // ' MIGHT be better applied
+        // ' at a different stage?
+        // REV[2022.03.08.1115]
+        // Add division on Purchased Parts
+        // with "out" Dictionary replacing
+        // main for Part/Assy separation.
+        var pkBuy = nuPicker(new kyPickAiDocPurchased()).AfterScanning(dcIn);
 
         {
-            var withBlock = pkBuy;
-            rt.Add("PRCH", withBlock.dcIn);
+            rt.Add("PRCH", pkBuy.dcIn);
 
-            // '  separate parts from assemblies
-            pkPrt = nuPicker(new kyPickAiPartVsAssy()).AfterScanning(withBlock.dcOut);
+            // ' separate parts from assemblies
+            pkPrt = nuPicker(new kyPickAiPartVsAssy()).AfterScanning(pkBuy.dcOut);
         }
 
         {
-            var withBlock = pkPrt;
-            rt.Add("ASSY", withBlock.dcOut);
+            rt.Add("ASSY", pkPrt.dcOut);
 
-            // '  isolate Content Center
-            // '  parts from the rest
-            pkCtC = nuPicker(new kyPickAiDocContentCtr()).AfterScanning(withBlock.dcIn);
+            // ' isolate Content Center
+            // ' parts from the rest
+            pkCtC = nuPicker(new kyPickAiDocContentCtr()).AfterScanning(pkPrt.dcIn);
         }
 
         {
-            var withBlock = pkCtC;
-            rt.Add("HDWR", withBlock.dcIn);
+            rt.Add("HDWR", pkCtC.dcIn);
 
-            // '  separate (potential) sheet
-            // '  metal parts from non-sheet
-            pkSht = nuPicker(new kyPickAiSheetMetal()).AfterScanning(withBlock.dcOut);
+            // ' separate (potential) sheet
+            // ' metal parts from non-sheet
+            pkSht = nuPicker(new kyPickAiSheetMetal()).AfterScanning(pkCtC.dcOut);
         }
 
         {
-            var withBlock = pkSht;
-            rt.Add("DBAR", withBlock.dcOut);
-            pkMbe = nuPicker(new kyPickAiShMtl4sure()).AfterScanning(withBlock.dcIn);
+            rt.Add("DBAR", pkSht.dcOut);
+            pkMbe = nuPicker(new kyPickAiShMtl4sure()).AfterScanning(pkSht.dcIn);
         }
 
         {
-            var withBlock = pkMbe;
-            rt.Add("SHTM", withBlock.dcIn);
-            rt.Add("MAYB", withBlock.dcOut);
+            rt.Add("SHTM", pkMbe.dcIn);
+            rt.Add("MAYB", pkMbe.dcOut);
         }
 
-        Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Breakpoint Landing
+        Debug.Print(""); // Breakpoint Landing
 
-        dcAiDocGrpsByForm = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcAiDocGrpsByFormAndIfac(Scripting.Dictionary dcIn)
+    public static  Dictionary dcAiDocGrpsByFormAndIfac(Dictionary dcIn)
     {
-        /// dcAiDocGrpsByFormAndIfac -- Separate a Dictionary
-        /// of Inventor Documents into
-        /// categorical sub-Dictionaries
-        /// according to various criteria:
-        /// -   PRCH    Purchased Items
-        /// -   ASSY    Assemblies
-        /// -   IASM    iAssembly Factories
-        /// -   IPRT    iPart Factories
-        /// -   HDWR    Hardware (Content Center)
-        /// -   DBAR    Structural Parts (was BSTK)
-        /// Subtype NOT Sheet Metal
-        /// (some "Sheet Metal" Parts
-        /// might also technically
-        /// belong here. see below)
-        /// -   MAYB    Likely Structural Parts
-        /// Sheet Metal subtype, but
-        /// has either no flat pattern,
-        /// or an invalid one.
-        /// -   SHTM    Sheet Metal Parts
-        /// Indicated both by Subtype
-        /// and presence of a valid
-        /// flat pattern.
-        /// 
-        /// REV[2023.01.24.0921]
-        /// copied from dcAiDocGrpsByForm to produce
-        /// new variant with additional groupings for
-        /// iPart (IPRT) and iAssembly (IASM) members.
-        /// additional groups for their corresponding
-        /// Factories will likely also be added.
-        /// 
-        /// text of prior REV[2022.03.08.1212] removed.
-        /// see dcAiDocGrpsByForm for that.
-        /// 
-        Scripting.Dictionary rt;
-        Scripting.Dictionary wk;
-        /// REV[2023.01.24.1156]
-        /// add working Dictionary
-        /// to collect iAssembly
-        /// and iPart Factories
-        Variant ky;
-        Inventor.Document mb;
-        Inventor.Document md;
+        // dcAiDocGrpsByFormAndIfac -- Separate a Dictionary
+        // of Inventor Documents into
+        // categorical sub-Dictionaries
+        // according to various criteria:
+        // - PRCH Purchased Items
+        // - ASSY Assemblies
+        // - IASM iAssembly Factories
+        // - IPRT iPart Factories
+        // - HDWR Hardware (Content Center)
+        // - DBAR Structural Parts (was BSTK)
+        // Subtype NOT Sheet Metal
+        // (some "Sheet Metal" Parts
+        // might also technically
+        // belong here. see below)
+        // - MAYB Likely Structural Parts
+        // Sheet Metal subtype, but
+        // has either no flat pattern,
+        // or an invalid one.
+        // - SHTM Sheet Metal Parts
+        // Indicated both by Subtype
+        // and presence of a valid
+        // flat pattern.
+        // 
+        // REV[2023.01.24.0921]
+        // copied from dcAiDocGrpsByForm to produce
+        // new dynamic with additional groupings for
+        // iPart (IPRT) and iAssembly (IASM) members.
+        // additional groups for their corresponding
+        // Factories will likely also be added.
+        // 
+        // text of prior REV[2022.03.08.1212] removed.
+        // see dcAiDocGrpsByForm for that.
+        // 
+        Dictionary wk;
+        // REV[2023.01.24.1156]
+        // add working Dictionary
+        // to collect iAssembly
+        // and iPart Factories
+        Document mb;
+        Document md;
         string fp;
 
         // Dim pkGns As kyPick
-        kyPick pkBuy;
         kyPick pkPrt;
         kyPick pkCtC;
         kyPick pkSht;
         kyPick pkMbe;
 
-        /// REV[2023.01.24.1009]
-        /// add new pickers for
-        /// iAssemblies and iParts
+        // REV[2023.01.24.1009]
+        // add new pickers for
+        // iAssemblies and iParts
         kyPick pkIas;
         kyPick pkIpt;
 
-        rt = new Scripting.Dictionary();
-
-        /// REV[2022.03.08.1112]
-        /// Disabled split on presence
-        /// in Genius. Believe better
-        /// addressed separately
-        // '  separate items already in Genius
-        // '  from those not yet in
-        // pkGns = nuPicker('    New kyPickInGenius').AfterScanning(dcIn)
-        // '  NOTE: no further processing
-        // '  implemented on this yet
-        // '  MIGHT be better applied
-        // '  at a different stage?
-
-        /// REV[2022.03.08.1115]
-        /// Add division on Purchased Parts
-        /// with "out" Dictionary replacing
-        /// main for Part/Assy separation.
-        pkBuy = nuPicker(new kyPickAiDocPurchased()).AfterScanning(dcIn);
+        var rt = new Dictionary();
+        // REV[2022.03.08.1112]
+        // Disabled split on presence
+        // in Genius. Believe better
+        // addressed separately
+        // ' separate items already in Genius
+        // ' from those not yet in
+        // pkGns = nuPicker(' New kyPickInGenius').AfterScanning(dcIn)
+        // ' NOTE: no further processing
+        // ' implemented on this yet
+        // ' MIGHT be better applied
+        // ' at a different stage?
+        // REV[2022.03.08.1115]
+        // Add division on Purchased Parts
+        // with "out" Dictionary replacing
+        // main for Part/Assy separation.
+        var pkBuy = nuPicker(new kyPickAiDocPurchased()).AfterScanning(dcIn);
 
         {
-            var withBlock = pkBuy;
             if (dcIn.Count > 0)
-                rt.Add("PRCH", withBlock.dcIn);
+                rt.Add("PRCH", pkBuy.dcIn);
 
-            // '  separate parts from assemblies
-            pkPrt = nuPicker(new kyPickAiPartVsAssy()).AfterScanning(withBlock.dcOut);
+            // ' separate parts from assemblies
+            pkPrt = nuPicker(new kyPickAiPartVsAssy()).AfterScanning(pkBuy.dcOut);
         }
 
         {
-            var withBlock = pkPrt;
-            // '  separate iAssembly members
-            // '  from stand-alone assemblies
-            pkIas = nuPicker(new kyPickAiAssyMember()).AfterScanning(withBlock.dcOut);
+            // ' separate iAssembly members
+            // ' from stand-alone assemblies
+            pkIas = nuPicker(new kyPickAiAssyMember()).AfterScanning(pkPrt.dcOut);
 
-            // '  isolate Content Center
-            // '  parts from the rest
-            pkCtC = nuPicker(new kyPickAiDocContentCtr()).AfterScanning(withBlock.dcIn);
+            // ' isolate Content Center
+            // ' parts from the rest
+            pkCtC = nuPicker(new kyPickAiDocContentCtr()).AfterScanning(pkPrt.dcIn);
         }
 
         {
-            var withBlock = pkIas;
-            if (withBlock.dcOut.Count > 0)
-                rt.Add("ASSY", withBlock.dcOut);
+            if (pkIas.dcOut.Count > 0)
+                rt.Add("ASSY", pkIas.dcOut);
             {
-                var withBlock1 = withBlock.dcIn;
-                wk = new Scripting.Dictionary();
+                var withBlock1 = pkIas.dcIn;
+                wk = new Dictionary();
 
                 foreach (var ky in withBlock1.Keys)
                 {
                     {
-                        var withBlock2 = aiDocAssy(withBlock1.Item(ky)).ComponentDefinition;
+                        var withBlock2 = aiDocAssy(withBlock1.get_Item(ky)).ComponentDefinition;
                         mb = withBlock2.Parent;
                         {
                             var withBlock3 = withBlock2.iAssemblyMember.ParentFactory.Parent;
@@ -1580,17 +1466,16 @@
                             fp = md.FullDocumentName;
 
                             {
-                                var withBlock4 = wk;
-                                if (!withBlock4.Exists(fp))
+                                if (!wk.Exists(fp))
                                 {
-                                    withBlock4.Add(fp, new Scripting.Dictionary());
-                                    dcOb(withBlock4.Item(fp)).Add("", md);
+                                    wk.Add(fp, new Dictionary());
+                                    dcOb(wk.get_Item(fp)).Add("", md);
                                 }
 
                                 {
-                                    var withBlock5 = dcOb(withBlock4.Item(fp));
+                                    var withBlock5 = dcOb(wk.get_Item(fp));
                                     if (withBlock5.Exists(ky))
-                                        System.Diagnostics.Debugger.Break();
+                                        Debugger.Break();
                                     else
                                         withBlock5.Add(ky, mb);
                                 }
@@ -1605,25 +1490,23 @@
         }
 
         {
-            var withBlock = pkCtC;
-            if (withBlock.dcIn.Count > 0)
-                rt.Add("HDWR", withBlock.dcIn);
+            if (pkCtC.dcIn.Count > 0)
+                rt.Add("HDWR", pkCtC.dcIn);
 
-            // '  separate iPart members
-            // '  from stand-alone parts
-            pkIpt = nuPicker(new kyPickAiPartMember()).AfterScanning(withBlock.dcOut);
+            // ' separate iPart members
+            // ' from stand-alone parts
+            pkIpt = nuPicker(new kyPickAiPartMember()).AfterScanning(pkCtC.dcOut);
         }
 
         {
-            var withBlock = pkIpt;
             {
-                var withBlock1 = withBlock.dcIn;
-                wk = new Scripting.Dictionary();
+                var withBlock1 = pkIpt.dcIn;
+                wk = new Dictionary();
 
                 foreach (var ky in withBlock1.Keys)
                 {
                     {
-                        var withBlock2 = aiDocPart(withBlock1.Item(ky)).ComponentDefinition;
+                        var withBlock2 = aiDocPart(withBlock1.get_Item(ky)).ComponentDefinition;
                         mb = withBlock2.Document; // .Parent
                         md = aiDocPart(withBlock2.iPartMember.ParentFactory.Parent); // .PropertySets.Parent ' .Parent
                         {
@@ -1631,17 +1514,16 @@
                             fp = md.FullDocumentName;
 
                             {
-                                var withBlock4 = wk;
-                                if (!withBlock4.Exists(fp))
+                                if (!wk.Exists(fp))
                                 {
-                                    withBlock4.Add(fp, new Scripting.Dictionary());
-                                    dcOb(withBlock4.Item(fp)).Add("", md);
+                                    wk.Add(fp, new Dictionary());
+                                    dcOb(wk.get_Item(fp)).Add("", md);
                                 }
 
                                 {
-                                    var withBlock5 = dcOb(withBlock4.Item(fp));
+                                    var withBlock5 = dcOb(wk.get_Item(fp));
                                     if (withBlock5.Exists(ky))
-                                        System.Diagnostics.Debugger.Break();
+                                        Debugger.Break();
                                     else
                                         withBlock5.Add(ky, mb);
                                 }
@@ -1654,259 +1536,236 @@
                     rt.Add("IPRT", wk);
             }
 
-            // '  add iPart Factories to
-            // '  Dictionary of non-Members
+            // ' add iPart Factories to
+            // ' Dictionary of non-Members
             {
-                var withBlock1 = withBlock.dcOut;
+                var withBlock1 = pkIpt.dcOut;
                 foreach (var ky in wk.Keys)
                 {
                     if (withBlock1.Exists(ky))
-                        System.Diagnostics.Debugger.Break();
+                        Debugger.Break();
                     else
-                        withBlock1.Add(ky, dcOb(wk.Item(ky)).Item(""));
+                        withBlock1.Add(ky, dcOb(wk.get_Item(ky)).get_Item(""));
                 }
             }
 
-            // '  separate (potential) sheet
-            // '  metal parts from non-sheet
-            pkSht = nuPicker(new kyPickAiSheetMetal()).AfterScanning(withBlock.dcOut);
+            // ' separate (potential) sheet
+            // ' metal parts from non-sheet
+            pkSht = nuPicker(new kyPickAiSheetMetal()).AfterScanning(pkIpt.dcOut);
         }
 
         {
-            var withBlock = pkSht;
-            if (withBlock.dcOut.Count > 0)
-                rt.Add("DBAR", withBlock.dcOut);
-            pkMbe = nuPicker(new kyPickAiShMtl4sure()).AfterScanning(withBlock.dcIn);
+            if (pkSht.dcOut.Count > 0)
+                rt.Add("DBAR", pkSht.dcOut);
+            pkMbe = nuPicker(new kyPickAiShMtl4sure()).AfterScanning(pkSht.dcIn);
         }
 
         {
-            var withBlock = pkMbe;
-            if (withBlock.dcIn.Count > 0)
-                rt.Add("SHTM", withBlock.dcIn);
-            if (withBlock.dcOut.Count > 0)
-                rt.Add("MAYB", withBlock.dcOut);
+            if (pkMbe.dcIn.Count > 0)
+                rt.Add("SHTM", pkMbe.dcIn);
+            if (pkMbe.dcOut.Count > 0)
+                rt.Add("MAYB", pkMbe.dcOut);
         }
 
-        Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Breakpoint Landing
+        Debug.Print(""); // Breakpoint Landing
 
-        dcAiDocGrpsByFormAndIfac = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary d0g5f2(Scripting.Dictionary dcIn)
+    public static  Dictionary d0g5f2(Dictionary dcIn)
     {
-        /// function d0g5f2
-        /// 
-        /// INITIATED[2021.03.23]
-        /// this variant on dcAiDocGrpsByForm
-        /// is intended to separate items
-        /// in Genius from those not yet in
-        /// and purchased items from those
-        /// to be made, cross-referencing
-        /// the two to determine individual
-        /// needs for processing.
-        /// 
-        /// presently in a nonfunctional state
-        /// as End of Day approaches. will hope
-        /// to continue development tomorrow
-        /// 
-        Scripting.Dictionary rt;
-        kyPick pkGns;
+        // function d0g5f2
+        // 
+        // INITIATED[2021.03.23]
+        // this dynamic on dcAiDocGrpsByForm
+        // is intended to separate items
+        // in Genius from those not yet in
+        // and purchased items from those
+        // to be made, cross-referencing
+        // the two to determine individual
+        // needs for processing.
+        // 
+        // presently in a nonfunctional state
+        // as End of Day approaches. will hope
+        // to continue development tomorrow
+        // 
         kyPick pkPvA;
         kyPick pkCtC;
         kyPick pkSht;
-        kyPick pkBuy;
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
 
-        // '  separate items already in Genius
-        // '  from those not yet in
-        pkGns = nuPicker(new kyPickInGenius()).AfterScanning(dcIn);
+        // ' separate items already in Genius
+        // ' from those not yet in
+        var pkGns = nuPicker(new kyPickInGenius()).AfterScanning(dcIn);
 
-        // '  separate purchased items
-        // '  from those to be made
-        pkBuy = nuPicker(new kyPickAiDocPurchased()).AfterScanning(dcIn);
-        // '  NOTE: no further processing
-        // '  implemented on this yet
-        // '  MIGHT be better applied
-        // '  at a different stage?
+        // ' separate purchased items
+        // ' from those to be made
+        var pkBuy = nuPicker(new kyPickAiDocPurchased()).AfterScanning(dcIn);
 
-
-
-        // '  separate parts from assemblies
-        // pkPvA = nuPicker('    New kyPickAiPartVsAssy').AfterScanning(dcIn)
+        // ' NOTE: no further processing
+        // ' implemented on this yet
+        // ' MIGHT be better applied
+        // ' at a different stage?
+        // ' separate parts from assemblies
+        // pkPvA = nuPicker(' New kyPickAiPartVsAssy').AfterScanning(dcIn)
         // 'rt.Add "ASSY", dck pkPvA.dcOut
-
-        // '  isolate Content Center
-        // '  parts from the rest
-        // pkCtC = nuPicker('    New kyPickAiDocContentCtr').AfterScanning(pkPvA.dcIn)
+        // ' isolate Content Center
+        // ' parts from the rest
+        // pkCtC = nuPicker(' New kyPickAiDocContentCtr').AfterScanning(pkPvA.dcIn)
         // 'rt.Add "HDWR", pkCtC.dcIn
-
-        // '  separate (potential)
-        // '  sheet metal parts
-        // '  from non-sheet
-        // pkSht = nuPicker('    New kyPickAiSheetMetal').AfterScanning(pkCtC.dcOut)
+        // ' separate (potential)
+        // ' sheet metal parts
+        // ' from non-sheet
+        // pkSht = nuPicker(' New kyPickAiSheetMetal').AfterScanning(pkCtC.dcOut)
         // rt.Add "SHTM", pkSht.dcIn
         // rt.Add "BSTK", pkSht.dcOut
+        Debug.Print(""); // Breakpoint Landing
 
-        Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Breakpoint Landing
-
-        d0g5f2 = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary d0g5f3(Scripting.Dictionary dcIn)
+    public static  Dictionary d0g5f3(Dictionary dcIn)
     {
-        /// function d0g5f3 -- essentially a recreation of dcAiDocGrpsByForm
-        /// 
-        Scripting.Dictionary rt;
-        kyPick pkBuy;
+        // function d0g5f3 -- essentially a recreation of dcAiDocGrpsByForm
+        // 
         kyPick pkPrt;
         kyPick pkCtC;
         kyPick pkSht;
         kyPick pkMbe;
+
         // Dim pkGns As kyPick
         // Dim pk___ As kyPick
+        var rt = new Dictionary();
 
-        rt = new Scripting.Dictionary();
         // pkGns = nuPicker(New kyPickInGenius).AfterScanning(dcIn)
-
-        pkBuy = nuPicker(new kyPickAiDocPurchased()).AfterScanning(dcIn);
+        var pkBuy = nuPicker(new kyPickAiDocPurchased()).AfterScanning(dcIn);
 
         {
-            var withBlock = pkBuy;
-            rt.Add("PRCH", withBlock.dcIn);
-            pkPrt = nuPicker(new kyPickAiPartVsAssy()).AfterScanning(withBlock.dcOut);
+            rt.Add("PRCH", pkBuy.dcIn);
+            pkPrt = nuPicker(new kyPickAiPartVsAssy()).AfterScanning(pkBuy.dcOut);
         }
 
         {
-            var withBlock = pkPrt;
-            rt.Add("ASSY", withBlock.dcOut);
-            pkCtC = nuPicker(new kyPickAiDocContentCtr()).AfterScanning(withBlock.dcIn);
+            rt.Add("ASSY", pkPrt.dcOut);
+            pkCtC = nuPicker(new kyPickAiDocContentCtr()).AfterScanning(pkPrt.dcIn);
         }
 
         {
-            var withBlock = pkCtC;
-            rt.Add("HDWR", withBlock.dcIn);
-            pkSht = nuPicker(new kyPickAiSheetMetal()).AfterScanning(withBlock.dcOut);
+            rt.Add("HDWR", pkCtC.dcIn);
+            pkSht = nuPicker(new kyPickAiSheetMetal()).AfterScanning(pkCtC.dcOut);
         }
 
         {
-            var withBlock = pkSht;
-            rt.Add("DBAR", withBlock.dcOut);
-            pkMbe = nuPicker(new kyPickAiShMtl4sure()).AfterScanning(withBlock.dcIn);
+            rt.Add("DBAR", pkSht.dcOut);
+            pkMbe = nuPicker(new kyPickAiShMtl4sure()).AfterScanning(pkSht.dcIn);
         }
 
         {
-            var withBlock = pkMbe;
-            rt.Add("MAYB", withBlock.dcOut);
-            rt.Add("SHTM", withBlock.dcIn);
+            rt.Add("MAYB", pkMbe.dcOut);
+            rt.Add("SHTM", pkMbe.dcIn);
         }
 
-        d0g5f3 = rt;
+        return rt;
     }
 
-    public long dcDepthAiDocGrp(Scripting.Dictionary dc)
+    public static  long dcDepthAiDocGrp(Dictionary dc)
     {
-        Variant vr;
-        object ob;
-        long mx;
-        long dx;
-        long ck;
+        dynamic vr;
         long rt;
 
         {
-            var withBlock = dc;
-            mx = withBlock.Count;
+            long mx = dc.Count;
 
             if (mx == 0)
-                dcDepthAiDocGrp = 0; // indeterminate
-            else
-            {
-                dx = 0;
+                return 0; // indeterminate
+            long dx = 0;
 
-                do
+            long ck;
+            do
+            {
+                // vr = new [] {.get_Item(.Keys(dx)))
+                var ob = obOf(dc.get_Item(dc.Keys(dx)));
+                switch (ob)
                 {
-                    // vr = Array(.Item(.Keys(dx)))
-                    ob = obOf(withBlock.Item(withBlock.Keys(dx)));
-                    if (ob == null)
+                    case null:
                         ck = -1;
-                    else if (ob is Scripting.Dictionary)
+                        break;
+                    case Dictionary:
                     {
                         ck = dcDepthAiDocGrp(ob);
                         if (ck > 0)
                             ck = 1 + ck;
+                        break;
                     }
-                    else if (ob is Inventor.Document)
+                    case Document:
                         ck = 1;
-                    else
+                        break;
+                    default:
                         ck = -1;
-                    dx = dx + 1;
-                    if (dx > mx)
-                        ck = -1;
+                        break;
                 }
-                while (ck == 0)// vr(0)// invalid// invalid // invalid
-    ; // indeterminate
 
-                dcDepthAiDocGrp = ck;
-            }
+                dx = dx + 1;
+                if (dx > mx)
+                    ck = -1;
+            } while (ck == 0) // vr(0)// invalid// invalid // invalid
+                ; // indeterminate
+
+            return ck;
         }
     }
 
-    public fmIfcTest05A nu_fmIfcTest05A(Scripting.Dictionary dcIn = null/* TODO Change to default(_) if this is not a reference type */)
+    public static fmIfcTest05A nu_fmIfcTest05A(Dictionary dcIn = null)
     {
         {
             var withBlock = new fmIfcTest05A();
-            nu_fmIfcTest05A = withBlock.Using(dcIn);
+            return withBlock.Using(dcIn);
         }
     }
 
-    public fmTest05 nu_fmTest05A(Scripting.Dictionary dcIn = null/* TODO Change to default(_) if this is not a reference type */)
+    public static  fmTest05 nu_fmTest05A(Dictionary dcIn = null)
     {
-        System.Diagnostics.Debugger.Break(); // DO NOT USE THIS FUNCTION!
-                                             // instead, use the Interface
-                                             // generator nu_fmIfcTest05A
+        Debugger.Break(); // DO NOT USE THIS FUNCTION!
+        // instead, use the Interface
+        // generator nu_fmIfcTest05A
 
         {
             var withBlock = new fmTest05();
-            nu_fmTest05A = withBlock.Holding(dcIn); // .Using(dcIn)
+            return withBlock.Holding(dcIn); // .Using(dcIn)
         }
     }
 
-    public string lsAssyMembers(Inventor.AssemblyDocument aiAssy)
+    public static  string lsAssyMembers(AssemblyDocument aiAssy)
     {
-        Scripting.Dictionary dc;
-        string pn;
-        string rt;
-        Variant ky;
-
-        dc = dcAiDocsByPtNum(dcAssyComponentsImmediate(aiAssy)); // dcAiDocPartNumbers
-        pn = Constants.vbNewLine + aiAssy.PropertySets.Item(gnDesign).Item(pnPartNum).Value + Constants.vbTab;
-        rt = pn + Join(dc.Keys, pn);
+        var dc = dcAiDocsByPtNum(dcAssyComponentsImmediate(aiAssy)); // dcAiDocPartNumbers
+        var pn = Constants.vbCrLf + aiAssy.PropertySets.get_Item(gnDesign).get_Item(pnPartNum).Value + Constants.vbTab;
+        var rt = pn + Join(dc.Keys, pn);
 
         {
             var withBlock = nuPicker(new kyPickAiPartVsAssy()).AfterScanning(dc);
             {
                 var withBlock1 = withBlock.dcOut;
                 foreach (var ky in withBlock1.Keys)
-                    rt = rt + lsAssyMembers(aiDocument(obOf(withBlock1.Item(ky))));
+                    rt = rt + lsAssyMembers(aiDocument(obOf(withBlock1.get_Item(ky))));
             }
         }
 
-        lsAssyMembers = rt;
+        return rt;
     }
 
-    public string d0g6f0(Inventor.Document AiDoc)
+    public static  string d0g6f0(Document AiDoc)
     {
-        // '  Try to pick a distinct listing name
-        // '  for a supplied Inventor Document
-        string rt;
-        string ds;
+        // ' Try to pick a distinct listing name
+        // ' for a supplied Inventor Document
 
         {
-            var withBlock = AiDoc;
+            string ds;
+            string rt;
             {
-                var withBlock1 = withBlock.PropertySets(gnDesign);
-                rt = Trim(withBlock1.Item(pnPartNum).Value);
-                ds = Trim(withBlock1.Item(pnDesc).Value);
+                var withBlock1 = AiDoc.PropertySets(gnDesign);
+                rt = Trim(withBlock1.get_Item(pnPartNum).Value);
+                ds = Trim(withBlock1.get_Item(pnDesc).Value);
             }
 
             if (Strings.Len(rt) > 0)
@@ -1917,9 +1776,9 @@
             else if (Strings.Len(ds) > 0)
                 rt = ds;
 
-            if (Strings.Len(rt) == 0)
+            if (Strings.Len(rt) != 0) return rt;
             {
-                ds = withBlock.FullFileName;
+                ds = AiDoc.FullFileName;
                 if (Strings.Len(ds) > 0)
                 {
                     {
@@ -1928,65 +1787,59 @@
                     }
                 }
                 else
-                    rt = withBlock.DisplayName;
+                    rt = AiDoc.DisplayName;
             }
 
-            d0g6f0 = rt;
+            return rt;
         }
     }
 
-    public void d0g6f1()
+    public static  void d0g6f1()
     {
         // '
-        // '  testing form class fmTest0
+        // ' testing form class fmTest0
         // '
         {
             var withBlock = new fmTest0();
             withBlock.imTNail.Visible = false;
             Debug.Print.Controls.Count();
-            System.Diagnostics.Debugger.Break();
+            Debugger.Break();
         }
     }
 
-    public Scripting.Dictionary d0g6f2(Scripting.Dictionary dc)
+    public static  Dictionary d0g6f2(Dictionary dc)
     {
-        /// Call this one from inside dcAiDocGrpsByForm (above)
-        /// Try: debug.Print txDumpLs(d0g6f2(pkPvA.dcIn).Keys)
-        /// 
-        Scripting.Dictionary rt;
-        Inventor.Document ad;
-        Inventor.Property pr;
-        Variant ky;
+        // Call this one from inside dcAiDocGrpsByForm (above)
+        // Try: debug.Print txDumpLs(d0g6f2(pkPvA.dcIn).Keys)
+        // 
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
 
         {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dc.Keys)
             {
-                ad = aiDocument(withBlock.Item(ky));
+                Document ad = aiDocument(dc.get_Item(ky));
                 if (ad == null)
                 {
                 }
                 else
                 {
-                    pr = ad.PropertySets(gnDesign).Item(pnFamily);
+                    Property pr = ad.PropertySets(gnDesign).get_Item(pnFamily);
                     rt.Add(ky, pr);
                     {
-                        var withBlock1 = pr;
-                        withBlock1.Value = "R-PTS";
+                        pr.Value = "R-PTS";
                     }
                 }
             }
         }
 
-        d0g6f2 = rt;
+        return rt;
     }
 
-    public void d0g6f3()
+    public static  void d0g6f3()
     {
         // '
-        // '  testing new empty form class fmEmpty
+        // ' testing new null form class fmEmpty
         // '
         {
             var withBlock = new fmEmpty();
@@ -1999,101 +1852,83 @@
             }
             Debug.Print.Controls.Count();
             withBlock.Show(1);
-            System.Diagnostics.Debugger.Break();
+            Debugger.Break();
         }
     }
 
-    public string d0g7f0()
+    public static  string d0g7f0()
     {
-        /// This function used to transfer Property Values
-        /// from blank model files GR12 ~ GR20
-        /// to new versions generated from Intraflo's
-        /// supplied STEP files. Save for reference,
-        /// but this version should not likely be used
-        /// as is for other tasks without review.
-        /// 
-        Scripting.Dictionary rt;
-        Scripting.Dictionary dcPr;
-        Inventor.Document sd;
-        Inventor.Document td;
-        Inventor.PropertySet psSc;
-        Inventor.PropertySet psTg;
-        Inventor.Property prSc;
-        Inventor.Property prTg;
-        Variant ky;
-        Variant pn;
-        string sn;
+        // This function used to transfer Property Values
+        // from blank model files GR12 ~ GR20
+        // to new versions generated from Intraflo's
+        // supplied STEP files. Save for reference,
+        // but this version should not likely be used
+        // as is for other tasks without review.
+        // 
+        Property prTg;
 
-        rt = dcAiDocsByPtNum(dcAssyComponentsImmediate(aiDocActive()));
+        var rt = dcAiDocsByPtNum(dcAssyComponentsImmediate(aiDocActive()));
         {
-            var withBlock = rt;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in rt.Keys)
             {
-                Debug.Print(ky); sd = aiDocument(obOf(withBlock.Item(ky)));
-                if (UCase(Left(ky, 2)) == "GR")
+                Debug.Print(ky);
+                Document sd = aiDocument(obOf(rt.get_Item(ky)));
+                if (UCase(Left(ky, 2)) != "GR") continue;
+                string sn = sd.PropertySets(gnDesign).get_Item(pnStockNum).Value;
+                if (!rt.Exists(sn)) continue;
+                Document td = aiDocument(obOf(rt.get_Item(sn)));
+                Debug.Print(""); // Stop
+                PropertySet psTg = td.PropertySets(gnCustom);
+                var dcPr = dcAiPropsInSet(psTg);
+                PropertySet psSc = sd.PropertySets(gnCustom);
+                foreach (Property prSc in psSc)
                 {
-                    sn = sd.PropertySets(gnDesign).Item(pnStockNum).Value;
-                    if (withBlock.Exists(sn))
+                    if (dcPr.Exists(prSc.Name))
                     {
-                        td = aiDocument(obOf(withBlock.Item(sn)));
-                        Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Stop
-                        psTg = td.PropertySets(gnCustom);
-                        dcPr = dcAiPropsInSet(psTg);
-                        psSc = sd.PropertySets(gnCustom);
-                        foreach (var prSc in psSc)
                         {
-                            if (dcPr.Exists(prSc.Name))
-                            {
-                                {
-                                    var withBlock1 = psTg.Item(prSc.Name);
-                                    withBlock1.Value = prSc.Value;
-                                    Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Landing Point -- Ctrl-F8 to here
-                                }
-                            }
-                            else
-                            {
-                                var withBlock1 = prSc;
-                                psTg.Add.Value(null/* Conversion error: Set to default value for this argument */, withBlock1.Name); Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Landing Point -- Ctrl-F8 to here
-                            }
-                        }
-
-                        psSc = sd.PropertySets(gnDesign);
-                        {
-                            var withBlock1 = td.PropertySets(gnDesign);
-                            foreach (var pn in Array(pnPartNum, pnStockNum, pnFamily, pnDesc, pnCatWebLink))
-                            {
-                                // .Item(pnStockNum).Value = psSc.Item(pnStockNum).Value
-                                // .Item(pnFamily).Value = psSc.Item(pnFamily).Value
-                                // .Item(pnCatWebLink).Value = psSc.Item(pnCatWebLink).Value
-                                // .Item(pnDesc).Value = psSc.Item(pnDesc).Value
-                                // .Item(pnPartNum).Value = psSc.Item(pnPartNum).Value
-                                // .Item(pn).Value = psSc.Item(pn).Value
-                                withBlock1.Item(System.Convert.ToHexString(pn)).Value = psSc.Item(System.Convert.ToHexString(pn)).Value;
-                                Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Landing Point -- Ctrl-F8 to here
-                            }
+                            var withBlock1 = psTg.get_Item(prSc.Name);
+                            withBlock1.Value = prSc.Value;
+                            Debug.Print(""); // Landing Point -- Ctrl-F8 to here
                         }
                     }
                     else
                     {
+                        psTg.Add(null, prSc.Name);
+                        Debug.Print(""); // Landing Point -- Ctrl-F8 to here
                     }
                 }
-                else
+
+                psSc = sd.PropertySets(gnDesign);
                 {
+                    var withBlock1 = td.PropertySets(gnDesign);
+                    foreach (var pn in new[] { pnPartNum, pnStockNum, pnFamily, pnDesc, pnCatWebLink })
+                    {
+                        // .get_Item(pnStockNum).Value = psSc.get_Item(pnStockNum).Value
+                        // .get_Item(pnFamily).Value = psSc.get_Item(pnFamily).Value
+                        // .get_Item(pnCatWebLink).Value = psSc.get_Item(pnCatWebLink).Value
+                        // .get_Item(pnDesc).Value = psSc.get_Item(pnDesc).Value
+                        // .get_Item(pnPartNum).Value = psSc.get_Item(pnPartNum).Value
+                        // .get_Item(pn).Value = psSc.get_Item(pn).Value
+                        withBlock1.get_Item(Convert.ToHexString(pn)).Value =
+                            psSc.get_Item(Convert.ToHexString(pn)).Value;
+                        Debug.Print(""); // Landing Point -- Ctrl-F8 to here
+                    }
                 }
             }
         }
     }
 
-    public string d0g8f0()
+    public static  string d0g8f0()
     {
-        long dx;
-        string fn;
-
-        for (dx = 1; dx <= 16; dx++)
+        for (long dx = 1; dx <= 16; dx++)
         {
-            fn = "Specification" + System.Convert.ToHexString(dx);
+            var fn = "Specification" + Convert.ToHexString(dx);
             {
-                var withBlock = cnGnsDoyle().Execute(Join(Array("select distinct", fn, "from vgMfiItems", "where Family = 'D-BAR'", "and", fn, "is not null", "and", fn, "<> ''", "order by", fn, ";"), " "));
+                var withBlock = cnGnsDoyle().Execute(Join(new[]
+                {
+                    "select distinct", fn, "from vgMfiItems", "where Family = 'D-BAR'", "and", fn, "is not null", "and",
+                    fn, "<> ''", "order by", fn, ";"
+                }, " "));
                 if (withBlock.BOF | withBlock.EOF)
                 {
                 }
@@ -2106,185 +1941,165 @@
         }
     }
 
-    public string d0g9f0(Inventor.Document ad = null/* TODO Change to default(_) if this is not a reference type */, string pn = "")
+    public static  string d0g9f0(Document ad = null, string pn = "")
     {
-        Inventor.View vw;
-        Inventor.Camera cm;
-        string bp;
-
-        if (ad == null)
-            d0g9f0 = d0g9f0(ThisApplication.ActiveDocument, pn);
-        else if (Strings.Len(pn) < 1)
-            d0g9f0 = d0g9f0(ad, d0g9f3(ad));
-        else
+        while (true)
         {
-            bp = @"C:\Doyle_Vault\Designs\Misc\andrewT\";
-            vw = ad.Views.Item(1); // ThisApplication.ActiveView
-            cm = vw.Camera;
+            if (ad == null)
+            {
+                ad = ThisApplication.ActiveDocument;
+                continue;
+            }
+
+            if (Strings.Len(pn) < 1)
+            {
+                pn = d0g9f3(ad);
+                continue;
+            }
+
+            const string bp = @"C:\Doyle_Vault\Designs\Misc\andrewT\";
+            var vw = ad.Views.get_Item(1); // ThisApplication.ActiveView
+            var cm = vw.Camera;
 
             {
-                var withBlock = vw;
                 // Debug.Print .Left, .Top
                 // Debug.Print .Width, .Height
 
-                Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // breakpoint anchor
+                Debug.Print(""); // breakpoint anchor
 
                 {
-                    var withBlock1 = withBlock.Camera;
+                    var withBlock1 = vw.Camera;
                     withBlock1.ViewOrientationType = kIsoTopRightViewOrientation;
                     withBlock1.Fit();
                     withBlock1.Apply();
                 }
-                withBlock.Fit();
-                withBlock.Update();
-                Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // breakpoint anchor
-                                                                             // .SaveAsBitmapWithOptions pn & "-I.png", 0, 0
-                withBlock.SaveAsBitmap(bp + pn + "-I.png", withBlock.Width, withBlock.Height);
+                vw.Fit();
+                vw.Update();
+                Debug.Print(""); // breakpoint anchor
+                // .SaveAsBitmapWithOptions pn & "-I.png", 0, 0
+                vw.SaveAsBitmap(bp + pn + "-I.png", vw.Width, vw.Height);
                 {
-                    var withBlock1 = withBlock.Camera;
+                    var withBlock1 = vw.Camera;
                     withBlock1.ViewOrientationType = kFrontViewOrientation;
                     withBlock1.Fit();
                     withBlock1.Apply();
                 }
-                withBlock.Fit();
-                withBlock.Update();
-                Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // breakpoint anchor
-                                                                             // .SaveAsBitmapWithOptions pn & "-I.png", 0, 0
-                withBlock.SaveAsBitmap(bp + pn + "-F.png", 0, 0);
+                vw.Fit();
+                vw.Update();
+                Debug.Print(""); // breakpoint anchor
+                // .SaveAsBitmapWithOptions pn & "-I.png", 0, 0
+                vw.SaveAsBitmap(bp + pn + "-F.png", 0, 0);
                 {
-                    var withBlock1 = withBlock.Camera;
+                    var withBlock1 = vw.Camera;
                     withBlock1.ViewOrientationType = kTopViewOrientation;
                     withBlock1.Fit();
                     withBlock1.Apply();
                 }
-                withBlock.Fit();
-                withBlock.Update();
-                Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // breakpoint anchor
-                                                                             // .SaveAsBitmapWithOptions pn & "-I.png", 0, 0
-                withBlock.SaveAsBitmap(bp + pn + "-T.png", 0, 0);
-                withBlock.GoHome();
-                withBlock.Update();
+                vw.Fit();
+                vw.Update();
+                Debug.Print(""); // breakpoint anchor
+                // .SaveAsBitmapWithOptions pn & "-I.png", 0, 0
+                vw.SaveAsBitmap(bp + pn + "-T.png", 0, 0);
+                vw.GoHome();
+                vw.Update();
             }
+
+            Debug.Print(""); // breakpoint anchor
+
+            return "";
         }
-
-        Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // breakpoint anchor
-
-        d0g9f0 = "";
     }
 
-    public string d0g9f1(Inventor.AssemblyDocument ad)
+    public static  string d0g9f1(AssemblyDocument ad)
     {
-        Inventor.iAssemblyTableRow rw;
-
         {
             var withBlock = ad.ComponentDefinition;
-            if (withBlock.IsiAssemblyFactory)
+            if (!withBlock.IsiAssemblyFactory) return "";
             {
+                var withBlock1 = withBlock.iAssemblyFactory;
+                foreach (iAssemblyTableRow rw in withBlock1.TableRows)
                 {
-                    var withBlock1 = withBlock.iAssemblyFactory;
-                    foreach (var rw in withBlock1.TableRows)
                     {
-                        {
-                            var withBlock2 = rw;
-                            Debug.Print.MemberName();
-                        }
+                        var withBlock2 = rw;
+                        Debug.Print.MemberName();
                     }
                 }
             }
-            else
+        }
+
+        return "";
+    }
+
+    public static  void d0g9f2(ComponentOccurrence oc)
+    {
+        {
+            if (oc.IsiAssemblyMember || oc.IsiPartMember)
             {
             }
-        }
 
-        d0g9f1 = "";
-    }
-
-    public string d0g9f2(Inventor.ComponentOccurrence oc)
-    {
-        {
-            var withBlock = oc;
-            if (withBlock.IsiAssemblyMember)
-                System.Diagnostics.Debugger.Break();
-            else if (withBlock.IsiPartMember)
-                System.Diagnostics.Debugger.Break();
-            else
-                System.Diagnostics.Debugger.Break();
+            Debugger.Break();
         }
     }
 
-    public string d0g9f2as(Inventor.AssemblyComponentDefinition cd)
+    public static  void d0g9f2as(AssemblyComponentDefinition cd)
     {
         {
-            var withBlock = cd;
             // .IsiAssemblyMember
             // .iAssemblyMember
             {
-                var withBlock1 = withBlock.iAssemblyMember;
+                var withBlock1 = cd.iAssemblyMember;
             }
         }
     }
 
-    public string d0g9f3(Inventor.AssemblyDocument ad)
+    public static  string d0g9f3(AssemblyDocument ad)
     {
-        Inventor.AssemblyDocument cp;
-
         {
-            var withBlock = ad.ComponentDefinition.Occurrences.Item(1);
-            cp = aiDocAssy(withBlock.Definition.Document);
-            if (cp == null)
-                d0g9f3 = "NO-NUM-ASSY";
-            else
-                d0g9f3 = cp.PropertySets(gnDesign).Item(pnPartNum).Value;
+            var withBlock = ad.ComponentDefinition.Occurrences.get_Item(1);
+            var cp = aiDocAssy(withBlock.Definition.Document);
+            return cp == null ? "NO-NUM-ASSY" : cp.PropertySets(gnDesign).get_Item(pnPartNum).Value;
         }
     }
 
-    public void PlaceInAssembly()
+    public static  void PlaceInAssembly()
     {
-        Scripting.Dictionary dc;
-        Inventor.CommandManager cm;
-        Inventor.Document cd;
-        Inventor.Document ad;
-        VbMsgBoxResult rp;
-        string nm;
-
         {
             var withBlock = ThisApplication;
-            if (withBlock.ActiveDocumentType == kPartDocumentObjectOr.ActiveDocumentType == kAssemblyDocumentObjectThen)
+            if (withBlock.ActiveDocumentType == kPartDocumentObjectOr.ActiveDocumentType !=
+                kAssemblyDocumentObjectThen) return;
+            Document cd = withBlock.ActiveDocument;
+            var dc = dcAiAssyDocs(dcAiDocsVisible());
+            dc.Remove(cd.FullDocumentName);
+            Document ad;
             {
-                cd = withBlock.ActiveDocument;
-                dc = dcAiAssyDocs(dcAiDocsVisible());
-                dc.Remove(cd.FullDocumentName);
+                var withBlock1 = nuSelAiDoc().WithList(dc.Keys);
+                VbMsgBoxResult rp;
+                do
                 {
-                    var withBlock1 = nuSelAiDoc().WithList(dc.Keys);
-                    do
+                    var nm = withBlock1.GetReply();
+                    if (dc.Exists(nm))
                     {
-                        nm = withBlock1.GetReply();
-                        if (dc.Exists(nm))
-                        {
-                            ad = dc.Item(nm);
-                            rp = Constants.vbOK;
-                        }
-                        else
-                        {
-                            ad = null/* TODO Change to default(_) if this is not a reference type */;
-                            rp = MsgBox("No Valid Assembly Selected.", Constants.vbRetryCancel, "No Assembly");
-                        }
+                        ad = dc.get_Item(nm);
+                        rp = Constants.vbOK;
                     }
-                    while (rp == Constants.vbRetry)// Try Again?
-   ;
-                }
+                    else
+                    {
+                        ad = null;
+                        rp = MessageBox.Show("No Valid Assembly Selected.", "No Assembly", Constants.vbRetryCancel);
+                    }
+                } while (rp == Constants.vbRetry) // Try Again?
+                    ;
+            }
 
-                if (ad == null)
-                    Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */
-                else
+            if (ad == null)
+                Debug.Print("");
+            else
+            {
+                ad.Activate();
+                var cm = withBlock.CommandManager;
                 {
-                    ad.Activate();
-                    cm = withBlock.CommandManager;
-                    {
-                        var withBlock1 = cm;
-                        withBlock1.PostPrivateEvent(kFileNameEvent, cd.FullDocumentName);
-                        withBlock1.ControlDefinitions.Item("AssemblyPlaceComponentCmd").Execute();
-                    }
+                    cm.PostPrivateEvent(kFileNameEvent, cd.FullDocumentName);
+                    cm.ControlDefinitions.get_Item("AssemblyPlaceComponentCmd").Execute();
                 }
             }
         }

@@ -1,56 +1,55 @@
-﻿class fmIfcTest05A
+﻿using Doyle_Addin.Genius.Forms;
+using Microsoft.VisualBasic;
+
+namespace Doyle_Addin.Genius.Classes;
+
+class fmIfcTest05A : Form
 {
     public fmIfcTest05A Itself()
     {
-        /// returns this fmIfcTest04A class instance "Itself"
-        /// should be HIGHLY useful inside a With context
-        Itself = this;
+        // returns this fmIfcTest04A class instance "Itself"
+        // should be HIGHLY useful inside a With context
+        return this;
     }
 
-    public fmIfcTest05A Using(Scripting.Dictionary Dict = null/* TODO Change to default(_) if this is not a reference type */) // fmTest05
+    public fmIfcTest05A Using(Dictionary Dict = null) // fmTest05
     {
-        Variant ky;
-        long dp;
-
         if (Dict == null)
         {
-            using ( == this.Using(new Scripting.Dictionary()))
+            using ( == Using(new Dictionary()))
             {
                 ;
-    Else
-
-                itemsFlat = null;
                 allGroups = null;
-                dp = dcDepthAiDocGrp(Dict);
+                var dp = dcDepthAiDocGrp(Dict);
 
                 switch (dp)
                 {
                     case 1:
+                    {
+                        using ( == withDcFlat(Dict))
                         {
-                            using ( == withDcFlat(Dict))
+                            ;
+                            Case 2:
+
+                            using ( == withDcGrpd(Dict))
                             {
-                                ;
-        Case 2:
-
-                                using ( == withDcGrpd(Dict))
+                                Else itemsFlat = new Dictionary();
                                 {
-                                    itemsFlat = new Scripting.Dictionary();
-                                    {
-                                        var withBlock = allGroups;
-                                        foreach (var ky in withBlock.Keys)
-                                            itemsFlat = dcKeysCombined(dcOb(withBlock.Item(ky)), itemsFlat, 1);
-                                    }
-                                    ;
-        Case Else:
+                                    var withBlock = allGroups;
+                                    foreach (var ky in withBlock.Keys)
+                                        itemsFlat = dcKeysCombined(dcOb(withBlock.get_Item(ky)), itemsFlat, 1);
+                                }
+                                ;
+                                Case Else:
 
-                                    using ( == this)
-                                    {
-                                    }
+                                using ( == this)
+                                {
                                 }
                             }
-
-                            break;
                         }
+
+                        break;
+                    }
                 }
             }
         }
@@ -58,7 +57,7 @@
 
     public string GroupNow()
     {
-        GroupNow = fm.GroupNow();
+        return fm.GroupNow();
     }
 
     public fmIfcTest05A InGroup(string GrpId)
@@ -66,16 +65,13 @@
         if (fm.InGroup(GrpId).GroupNow() == GrpId)
         {
         }
-        else
-        {
-        }
 
-        InGroup = this;
+        return this;
     }
 
     public string ItemNow()
     {
-        ItemNow = fm.ItemNow();
+        return fm.ItemNow();
     }
 
     public fmIfcTest05A OnItem(string ItemId)
@@ -84,57 +80,50 @@
         {
         }
         else
-            /// couldn't change!
-            System.Diagnostics.Debugger.Break();
+            // couldn't change!
+            Debugger.Break();
 
-        OnItem = this;
+        return this;
     }
 
-    public fmIfcTest05A Show(Variant Modal)
+    public fmIfcTest05A Show(dynamic Modal)
     {
         fm.Show(Modal);
-        Show = this;
+        return this;
     }
 
     public fmIfcTest05A Hide()
     {
         fm.Hide();
-        Hide = this;
+        return this;
     }
 
-    public Scripting.Dictionary SaveAll()
+    public Dictionary SaveAll()
     {
-        // debug.Print aiDocument(itemsFlat.Item(itemsFlat.Keys(0))).Dirty
-        /// NOTE[2022.04.13.1224] (copied from ...)
-        /// want to initiate 'save all' operation here
-        /// or somewhere nearby. note immediate mode
-        /// command in comment above
-        Scripting.Dictionary rtGd;
+        // debug.Print aiDocument(itemsFlat.get_Item(itemsFlat.Keys(0))).Dirty
+        // NOTE[2022.04.13.1224] (copied from ...)
+        // want to initiate 'save all' operation here
+        // or somewhere nearby. note immediate mode
+        // command in comment above
         // Dim rtBd As Scripting.Dictionary
-        Inventor.Document wk;
-        Variant ky;
+
         // Dim mx As Long
         // Dim dx As Long
+        var rtGd = new Dictionary();
 
-        rtGd = new Scripting.Dictionary();
         // rtBd = New Scripting.Dictionary
-
         {
             var withBlock = itemsFlat;
             foreach (var ky in withBlock.Keys)
             {
-                wk = withBlock.Item(ky);
+                Document wk = withBlock.get_Item(ky);
                 {
-                    var withBlock1 = wk;
-                    if (withBlock1.Dirty)
+                    if (wk.Dirty)
                     {
-                        Information.Err.Clear();
-                        withBlock1.Save2();
-                        if (Information.Err.Number == 0)
+                        Information.Err().Clear();
+                        wk.Save2();
+                        if (Information.Err().Number == 0)
                             rtGd.Add(ky, wk);
-                        else
-                        {
-                        }
                     }
                     else
                         rtGd.Add(ky, wk);
@@ -142,24 +131,21 @@
             }
         }
 
-        SaveAll = rtGd;
+        return rtGd;
     }
 
-    private fmIfcTest05A withDcFlat(Scripting.Dictionary Dict) // fmTest05
+    private fmIfcTest05A withDcFlat(Dictionary Dict) // fmTest05
     {
         itemsFlat = dcCopy(Dict);
-        withDcFlat = withDcGrpd(dcAiDocGrpsByForm(itemsFlat));
+        return withDcGrpd(dcAiDocGrpsByForm(itemsFlat));
     }
 
-    private fmIfcTest05A withDcGrpd(Scripting.Dictionary Dict) // fmTest05
+    private fmIfcTest05A withDcGrpd(Dictionary Dict) // fmTest05
     {
-        Variant ky;
-        MSForms.Tabs ls;
-
-        itmPicked = new Scripting.Dictionary();
+        itmPicked = new Dictionary();
         docActive = null;
 
-        ls = tbsItemGrps.Tabs;
+        MSForms.Tabs ls = tbsItemGrps.Tabs;
         ls.Clear();
 
         allGroups = Dict;
@@ -172,21 +158,18 @@
                 if (withBlock.Exists(ky))
                 {
                     {
-                        var withBlock1 = dcOb(withBlock.Item(ky));
-                        // '  check for group members
+                        var withBlock1 = dcOb(withBlock.get_Item(ky));
+                        // ' check for group members
                         if (withBlock1.Count > 0)
                         {
                             itmPicked.Add(ky, withBlock1.Keys(0));
                             ls.Add(ky);
                         }
-                        else
-                        {
-                        }
                     }
                 }
             }
         }
-        withDcGrpd = this;
+        return this;
     }
 
     private string gpActive()
@@ -195,73 +178,74 @@
 
         {
             var withBlock = tbsItemGrps;
-            tb = withBlock.Tabs.Item(withBlock.Value);
+            tb = withBlock.Tabs.get_Item(withBlock.Value);
         }
-        gpActive = tb.Name;
+        return tb.Name;
     }
 
     private void cmdOpenItem_Click()
     {
-        VbMsgBoxResult ck;
-        string pn;
-
         if (docActive == null)
         {
         }
         else
         {
             var withBlock = docActive;
-            pn = withBlock.PropertySets.Item(gnDesign).Item(pnPartNum).Value;
+            string pn = withBlock.PropertySets.get_Item(gnDesign).get_Item(pnPartNum).Value;
 
-            /// REV[2022.05.06.1142]
-            /// added check for Part Document to avoid error
-            /// trying to edit Material for Assembly Documents.
-            if (docActive is Inventor.PartDocument)
-                ck = MsgBox(Join(Array("Would you rather just edit", "material for " + pn + "?", "", "(No to go ahead and open)"), Constants.vbNewLine), Constants.vbYesNoCancel + Constants.vbQuestion, "Edit Material?");
+            // REV[2022.05.06.1142]
+            // added check for Part Document to avoid error
+            // trying to edit Material for Assembly Documents.
+            if (docActive is PartDocument)
+                VbMsgBoxResult ck = MessageBox.Show(Join(new[]
+                    {
+                        "Would you rather just edit", "material for " + pn + "?", "", "(No to go ahead and open)"
+                    },
+                    Constants.vbCrLf), Constants.vbYesNoCancel + Constants.vbQuestion, "Edit Material?");
             else
                 ck = Constants.vbNo;
-
             if (ck == Constants.vbCancel)
-                System.Diagnostics.Debugger.Break();
+                Debugger.Break();
             else if (ck == Constants.vbYes)
-                /// NOTE[2022.05.06.1143]
-                /// this section throws an error
-                /// if the Document is an assembly.
-                /// REV[2022.05.06.1142] above adds
-                /// a check to prevent this branch
-                /// from being taken in that case.
-                Debug.Print(ConvertToJson(askUserForPartMatlUpdate(itemsFlat.Item(pn)), Constants.vbTab));
+                // NOTE[2022.05.06.1143]
+                // this section throws an error
+                // if the Document is an assembly.
+                // REV[2022.05.06.1142] above adds
+                // a check to prevent this branch
+                // from being taken in that case.
+                Debug.Print(ConvertToJson(askUserForPartMatlUpdate(itemsFlat.get_Item(pn)), Constants.vbTab));
             else
             {
                 if (withBlock.Open)
                     ck = Constants.vbYes;
                 else
-                    ck = MsgBox(Join(Array("Document " + pn, "is not presently open.", "Go ahead and open it?"), Constants.vbNewLine), Constants.vbYesNo, "Open " + pn + "?");
-
+                    ck = MessageBox.Show(Join(new[]
+                    {
+                        "Document " + pn, "is not presently open.",
+                        "Go ahead and open it?"
+                    }, Constants.vbCrLf), Constants.vbYesNo, "Open " + pn + "?");
                 if (ck == Constants.vbYes)
                 {
-                    Information.Err.Clear();
+                    Information.Err().Clear();
                     withBlock.Activate();
-
-                    if (Information.Err.Number == 0)
+                    if (Information.Err().Number == 0)
                     {
                     }
                     else
                     {
                         if (ThisApplication.Documents.Open(withBlock.FullDocumentName, true) == docActive)
-                            Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Breakpoint Landing
+                            Debug.Print(""); // Breakpoint Landing
                         else
                         {
-                            System.Diagnostics.Debugger.Break();
-                            Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Breakpoint Landing
+                            Debugger.Break();
+                            Debug.Print(""); // Breakpoint Landing
                         }
 
-                        Information.Err.Clear();
+                        Information.Err().Clear();
                         withBlock.Activate();
-                        if (Information.Err.Number)
-                            System.Diagnostics.Debugger.Break();
-
-                        Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Breakpoint Landing
+                        if (Information.Err().Number)
+                            Debugger.Break();
+                        Debug.Print(""); // Breakpoint Landing
                     }
                 }
             }
@@ -270,101 +254,105 @@
 
     private void fm_GroupIs(string Now)
     {
-        /// 
+        // 
         GroupIs?.Invoke(Now);
     }
 
     private void fm_ItemIs(string Now)
     {
-        /// 
+        // 
         ItemIs?.Invoke(Now);
     }
 
     private void fm_Sent(VbMsgBoxResult Signal)
     {
         // Public Event Sent(Signal As VbMsgBoxResult)
-        /// 
-        VbMsgBoxResult ck;
+        // 
 
-        if (obClient == null)
+        if (obClient != null) return;
+        VbMsgBoxResult ck = Constants.vbRetry;
+
+        switch (Signal)
         {
-            ck = Constants.vbRetry;
-
-            switch (Signal)
+            case dynamic _ when Constants.vbOK:
             {
-                case object _ when Constants.vbOK:
-                    {
-                        // ck = MsgBox(Join(Array('    "Save and Close",'    "Operation Selected"'), vbNewLine),'    vbYesNoCancel,'    "Save Documents?"')
+                // ck = MessageBox.Show(Join(new [] {' "Save and Close",' "Operation Selected"'), vbCrLf),' vbYesNoCancel,' "Save Documents?"')
 
-                        // debug.Print aiDocument(itemsFlat.Item(itemsFlat.Keys(0))).Dirty
-                        /// NOTE[2022.04.13.1224]
-                        /// want to initiate 'save all' operation here
-                        /// or somewhere nearby. note immediate mode
-                        /// command in comment above
-                        {
-                            var withBlock = dcKeysMissing(itemsFlat, SaveAll());
-                            if (withBlock.Count > 0)
-                                ck = MsgBox(Join(Array("Errors encountered trying to", "save the following Documents:", Constants.vbTab + txDumpLs(withBlock.Keys, Constants.vbNewLine + Constants.vbTab), "", "Close anyway?"), Constants.vbNewLine), Constants.vbYesNoCancel, "Errors on Save!");
-                            else
-                                ck = Constants.vbYes;
-                        }
+                // debug.Print aiDocument(itemsFlat.get_Item(itemsFlat.Keys(0))).Dirty
+                // NOTE[2022.04.13.1224]
+                // want to initiate 'save all' operation here
+                // or somewhere nearby. note immediate mode
+                // command in comment above
+                {
+                    var withBlock = dcKeysMissing(itemsFlat, SaveAll());
+                    if (withBlock.Count > 0)
+                        ck = MessageBox.Show(Join(new[]
+                            {
+                                "Errors encountered trying to", "save the following Documents:",
+                                Constants.vbTab + txDumpLs(withBlock.Keys, Constants.vbCrLf + Constants.vbTab),
+                                "", "Close anyway?"
+                            }, Constants.vbCrLf), Constants.vbYesNoCancel,
+                            "Errors on Save!");
+                    else
+                        ck = Constants.vbYes;
+                }
 
-                        break;
-                    }
-
-                case object _ when Constants.vbAbort:
-                case object _ when Constants.vbCancel:
-                    {
-                        ck = MsgBox(Join(Array("Cancel", "Operation", "Selected"), Constants.vbNewLine), Constants.vbYesNoCancel, "Finished?");
-                        break;
-                    }
-
-                default:
-                    {
-                        break;
-                    }
+                break;
             }
 
-            if (ck == Constants.vbCancel)
-                System.Diagnostics.Debugger.Break();
-            else if (ck == Constants.vbYes)
-                Hide();
+            case dynamic _ when Constants.vbAbort:
+            case dynamic _ when Constants.vbCancel:
+            {
+                ck = MessageBox.Show(Join(new[]
+                    {
+                        "Cancel", "Operation", "Selected"
+                    }, Constants.vbCrLf), Constants.vbYesNoCancel,
+                    "Finished?");
+                break;
+            }
+
+            default:
+            {
+                break;
+            }
         }
-        else
-        {
-            System.Diagnostics.Debugger.Break();
-            Sent?.Invoke(Signal);
-        }
+
+        if (ck == Constants.vbCancel)
+            Debugger.Break();
+        else if (ck == Constants.vbYes)
+            Hide();
+    }
+    else
+
+    {
+        Debugger.Break();
+        Sent?.Invoke(Signal);
     }
 
     private void lbxItems_Change()
     {
-        string pn;
-        stdole.StdPicture pc;
-
         // Stop
-        pn = lbxItems.Value;
+        string pn = lbxItems.Value;
         {
             var withBlock = gdcActive;
             if (withBlock.Exists(pn))
             {
-                docActive = aiDocument(withBlock.Item(pn));
+                docActive = aiDocument(withBlock.get_Item(pn));
                 {
                     var withBlock1 = docActive;
                     {
-                        var withBlock2 = withBlock1.PropertySets.Item(gnDesign);
-                        lblPartNum.Caption = withBlock2.Item(pnPartNum).Value;
-                        lblDesc.Caption = withBlock2.Item(pnDesc).Value;
+                        var withBlock2 = withBlock1.PropertySets.get_Item(gnDesign);
+                        lblPartNum.Caption = withBlock2.get_Item(pnPartNum).Value;
+                        lblDesc.Caption = withBlock2.get_Item(pnDesc).Value;
                     }
 
+                    stdole.StdPicture pc = withBlock1.Thumbnail;
 
-                    pc = withBlock1.Thumbnail;
-
-                    if (Information.Err.Number == 0)
+                    if (Information.Err().Number == 0)
                     {
                     }
                     else
-                        pc = null/* TODO Change to default(_) if this is not a reference type */;
+                        pc = null;
 
                     imgOfItem.Picture = pc;
                 }
@@ -377,35 +365,35 @@
             }
         }
 
-        /// REV[2022.03.17.1348]
-        /// add DoEvents for rapid visual feedback
-        /// (see tbsItemGrps_Change for details)
+        // REV[2022.03.17.1348]
+        // add DoEvents for rapid visual feedback
+        // (see tbsItemGrps_Change for details)
         DoEvents();
     }
 
     private void tbsItemGrps_Change()
     {
         MSForms.Tab tb;
-        string nm;
 
-        // With tbsItemGrps
-        // tb = .Tabs.Item(.Value)
-        // End With
-        nm = gpActive(); // tb.Name
+        var nm =
+            // With tbsItemGrps
+            // tb = .Tabs.get_Item(.Value)
+            // End With
+            gpActive(); // tb.Name
 
-        gdcActive = dcOb(allGroups.Item(nm));
+        gdcActive = dcOb(allGroups.get_Item(nm));
         {
             var withBlock = lbxItems;
-            withBlock.List = gdcActive.Keys; // dcOb(allGroups.Item(nm)).Keys
-                                             // If gdcActive.Count > 0 Then
-            withBlock.Value = itmPicked.Item(nm); // gdcActive.Item()
+            withBlock.List = gdcActive.Keys; // dcOb(allGroups.get_Item(nm)).Keys
+            // If gdcActive.Count > 0 Then
+            withBlock.Value = itmPicked.get_Item(nm); // gdcActive.get_Item()
         }
 
-        /// REV[2022.03.17.1348]
-        /// adding DoEvents steps to various
-        /// Change Event handlers to try to
-        /// ensure timely visual feedback
-        /// to the User in-process
+        // REV[2022.03.17.1348]
+        // adding DoEvents steps to various
+        // Change Event handlers to try to
+        // ensure timely visual feedback
+        // to the User in-process
         DoEvents();
     }
 
@@ -429,7 +417,7 @@
         }
 
         // dcActvSet = New Scripting.Dictionary
-        allGroups = new Scripting.Dictionary();
+        allGroups = new Dictionary();
     }
 
     private void Class_Terminate()

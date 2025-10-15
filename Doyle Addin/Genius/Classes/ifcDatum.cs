@@ -1,51 +1,58 @@
-﻿class ifcDatum
+﻿namespace Doyle_Addin.Genius.Classes;
+
+public class ifcDatum
 {
-    private object obNow;
-    private Variant valNow;
-    private Variant valWas;
-    /// 
+    private dynamic obNow;
+    private dynamic valNow;
+    private dynamic valWas;
+    // 
 
-    /// 
+    // 
 
-    public ifcDatum Connect(object This)
+    public ifcDatum Connect(dynamic This)
     {
-        if (This == null)
-            Connect = this;
-        else if (This is ifcDatum)
-            Connect = This;
-        else if (false)
+        switch (This)
         {
+            case null:
+                return this;
+            case ifcDatum:
+                return This;
+            default:
+            {
+                if (false)
+                {
+                }
+
+                return obIfcDatum(This);
+            }
         }
-        else
-            Connect = obIfcDatum(This);
     }
 
-    public ifcDatum MakeValue(Variant This)
+    public ifcDatum MakeValue(dynamic This)
     {
-        MakeValue = this;
+        return this;
     }
 
     public ifcDatum Commit()
     {
-        Commit = this;
+        return this;
     }
 
     public ifcDatum Itself()
     {
-        Itself = this;
+        return this;
     }
 
-    public bool Connected(object ToThis = null)
+    public bool Connected(dynamic ToThis = null)
     {
         if (ToThis == null)
-            Connected = !obNow == null;
-        else
-            Connected = obNow == ToThis;
+            return false;
+        return obNow == ToThis;
     }
 
-    public Variant Value()
+    public dynamic Value()
     {
-        Value = valNow;
+        return valNow;
     }
 
     private void Class_Initialize()

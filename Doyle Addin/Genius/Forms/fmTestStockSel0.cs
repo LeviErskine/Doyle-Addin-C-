@@ -1,17 +1,16 @@
-﻿class SurroundingClass
+﻿namespace Doyle_Addin.Genius.Forms;
+
+class fmTestStockSel0 : Form
 {
-    /* TODO ERROR: Skipped SkippedTokensTrivia */
     private var VB_Name = "fmTestStockSel0";
-    /* TODO ERROR: Skipped SkippedTokensTrivia */
+
     private var VB_GlobalNameSpace = false;
-    /* TODO ERROR: Skipped SkippedTokensTrivia */
+
     private var VB_Creatable = false;
-    /* TODO ERROR: Skipped SkippedTokensTrivia */
+
     private var VB_PredeclaredId = true;
-    /* TODO ERROR: Skipped SkippedTokensTrivia */
+
     private var VB_Exposed = false;
-
-
 
     private ADODB.Connection cn;
     private ADODB.Recordset rsFam;
@@ -26,15 +25,22 @@
         }
     }
 
-    private void UserForm_Initialize()
+    private void InitializeComponent()
     {
         cn = cnGnsDoyle();
         {
             var withBlock = cn;
-            rsFam = withBlock.Execute(Join(Array("select Family, Description1", "from vgMfiFamilies", "where FamilyGroup = 'RAW'"
-   ), " "));
-            rsItm = withBlock.Execute(Join(Array("Select I.Family, I.Item, I.Description1", "From vgMfiItems as I", "Inner Join vgMfiFamilies as F", "On I.Family = F.Family", "Where F.FamilyGroup = 'RAW'"
-    ), " "));
+            rsFam = withBlock.Execute(Join(new[]
+            {
+                "select Family, Description1", "from vgMfiFamilies",
+                "where FamilyGroup = 'RAW'"
+            }, " "));
+            rsItm = withBlock.Execute(Join(new[]
+            {
+                "Select I.Family, I.Item, I.Description1",
+                "From vgMfiItems as I",
+                "Inner Join vgMfiFamilies as F", "On I.Family = F.Family", "Where F.FamilyGroup = 'RAW'"
+            }, " "));
         }
 
         this.lbxFamily.List = m0g3f1(rsFam);

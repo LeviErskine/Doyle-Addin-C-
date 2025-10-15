@@ -1,126 +1,121 @@
-﻿class SurroundingClass
+﻿using Doyle_Addin.Genius.Forms;
+using Microsoft.VisualBasic;
+
+namespace Doyle_Addin.Genius.Classes;
+
+public class dvlObjMakers
 {
     private const string txVersion = "dvlObjMakers REV[2022.03.16.0930]";
 
-    public wkgCls0 nu_wkgCls0(Inventor.Document AiDoc = null/* TODO Change to default(_) if this is not a reference type */)
+    public static wkgCls0 nu_wkgCls0(Document AiDoc = null)
     {
         {
             var withBlock = new wkgCls0();
-            nu_wkgCls0 = withBlock.Using(AiDoc);
+            return withBlock.Using(AiDoc);
         }
     }
 
-    public gnsIfcAiDoc nu_gnsIfcAiDoc()
+    public static gnsIfcAiDoc nu_gnsIfcAiDoc()
     {
-        nu_gnsIfcAiDoc = new gnsIfcAiDoc();
+        return new gnsIfcAiDoc();
     }
 
-    public iLogicIfc nuILogicIfc(Inventor.Document Using = null/* TODO Change to default(_) if this is not a reference type */)
+    public static iLogicIfc nuILogicIfc(Document Using = null)
     {
         {
             var withBlock = new iLogicIfc() // ifcVault
-      ;
+                ;
             if (RuleSource == RuleSourceEnum.Using)
             {
                 if (Using == null)
                 {
-                    nuILogicIfc = WithRulesIn(Using);
+                    return WithRulesIn(Using);
                 }
-                else
-                {
-                    nuILogicIfc = Itself;
-                }
+
+                return Itself;
             }
-            else if (Using == null)
+
+            if (Using == null)
             {
-                nuILogicIfc = Itself;
+                return Itself;
             }
-            else
-            {
-                nuILogicIfc = WithRulesIn(Using);
-            }
+
+            return WithRulesIn(Using);
         }
     }
 
-    public fmIfcTest04A nu_fmIfcTest04A(Scripting.Dictionary About = null/* TODO Change to default(_) if this is not a reference type */)
+    public static fmIfcTest04A nu_fmIfcTest04A(Dictionary About = null)
     {
         {
             var withBlock = new fmIfcTest04A();
-            nu_fmIfcTest04A = withBlock.Using(About);
+            return withBlock.Using(About);
         }
     }
 
-    public fmIfcMatlQty01 nu_fmIfcMatlQty01()
+    public static fmIfcMatlQty01 nu_fmIfcMatlQty01()
     {
-        nu_fmIfcMatlQty01 = new fmIfcMatlQty01();
+        return new fmIfcMatlQty01();
     }
 
-    public fmGetList nu_FmGetList()
+    public static fmGetList nu_FmGetList()
     {
-        nu_FmGetList = new fmGetList();
+        return new fmGetList();
     }
 
-    public fmTest0 newFmTest0()
+    public static fmTest0 newFmTest0()
     {
-        newFmTest0 = new fmTest0();
+        return new fmTest0();
     }
     // Debug.Print newFmTest0().ft0g0f0(aiDocument(ThisApplication.ActiveDocument).Thumbnail)
 
-    public fmTest1 newFmTest1()
+    public static fmTest1 newFmTest1()
     {
-        newFmTest1 = new fmTest1();
+        return new fmTest1();
     }
 
-    public fmTest2 newFmTest2()
+    public static fmTest2 newFmTest2()
     {
-        newFmTest2 = new fmTest2();
+        return new fmTest2();
     }
 
-    public aiBoxData nuAiBoxData()
+    public static aiBoxData nuAiBoxData()
     {
-        // '  Using "blank" version at this point
-        nuAiBoxData = nuAiBoxDataRC0();
+        // ' Using "blank" version at this point
+        return nuAiBoxDataRC0();
     }
     // Debug.Print nuAiBoxData().UsingInches().Sorted(aiDocPart(aiDocActive()).ComponentDefinition.RangeBox).Dump(0)
 
-    /// TESTING SECTION
+    // TESTING SECTION
 
-    /// 
+    // 
 
-    public void tstFmTest1()
+    public static void tstFmTest1()
     {
-        Variant ky;
-        string nm;
+        dynamic ky;
 
-        // nm = "C:\Doyle_Vault\Designs\doyle\(29) Field Loader Conveyor\29-047.ipt"
-        nm = @"C:\Doyle_Vault\Designs\doyle\(29) Field Loader Conveyor\29-072.ipt";
+        const string nm = @"C:\Doyle_Vault\Designs\doyle\(29) Field Loader Conveyor\29-072.ipt";
+
         // nm = "C:\Doyle_Vault\Designs\doyle\(29) Field Loader Conveyor\29-050.ipt"
         // nm = "C:\Doyle_Vault\Designs\doyle\(29) Field Loader Conveyor\29-051.ipt"
-
         {
             var withBlock = newFmTest1();
-            if (withBlock.AskAbout(ThisApplication.Documents.ItemByName(nm)) == Constants.vbYes)
+            if (withBlock.AskAbout(ThisApplication.Documents.ItemByName(nm)) != Constants.vbYes) return;
             {
-                {
-                    var withBlock1 = withBlock.ItemData;
-                    foreach (var ky in withBlock1.Keys)
-                        Debug.Print(ky, withBlock1.Item(ky));
-                    System.Diagnostics.Debugger.Break();
-                }
-            }
-            else
-            {
+                var withBlock1 = withBlock.ItemData;
+                foreach (var ky in withBlock1.Keys)
+                    Debug.Print(ky, withBlock1.get_Item(ky));
+                Debugger.Break();
             }
         }
     }
 
-    /// VERSION / VARIANT SECTION
+    // VERSION / dynamic SECTION
 
-    /// 
+    // 
 
-    public aiBoxData nuAiBoxDataRC1(Variant arg1, long UseInches = -1)
+    public static aiBoxData nuAiBoxDataRC1(dynamic arg1, long UseInches = -1)
     {
-        object ob;
+        dynamic ob;
         aiBoxData rt;
 
         if (UseInches < 0)
@@ -131,12 +126,6 @@
             else if (IsObject(arg1))
             {
             }
-            else
-            {
-            }
-        }
-        else
-        {
         }
 
         {
@@ -144,19 +133,19 @@
             rt = withBlock.UsingInches(UseInches);
         }
 
-        nuAiBoxDataRC1 = rt;
+        return rt;
     }
 
-    public aiBoxData nuAiBoxDataRC0()
+    public static aiBoxData nuAiBoxDataRC0()
     {
-        nuAiBoxDataRC0 = new aiBoxData();
+        return new aiBoxData();
     }
 
-    /// END of MODULE dvlObjMakers
+    // END of MODULE dvlObjMakers
 
-    /// 
-    public string dvlObjMakers()
+    // 
+    public static string dvlObjMakers()
     {
-        dvlObjMakers = txVersion;
+        return txVersion;
     }
 }

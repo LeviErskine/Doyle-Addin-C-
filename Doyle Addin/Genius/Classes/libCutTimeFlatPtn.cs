@@ -1,48 +1,55 @@
-﻿class libCutTimeFlatPtn
+﻿// MessageBox
+
+// Autodesk Inventor API types
+
+namespace Doyle_Addin.Genius.Classes;
+
+public class libCutTimeFlatPtn
 {
-    public void showPerimeterInches()
+    // Local fallback conversion (cm per inch) if not provided elsewhere
+    private const double cvLenIn2cm = 2.54;
+
+    public static  void showPerimeterInches()
     {
-        double rt;
-
-        rt = fpPerimeter(ThisApplication.ActiveDocument);
-        if (rt > 0)
-            // MsgBox "Total length of all loops on face: " & rt & " cm"
-            MsgBox("Total length of all loops on face: " + rt / cvLenIn2cm + " in");
-        else if (rt < 0)
-            MsgBox("No Valid Flat Pattern Found");
-        else
-            MsgBox("Flat Pattern Has No Measurable Perimeter");
-    }
-
-    public double fpPerimeterInch(Inventor.Document oDoc, double ld = 0)
-    {
-        double rt;
-
-        rt = fpPerimeter(oDoc); // , ld / cvLenIn2cm)
-        if (rt > 0)
-            fpPerimeterInch = rt / cvLenIn2cm;
-        else
-            fpPerimeterInch = rt;
-    }
-
-    public double fpPerimeter(Inventor.Document oDoc, double ld = 0)
-    {
-        Inventor.Face oFace;
-        Inventor.Edge oEdge;
-        double rt;
-        double ct;
-
-        ct = 0;
-        if (oDoc is Inventor.PartDocument)
+        var rt = fpPerimeter(ThisApplication.ActiveDocument);
+        switch (rt)
         {
-            oFace = smPartFlatPatternTopFace(oDoc);
+            // MessageBox.Show "Total length of all loops on face: " & rt & " cm"
+            case > 0:
+                MessageBox.Show(@"Total length of all loops on face: " + rt / cvLenIn2cm + @" in");
+                break;
+            case < 0:
+                MessageBox.Show(@"No Valid Flat Pattern Found");
+                break;
+            default:
+                MessageBox.Show(@"Flat Pattern Has No Measurable Perimeter");
+                break;
+        }
+    }
+
+    public static  double fpPerimeterInch(Document oDoc, double ld = 0)
+    {
+        var rt = fpPerimeter(oDoc); // , ld / cvLenIn2cm)
+        if (rt > 0)
+            return rt / cvLenIn2cm;
+        return rt;
+    }
+
+    public  static double fpPerimeter(Document oDoc, double ld = 0)
+    {
+        double rt;
+
+        double ct = 0;
+        if (oDoc is PartDocument pd)
+        {
+            var oFace = smPartFlatPatternTopFace(pd);
             if (oFace == null)
                 // ' Simple 'error' indicator
                 rt = -1;
             else
             {
                 rt = 0;
-                foreach (var oEdge in oFace.Edges)
+                foreach (Edge oEdge in oFace.Edges)
                 {
                     rt = rt + edgeLength(oEdge);
                     ct = 1 + ct;
@@ -51,77 +58,53 @@
         }
         else
             rt = -1;
-        fpPerimeter = rt; // + ct * ld
+        return rt; // + ct * ld
     }
 
-    public double edgeLength(Inventor.Edge ed)
+    public static  double edgeLength(Edge ed)
     {
-        double mn;
-        double mx;
         double lg;
 
         {
             var withBlock = ed.Evaluator;
-            withBlock.GetParamExtents(mn, mx);
-            withBlock.GetLengthAtParam(mn, mx, lg);
+            withBlock.GetParamExtents(out var mn, out var mx);
+            withBlock.GetLengthAtParam(mn, mx, out lg);
         }
-        edgeLength = lg;
+        return lg;
     }
 
-    public Inventor.Face smPartFlatPatternTopFace(PartDocument oDoc)
+    public static  Face smPartFlatPatternTopFace(PartDocument oDoc)
     {
-        if (oDoc == null)
-            smPartFlatPatternTopFace = null/* TODO Change to default(_) if this is not a reference type */;
-        else
-            smPartFlatPatternTopFace = fpTopFaceIfShtMetal(oDoc.ComponentDefinition);
+        return oDoc == null ? null : fpTopFaceIfShtMetal((ComponentDefinition)oDoc.ComponentDefinition);
     }
 
-    public Inventor.Face fpTopFaceIfShtMetal(Inventor.ComponentDefinition oDef)
+    public static  Face fpTopFaceIfShtMetal(ComponentDefinition oDef)
     {
-        if (oDef is Inventor.SheetMetalComponentDefinition)
-            fpTopFaceIfShtMetal = smcdFlatPtnTopFace(oDef);
-        else
-            fpTopFaceIfShtMetal = null/* TODO Change to default(_) if this is not a reference type */;
+        return oDef is SheetMetalComponentDefinition smcd ? smcdFlatPtnTopFace(smcd) : null;
     }
 
-    public Inventor.Face smcdFlatPtnTopFace(Inventor.SheetMetalComponentDefinition oDef)
+    public  static Face smcdFlatPtnTopFace(SheetMetalComponentDefinition oDef)
     {
-        smcdFlatPtnTopFace = fpTopFace(oDef.FlatPattern);
+        return fpTopFace(oDef.FlatPattern);
     }
 
-    public Inventor.Face fpTopFace(Inventor.FlatPattern fp)
+    public  static Face fpTopFace(FlatPattern fp)
     {
-        Inventor.UnitVector oZAxis;
-        Inventor.Face oFace;
-        Inventor.Face rt;
+        Face rt = null;
 
-        oZAxis = ThisApplication.TransientGeometry.CreateUnitVector(0, 0, 1);
+        var oZAxis = ThisApplication.TransientGeometry.CreateUnitVector();
 
-        foreach (var oFace in fp.Body.Faces)
+        foreach (var oFace in fp.Body.Faces.Cast<Face>()
+                     .TakeWhile(_ => rt == null)
+                     .Where(oFace => oFace.SurfaceType == SurfaceTypeEnum.kPlaneSurface)
+                     .Select(oFace => new { oFace, plane = (Plane)oFace.Geometry })
+                     .Where(@t => @t.plane.Normal.IsParallelTo(oZAxis))
+                     .Where(@t => @t.plane.RootPoint.Z <= 0.0000001)
+                     .Select(@t => @t.oFace))
         {
-            // Only looking until we find a match
-            if (rt == null)
-            {
-                {
-                    var withBlock = oFace;
-                    // Only interested in planar faces
-                    if (withBlock.SurfaceType == kPlaneSurface)
-                    {
-                        {
-                            var withBlock1 = aiPlane(withBlock.Geometry);
-                            // Only interested in faces that have z-direction normal
-                            if (withBlock1.Normal.IsParallelTo(oZAxis))
-                            {
-                                // Look for the face with Z = 0
-                                if (withBlock1.RootPoint.Z <= 0.0000001)
-                                    rt = oFace;
-                            }
-                        }
-                    }
-                }
-            }
+            rt = oFace;
         }
 
-        fpTopFace = rt;
+        return rt;
     }
 }

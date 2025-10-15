@@ -1,161 +1,147 @@
-﻿class kyPickAiDocPurchased : kyPick
+﻿namespace Doyle_Addin.Genius.Classes;
+
+class kyPickAiDocPurchased : kyPick
 {
     private kyPick pk;
-    /// 
+    // 
 
-    /// kyPick Implementation code follows
+    // kyPick Implementation code follows
 
-    /// 
+    // 
 
     private kyPick kyPick_Itself()
     {
-        kyPick_Itself = this.Itself();
+        return Itself();
     }
 
-
-    private kyPick kyPick_WithInDc(Scripting.IDictionary Dict)
+    private kyPick kyPick_WithInDc(IDictionary Dict)
     {
-        kyPick_WithInDc = WithInDc(Dict);
+        return WithInDc(Dict);
     }
 
-    private kyPick kyPick_WithOutDc(Scripting.IDictionary Dict)
+    private kyPick kyPick_WithOutDc(IDictionary Dict)
     {
-        kyPick_WithOutDc = WithOutDc(Dict);
+        return WithOutDc(Dict);
     }
 
-
-    private kyPick kyPick_AfterScanning(Scripting.IDictionary dSrc)
+    private kyPick kyPick_AfterScanning(IDictionary dSrc)
     {
-        Variant ky;
-
         {
-            var withBlock = dSrc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dSrc.Keys)
             {
                 {
-                    var withBlock1 = dcFor(withBlock.Item(ky));
+                    var withBlock1 = dcFor(dSrc.get_Item(ky));
                     if (withBlock1.Exists(ky))
-                        System.Diagnostics.Debugger.Break();
+                        Debugger.Break();
                     else
-                        withBlock1.Add(ky, dSrc.Item(ky));
+                        withBlock1.Add(ky, dSrc.get_Item(ky));
                 }
             }
         }
 
-        kyPick_AfterScanning = this;
+        return this;
     }
 
-
-    private Scripting.IDictionary kyPick_DcIn()
+    private IDictionary kyPick_DcIn()
     {
-        kyPick_DcIn = dcIn();
+        return dcIn();
     }
 
-    private Scripting.IDictionary kyPick_DcOut()
+    private IDictionary kyPick_DcOut()
     {
-        kyPick_DcOut = dcOut();
+        return dcOut();
     }
 
-
-    private Scripting.IDictionary kyPick_DcFor(Variant Item)
+    private IDictionary kyPick_DcFor(dynamic Item)
     {
-        kyPick_DcFor = dcFor(Item);
+        return dcFor(Item);
     }
-    /// 
+    // 
 
-    /// General Class handling code follows
+    // General Class handling code follows
 
-    /// 
+    // 
 
     private void Class_Initialize()
     {
         pk = new kyPick();
     }
-    /// 
+    // 
 
-    /// kyPickAiDocPurchased Class
+    // kyPickAiDocPurchased Class
 
-    /// implementation code follows
+    // implementation code follows
 
-    /// 
+    // 
 
     public kyPick Itself()
     {
-        Itself = this;
+        return this;
     }
 
-
-    public kyPick WithInDc(Scripting.Dictionary Dict)
+    public kyPick WithInDc(Dictionary Dict)
     {
         pk = pk.WithInDc(Dict);
-        WithInDc = this;
+        return this;
     }
 
-    public kyPick WithOutDc(Scripting.Dictionary Dict)
+    public kyPick WithOutDc(Dictionary Dict)
     {
         pk = pk.WithOutDc(Dict);
-        WithOutDc = this;
+        return this;
     }
 
-
-    public kyPick AfterScanning(Scripting.Dictionary dSrc)
+    public kyPick AfterScanning(Dictionary dSrc)
     {
-        AfterScanning = kyPick_AfterScanning(dSrc);
+        return kyPick_AfterScanning(dSrc);
     }
 
-
-    public Scripting.Dictionary dcIn()
+    public Dictionary dcIn()
     {
-        dcIn = pk.dcIn;
+        return pk.dcIn;
     }
 
-    public Scripting.Dictionary dcOut()
+    public Dictionary dcOut()
     {
-        dcOut = pk.dcOut;
+        return pk.dcOut;
     }
 
-
-    public Scripting.IDictionary dcFor(Variant Item)
+    public IDictionary dcFor(dynamic Item)
     {
-        Inventor.BOMStructureEnum ck;
-        Inventor.Document ob;
-        Inventor.Property pr;
-        /// REV[2022.03.08.1021]
-        /// Added BOMStructureEnum variable ck
-        /// to collect BOMStructureEnum for each
-        /// relevant Document type, and consolidate
-        /// BOMStructureEnum check to one block
-        /// following Doc type accommodation.
+        BOMStructureEnum ck;
 
-        ob = aiDocument(obOf(Item));
+        // REV[2022.03.08.1021]
+        // Added BOMStructureEnum variable ck
+        // to collect BOMStructureEnum for each
+        // relevant Document type, and consolidate
+        // BOMStructureEnum check to one block
+        // following Doc type accommodation.
+        Document ob = aiDocument(obOf(Item));
 
         if (ob == null)
             ck = kDefaultBOMStructure;
-        else if (ob.DocumentType == kPartDocumentObject)
-            ck = aiDocPart(ob).ComponentDefinition.BOMStructure;
-        else if (ob.DocumentType == kAssemblyDocumentObject)
-            ck = aiDocAssy(ob).ComponentDefinition.BOMStructure;
         else
-            ck = kDefaultBOMStructure;
+            ck = ob.DocumentType switch
+            {
+                kPartDocumentObject => aiDocPart(ob).ComponentDefinition.BOMStructure,
+                kAssemblyDocumentObject => aiDocAssy(ob).ComponentDefinition.BOMStructure,
+                _ => kDefaultBOMStructure
+            };
 
         if (ck == kPurchasedBOMStructure)
-            dcFor = pk.dcFor(ob);
-        else
-        /// REV[2022.03.08.1038]
-        /// Additional checks on Item
-        /// Family and File Location
-        /// NOTE that this is more of
-        /// a "soft" identification
-        /// of likely purchased parts,
-        /// and might or might not be
-        /// appropriate to apply.
-        {
-            var withBlock = ob;
-            pr = withBlock.PropertySets.Item(gnDesign).Item(pnFamily);
-            if (InStr(1, ob.FullFileName, @"\Doyle_Vault\Designs\purchased\") + InStr(1, "|D-HDWR|D-PTO|D-PTS|R-PTO|R-PTS|", "|" + pr.Value + "|") > 0)
-                dcFor = pk.dcFor(ob);
-            else
-                dcFor = pk.dcFor(0);
-        }
+            return pk.dcFor(ob);
+        // REV[2022.03.08.1038]
+        // Additional checks on Item
+        // Family and File Location
+        // NOTE that this is more of
+        // a "soft" identification
+        // of likely purchased parts,
+        // and might or might not be
+        // appropriate to apply.
+        var pr = ob.PropertySets.get_Item(gnDesign).get_Item(pnFamily);
+        return InStr(1, ob.FullFileName, @"\Doyle_Vault\Designs\purchased\") +
+            InStr(1, "|D-HDWR|D-PTO|D-PTS|R-PTO|R-PTS|", "|" + pr.Value + "|") > 0
+                ? pk.dcFor(ob)
+                : pk.dcFor(0);
     }
 }

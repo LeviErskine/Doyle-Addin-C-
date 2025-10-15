@@ -1,70 +1,57 @@
-﻿class AssyComponentsCollector
+﻿using Microsoft.VisualBasic;
+
+namespace Doyle_Addin.Genius.Classes;
+
+internal class AssyComponentsCollector
 {
-    /// Purpose of this module is to provide an alternate
+    // Purpose of this module is to provide an alternate
+    // method of collecting assembly components
+    // using the native VBA Collection instead of
+    // the Scripting Runtime's Dictionary.
+    // Though less powerful/convenient, it does avoid
+    // the need for a reference to the Scripting Runtime.
+    // 
 
-    /// method of collecting assembly components
-
-    /// using the native VBA Collection instead of
-
-    /// the Scripting Runtime's Dictionary.
-
-    /// Though less powerful/convenient, it does avoid
-
-    /// the need for a reference to the Scripting Runtime.
-
-    /// 
-
-    public Collection CollectItem(Variant Item, Variant Key = , Collection coll = null)
+    private static Collection CollectItem(dynamic Item, string Key, Collection coll = null)
     {
-        Collection rt;
-
-        if (coll == null)
-            rt = new Collection();
-        else
-            rt = coll;
-
+        var rt = coll ?? new Collection();
 
         {
             var withBlock = Information.Err;
             rt.Add(Item, Key);
-            if (withBlock.Number)
+            if (!withBlock.Number) return rt;
+            if (withBlock.Number == 457)
             {
-                if (withBlock.Number == 457)
+                if (Item != null)
                 {
-                    if (IsObject(Item))
+                    if (rt.get_Item(Key) is dynamic)
                     {
-                        if (IsObject(rt.Item(Key)))
+                        if (Item == rt.get_item(Key))
                         {
-                            if (Item == rt.Item(Key))
-                            {
-                            }
-                            else
-                                System.Diagnostics.Debugger.Break();// Different Objects!
                         }
                         else
-                            System.Diagnostics.Debugger.Break();// Object vs non-Object
-                    }
-                    else if (IsObject(rt.Item(Key)))
-                        System.Diagnostics.Debugger.Break(); // Object vs non-Object
-                    else if (Item == rt.Item(Key))
-                    {
+                            Debugger.Break(); // Different Objects!
                     }
                     else
-                        System.Diagnostics.Debugger.Break();// Different Values!
+                        Debugger.Break(); // dynamic vs non-dynamic
+                }
+                else if (rt.get_Item(Key) is dynamic)
+                    Debugger.Break(); // dynamic vs non-dynamic
+                else if ((dynamic)null == rt.get_Item(Key))
+                {
                 }
                 else
-                    System.Diagnostics.Debugger.Break();
+                    Debugger.Break(); // Different Values!
             }
+            else
+                Debugger.Break();
         }
 
-
-        CollectItem = rt;
+        return rt;
     }
 
-    public Collection CollectComponents(Inventor.Document AiDoc, Collection coll = null)
+    private static Collection CollectComponents(Document AiDoc, Collection coll = null)
     {
-        Inventor.DocumentTypeEnum aiDType;
-        Inventor.ComponentOccurrence aiOcc;
         Collection rt;
 
         if (coll == null)
@@ -72,43 +59,54 @@
         else
         {
             rt = coll;
-            aiDType = AiDoc.DocumentType;
-            if (aiDType == kAssemblyDocumentObject)
+            var aiDType = AiDoc.DocumentType;
+            switch (aiDType)
             {
+                case kAssemblyDocumentObject:
                 {
-                    var withBlock = aiDocAssy(AiDoc).ComponentDefinition;
-                    foreach (var aiOcc in withBlock.Occurrences)
                     {
-                        if (aiOcc.Definition.Document == AiDoc)
+                        var withBlock = aiDocAssy(AiDoc).ComponentDefinition;
+                        foreach (ComponentOccurrence aiOcc in withBlock.Occurrences)
                         {
+                            if (aiOcc.Definition.Document == AiDoc)
+                            {
+                            }
+                            else
+                                rt = CollectComponents(aiOcc.Definition.Document, rt);
                         }
-                        else
-                            rt = CollectComponents(aiOcc.Definition.Document, rt);
                     }
+                    break;
                 }
+                case kPartDocumentObject:
+                    rt = CollectItem(AiDoc, AiDoc.FullFileName, rt);
+                    break;
+                case kUnknownDocumentObject:
+                case kDrawingDocumentObject:
+                case kPresentationDocumentObject:
+                case kDesignElementDocumentObject:
+                case kForeignModelDocumentObject:
+                case kSATFileDocumentObject:
+                case kNoDocument:
+                case kNestingDocument:
+                default:
+                    Debugger.Break(); // cuz we don't know what to do with this one.
+                    break;
             }
-            else if (aiDType == kPartDocumentObject)
-                rt = CollectItem(AiDoc, AiDoc.FullFileName, rt);
-            else
-                System.Diagnostics.Debugger.Break();// cuz we dunno what to do with this one.
         }
 
-        CollectComponents = rt;
+        return rt;
     }
 
-    public Collection ActiveDocsComponents(Inventor.Application aiApp)
+    private static Collection ActiveDocsComponents(Application aiApp)
     {
-        ActiveDocsComponents = CollectComponents(aiApp.ActiveDocument);
+        return CollectComponents(aiApp.ActiveDocument);
     }
 
-    public string strActiveDocsComponents(Inventor.Application aiApp)
+    public string strActiveDocsComponents(Application aiApp)
     {
-        Inventor.Document AiDoc;
-        string rt;
+        Document AiDoc;
 
-        rt = "";
-        foreach (var AiDoc in ActiveDocsComponents(aiApp))
-            rt = rt + Constants.vbNewLine + AiDoc.FullFileName;
-        strActiveDocsComponents = rt;
+        return ActiveDocsComponents(aiApp).Cast<dynamic>()
+            .Aggregate("", (current, AiDoc) => current + Constants.vbCrLf + AiDoc.FullFileName);
     }
 }

@@ -1,36 +1,125 @@
-﻿class libClipboardAPI
+﻿using System;
+using System.Runtime.InteropServices;
+
+namespace Doyle_Addin.Genius.Classes;
+
+public static class libClipboardAPI
 {
-    public const var GHND = 0x42;
-    public const var MAXSIZE = 4096;
-    public const long GMEM_MOVEABLE = 0x2;
-    public const long GMEM_ZEROINIT = 0x40;
+    // Global memory flags
+    /// <summary>
+    /// 
+    /// </summary>
+    public const uint GMEM_MOVEABLE = 0x0002;
+    /// <summary>
+    /// 
+    /// </summary>
+    public const uint GMEM_ZEROINIT = 0x0040;
+    public const uint GHND = GMEM_MOVEABLE | GMEM_ZEROINIT;
 
-    public const var CF_TEXT = 1;
-    public const long CF_UNICODETEXT = 13;
+    /// <summary>
+    /// 
+    /// </summary>
+    public const int MAXSIZE = 4096;
 
-    /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped ElseDirectiveTrivia *//* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped ElseDirectiveTrivia */
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    public static extern long OpenClipboard(long hwnd);
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    public static extern long CloseClipboard();
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    public static extern long IsClipboardFormatAvailable(long wFormat);
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    public static extern long GetClipboardData(long wFormat);
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    public static extern long SetClipboardData(long wFormat, long hMem);
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    public static extern long EmptyClipboard();
+    
+    /// <summary>
+    /// Clipboard formats
+    /// </summary>
+    public const uint CF_TEXT = 1;
+    /// <summary>
+    /// 
+    /// </summary>
+    public const uint CF_UNICODETEXT = 13;
 
-    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
-    public static extern long GlobalAlloc(long wFlags, long dwBytes);
-    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
-    public static extern long GlobalLock(long hMem);
-    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
-    public static extern long GlobalUnlock(long hMem);
-    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
-    public static extern long GlobalSize(long hMem);
+    // user32.dll
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="hWndNewOwner"></param>
+    /// <returns></returns>
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool OpenClipboard(IntPtr hWndNewOwner);
 
-    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
-    public static extern long lstrcpy(Any lpString1, Any lpString2);
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool CloseClipboard();
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="format"></param>
+    /// <returns></returns>
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool IsClipboardFormatAvailable(uint format);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="uFormat"></param>
+    /// <returns></returns>
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern IntPtr GetClipboardData(uint uFormat);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="uFormat"></param>
+    /// <param name="hMem"></param>
+    /// <returns></returns>
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern IntPtr SetClipboardData(uint uFormat, IntPtr hMem);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool EmptyClipboard();
+
+    // kernel32.dll
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="uFlags"></param>
+    /// <param name="dwBytes"></param>
+    /// <returns></returns>
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="hMem"></param>
+    /// <returns></returns>
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr GlobalLock(IntPtr hMem);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="hMem"></param>
+    /// <returns></returns>
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool GlobalUnlock(IntPtr hMem);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="hMem"></param>
+    /// <returns></returns>
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern UIntPtr GlobalSize(IntPtr hMem);
+
+    // String copy (Unicode)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="lpString1"></param>
+    /// <param name="lpString2"></param>
+    /// <returns></returns>
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "lstrcpyW")]
+    public static extern IntPtr lstrcpy(IntPtr lpString1, string lpString2);
 }

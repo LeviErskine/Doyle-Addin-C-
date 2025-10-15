@@ -1,43 +1,41 @@
-﻿class dcPopulator
-{
-    private Scripting.Dictionary dc;
+﻿using System.Collections;
 
-    private Scripting.Dictionary checkDC(Scripting.Dictionary dcIn = null/* TODO Change to default(_) if this is not a reference type */, long Opts = 0)
+namespace Doyle_Addin.Genius.Classes;
+
+class dcPopulator
+{
+    private Dictionary dc;
+
+    private Dictionary checkDC(Dictionary dcIn = null, long Opts = 0)
     {
-        // '
-        // '
         if (dcIn == null)
         {
-            if (dc == null)
-                dc = new Scripting.Dictionary();
+            dc ??= new Dictionary();
         }
         else if (dc == null)
             dc = dcIn;
         else
         {
-            System.Diagnostics.Debugger.Break();
-            if (Opts & 1)
+            Debugger.Break();
+            if ((Opts & 1) != 0)
             {
             }
         }
 
-        checkDC = dc;
+        return dc;
     }
 
-    public dcPopulator Using(Scripting.Dictionary Dict, long Opts = 0)
+    public dcPopulator Using(Dictionary Dict, long Opts = 0)
     {
         // '
         // '
         {
-            var withBlock = checkDC(Dict, Opts);
+            checkDC(Dict, Opts);
         }
-
-        using ( == this)
-        {
-        }
+        return this;
     }
 
-    public dcPopulator Setting(Variant Key, Variant Item)
+    public dcPopulator Setting(dynamic Key, dynamic Item)
     {
         {
             var withBlock = checkDC();
@@ -46,102 +44,82 @@
             withBlock.Add(Key, Item);
         }
 
-        ting = this;
+        return this;
     }
 
     public long Count()
     {
-        Count = checkDC().Count;
+        return checkDC().Count;
     }
 
-    public Scripting.Dictionary Dictionary(Scripting.Dictionary Dict = null/* TODO Change to default(_) if this is not a reference type */)
+    public Dictionary Dictionary(Dictionary Dict = null)
     {
-        Dictionary = checkDC(Dict);
+        return checkDC(Dict);
     }
 
-    public Scripting.Dictionary Matching(Variant KeySet)
+    public Dictionary Matching(dynamic KeySet)
     {
-        Scripting.Dictionary rt;
-        Variant ky;
+        Dictionary rt;
 
-        if (IsArray(KeySet))
+        if (KeySet is Array)
         {
-            rt = new Scripting.Dictionary();
+            rt = new Dictionary();
 
             {
                 var withBlock = checkDC();
-                foreach (var ky in KeySet)
+                foreach (var ky in (IEnumerable)KeySet)
                 {
-                    if (withBlock.Exists(ky))
+                    if (!withBlock.Exists(ky)) continue;
+                    if (rt.Exists(ky))
                     {
-                        if (rt.Exists(ky))
-                        {
-                        }
-                        else
-                            rt.Add(ky, withBlock.Item(ky));
                     }
+                    else
+                        rt.Add(ky, withBlock.get_Item(ky));
                 }
             }
         }
         else
-            rt = Matching(Array(KeySet));
+            rt = Matching(new[] { KeySet });
 
-        Matching = rt;
+        return rt;
     }
 
-    public bool Exists(Variant Key)
+    public bool Exists(dynamic Key)
     {
         {
             var withBlock = Dictionary();
-            Exists = withBlock.Exists(Key);
+            return withBlock.Exists(Key);
         }
     }
 
-    public Variant Item(Variant Key)
+    public dynamic Item(dynamic Key)
     {
-        Variant rt;
-
         {
             var withBlock = Dictionary();
-            if (withBlock.Exists(Key))
-            {
-                rt = Array(withBlock.Item(Key));
-                if (IsObject(rt(0)))
-                    Item = rt(0);
-                else
-                    Item = rt(0);
-            }
-            else
-                Item = Empty;
+            if (!withBlock.Exists(Key)) return null;
+            dynamic rt = new[] { withBlock.get_Item(Key) };
+            if (IsObject(rt(0)))
+                return rt(0);
+            return rt(0);
         }
     }
 
-    /// OPTIONAL section for Inventor.NameValueMap
-
-    /// the following functions will ONLY compile
-
-    /// within the Autodesk Inventor VBA environment,
-
-    /// or other environment which supports the same
-
-    /// NameValueMap classes and structures.
-
-    /// 
-
-    /// It should be disabled or deleted for use
-
-    /// outside of any such environment.
-
-    /// 
-    public dcPopulator UsingNameValMap(Inventor.NameValueMap NVMap, long Opts = 0)
+    // OPTIONAL section for Inventor.NameValueMap
+    // the following functions will ONLY compile
+    // within the Autodesk Inventor VBA environment,
+    // or other environment which supports the same
+    // NameValueMap classes and structures.
+    // 
+    // It should be disabled or deleted for use
+    // outside any such environment.
+    // 
+    public dcPopulator UsingNameValMap(NameValueMap NVMap, long Opts = 0)
     {
-        // '
-        // '
-        UsingNameValMap = ;
+        return Using(dcFromAiNameValMap(NVMap), Opts);
     }
 
-    public Inventor.NameValueMap NameValMap(Inventor.NameValueMap NVMap = null/* TODO Change to default(_) if this is not a reference type */)
+    public NameValueMap NameValMap(NameValueMap NVMap = null)
     {
-        NameValMap = dc2aiNameValMap(Dictionary(), NVMap);
+        return dc2aiNameValMap(Dictionary(), NVMap);
     }
 }

@@ -1,19 +1,23 @@
-﻿class ifcAiProperty : ifcDatum
+﻿using Microsoft.VisualBasic;
+
+namespace Doyle_Addin.Genius.Classes;
+
+class ifcAiProperty : ifcDatum
 {
-
     // Private ps As Inventor.PropertySet
-    private Inventor.Property pr;
-    // Private nm As String
-    private Variant vlWas;
-    private Variant vlNow;
+    private Property pr;
 
-    public ifcDatum Connect(Inventor.Property ToProp)
+    // Private nm As String
+    private dynamic vlWas;
+    private dynamic vlNow;
+
+    public ifcDatum Connect(Property ToProp)
     {
         pr = ToProp;
         if (ToProp == null)
             // ps = Nothing
             // nm = ""
-            vlWas = Empty;
+            vlWas = null;
         else
         {
             var withBlock = pr;
@@ -21,13 +25,14 @@
             // nm = .Name
             vlWas = withBlock.Value;
         }
+
         vlNow = vlWas;
 
-        Connect = this;
+        return this;
     }
-    /// replaces disabled function below
+    // replaces disabled function below
     // 
-    // Public Function AttachedTo(Name As String,'    Optional InPropSet As Inventor.PropertySet = Nothing') As ifcAiProperty
+    // Public Function AttachedTo(Name As String,' Optional InPropSet As Inventor.PropertySet = Nothing') As ifcAiProperty
     // '''
     // '''
     // '''
@@ -39,12 +44,12 @@
     // 
     // If Not ps Is Nothing Then
     // 
-    // pr = ps.Item(nm)
-    // If Err.Number = 0 Then
+    // pr = ps.get_Item(nm)
+    // If Err().Number = 0 Then
     // vlWas = pr.Value
     // Else
     // pr = Nothing
-    // vlWas = Empty
+    // vlWas = null
     // End If
     // 
     // End If
@@ -52,19 +57,19 @@
     // AttachedTo = Me
     // End Function
 
-    public ifcDatum MakeValue(Variant This)
+    public ifcDatum MakeValue(dynamic This)
     {
-        if (IsObject(This))
+        if (This is not null)
         {
         }
         else
-            vlNow = This;
+            vlNow = null;
 
-        MakeValue = this;
+        return this;
     }
-    /// replaces disabled function below
+    // replaces disabled function below
     // 
-    // Public Function WithValue('    NewVal As Variant') As ifcAiProperty
+    // Public Function WithValue(' NewVal As dynamic') As ifcAiProperty
     // Me.Value = NewVal
     // 
     // WithValue = Me
@@ -73,10 +78,10 @@
     public ifcAiProperty Commit()
     {
         // Dim ps As Inventor.PropertySet
-        // Dim ck As Variant
+        // Dim ck As dynamic
 
-        if (IsEmpty(vlWas))
-            System.Diagnostics.Debugger.Break();
+        if (vlWas is null)
+            Debugger.Break();
         else if (pr == null)
         {
         }
@@ -87,70 +92,63 @@
             if (vlNow == vlWas)
             {
             }
-            else if (System.Convert.ToHexString(vlNow) == System.Convert.ToHexString(vlWas))
+            else if (Convert.ToHexString(vlNow) == Convert.ToHexString(vlWas))
             {
             }
             else
             {
                 pr.Value = vlNow; // vlWas
-                if (Information.Err.Number == 0)
+                if (Information.Err().Number == 0)
                 {
                 }
                 else
-                    System.Diagnostics.Debugger.Break();// and see what we can do
+                    Debugger.Break(); // and see what we can do
             }
         }
 
-        Commit = this;
+        return this;
     }
 
     private ifcDatum Itself()
     {
-        Itself = this;
+        return this;
     }
-    /// replaces disabled function below
+    // replaces disabled function below
     // 
     // Public Function Obj() As ifcAiProperty
     // Obj = Me
     // End Function
 
-    private bool Connected(Inventor.Property ToThis = null/* TODO Change to default(_) if this is not a reference type */)
+    private bool Connected(Property ToThis = null)
     {
         if (ToThis == null)
-            Connected = !pr == null;
-        else
-            Connected = pr == ToThis;
+            return !pr == null;
+        return pr == ToThis;
     }
 
-    private Variant Value()
+    private dynamic Value()
     {
-        if (IsObject(vlNow))
-            /// this should NOT ever happen
-            /// but just to be robust...
-            Value = vlNow;
-        else
-            Value = vlNow;
+        // this should NOT ever happen
+        // but just to be robust...
+        return vlNow ?? vlNow;
     }
 
     public long Status()
     {
-        Status = -1;
+        return -1;
     }
 
-    public Variant Name()
+    public dynamic Name()
     {
-        if (pr == null)
-            Name = pr.Name;
-        else
-            Name = "";
+        return pr == null ? pr.Name : "";
     }
 
-    // Public Property Value() As Variant
+    // Public Property Value() As dynamic
     // Get
     // Value = vlWas
     // End Property
     // 
-    // Public Property  Value(NewVal As Variant)
+    // Public Property Value(NewVal As dynamic)
     // If IsEmpty(NewVal) Then
     // Stop
     // 'ElseIf IsNull(NewVal) Then
@@ -165,7 +163,7 @@
     private void Class_Initialize()
     {
         // nm = ""
-        vlWas = Empty;
+        vlWas = null;
         // ps = Nothing
         pr = null;
     }
@@ -178,49 +176,44 @@
         if (pr == null)
             // to create Property, if desired
             // (and possible)
-            System.Diagnostics.Debugger.Break();
+            Debugger.Break();
         else if (vlWas == pr.Value)
         {
         }
-        else if (System.Convert.ToHexString(vlWas) == System.Convert.ToHexString(pr.Value))
+        else if (Convert.ToHexString(vlWas) == Convert.ToHexString(pr.Value))
         {
         }
         else
             // and MIGHT need to be committed
-            System.Diagnostics.Debugger.Break();
+            Debugger.Break();
     }
 
     private ifcDatum ifcDatum_Commit()
     {
     }
 
-    private ifcDatum ifcDatum_Connect(object ToThis)
+    private ifcDatum ifcDatum_Connect(dynamic ToThis)
     {
-        ifcDatum_Connect = Connect(obAiProp(ToThis));
+        return Connect(obAiProp(ToThis));
     }
 
-    private bool ifcDatum_Connected(object ToThis = null)
+    private bool ifcDatum_Connected(dynamic ToThis = null)
     {
-        ifcDatum_Connected = Connected(obAiProp(ToThis));
+        return Connected(obAiProp(ToThis));
     }
 
     private ifcDatum ifcDatum_Itself()
     {
-        ifcDatum_Itself = this;
+        return this;
     }
 
-    private ifcDatum ifcDatum_MakeValue(Variant This)
+    private ifcDatum ifcDatum_MakeValue(dynamic This)
     {
-        ifcDatum_MakeValue = MakeValue(This);
+        return MakeValue(This);
     }
 
-    private Variant ifcDatum_Value()
+    private dynamic ifcDatum_Value()
     {
-        if (IsObject(vlNow))
-            /// this should NOT ever happen
-            /// but just to be robust...
-            ifcDatum_Value = vlNow;
-        else
-            ifcDatum_Value = vlNow;
+        return vlNow ?? vlNow;
     }
 }

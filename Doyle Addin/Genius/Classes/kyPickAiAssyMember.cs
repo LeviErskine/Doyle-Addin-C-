@@ -1,4 +1,6 @@
-﻿class kyPickAiAssyMember : kyPick
+﻿namespace Doyle_Addin.Genius.Classes;
+
+class kyPickAiAssyMember : kyPick
 {
     private kyPick pk;
 
@@ -7,101 +9,93 @@
         pk = new kyPick();
     }
 
-    public Scripting.IDictionary dcFor(Variant Item)
+    private new IDictionary dcFor(dynamic Item)
     {
-        Inventor.AssemblyDocument ob;
-
-        ob = aiDocAssy(obOf(Item));
+        AssemblyDocument ob = aiDocAssy(obOf(Item));
         if (ob == null)
-            dcFor = pk.dcFor(0);
-        else if (ob.ComponentDefinition.IsiAssemblyMember)
-            dcFor = pk.dcFor(ob);
-        else
-            dcFor = pk.dcFor(0);
+            return pk.dcFor(0);
+        return ob.ComponentDefinition.IsiAssemblyMember ? pk.dcFor(ob) : pk.dcFor(0);
     }
 
-    public kyPick WithInDc(Scripting.Dictionary Dict)
+    public new kyPick WithInDc(Dictionary Dict)
     {
         pk = pk.WithInDc(Dict);
-        WithInDc = this;
+        return this;
     }
 
-    public kyPick WithOutDc(Scripting.Dictionary Dict)
+    private new kyPick WithOutDc(Dictionary Dict)
     {
         pk = pk.WithOutDc(Dict);
-        WithOutDc = this;
+        return this;
     }
 
-    public Scripting.Dictionary dcIn()
+    private new IDictionary dcIn()
     {
-        dcIn = pk.dcIn;
+        return pk.dcIn;
     }
 
-    public Scripting.Dictionary dcOut()
+    private new IDictionary dcOut()
     {
-        dcOut = pk.dcOut;
+        return pk.dcOut;
     }
 
-    public kyPick AfterScanning(Scripting.Dictionary dSrc)
+    public new kyPick AfterScanning(Dictionary dSrc)
     {
-        AfterScanning = kyPick_AfterScanning(dSrc);
+        return kyPick_AfterScanning(dSrc);
     }
 
-    private kyPick kyPick_AfterScanning(Scripting.IDictionary dSrc)
+    private kyPick kyPick_AfterScanning(IDictionary dSrc)
     {
-        Variant ky;
-
         {
-            var withBlock = dSrc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dSrc.Keys)
             {
                 {
-                    var withBlock1 = dcFor(withBlock.Item(ky));
+                    var withBlock1 = dcFor(dSrc.get_Item(ky));
                     if (withBlock1.Exists(ky))
-                        System.Diagnostics.Debugger.Break();
+                        Debugger.Break();
                     else
-                        withBlock1.Add(ky, dSrc.Item(ky));
+                        withBlock1.Add(ky, dSrc.get_Item(ky));
                 }
             }
         }
-        kyPick_AfterScanning = this;
+        return this;
     }
 
-    /// kyPick Implementation code follows
+    // kyPick Implementation code follows
 
-    /// 
-    private Scripting.IDictionary kyPick_DcFor(Variant Item)
+    // 
+    private IDictionary kyPick_DcFor(dynamic Item)
     {
-        kyPick_DcFor = dcFor(Item);
+        return dcFor(Item);
     }
 
-    private Scripting.IDictionary kyPick_DcIn()
+    private IDictionary kyPick_DcIn()
     {
-        kyPick_DcIn = dcIn();
+        return dcIn();
     }
 
-    private Scripting.IDictionary kyPick_DcOut()
+    private IDictionary kyPick_DcOut()
     {
-        kyPick_DcOut = dcOut();
+        return dcOut();
     }
 
-    public kyPick Itself()
+    private new kyPick Itself()
     {
-        Itself = this;
+        return this;
     }
 
     private kyPick kyPick_Itself()
     {
-        kyPick_Itself = this.Itself();
+        return Itself();
     }
 
-    private kyPick kyPick_WithInDc(Scripting.IDictionary Dict)
+    private kyPick kyPick_WithInDc(Dictionary Dict)
     {
-        kyPick_WithInDc = WithInDc(Dict);
+        return WithInDc(Dict);
     }
 
-    private kyPick kyPick_WithOutDc(Scripting.IDictionary Dict)
+    private kyPick kyPick_WithOutDc(Dictionary Dict)
     {
-        kyPick_WithOutDc = WithOutDc(Dict);
+        return WithOutDc(Dict);
     }
 }

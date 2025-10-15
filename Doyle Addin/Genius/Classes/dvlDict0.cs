@@ -1,419 +1,375 @@
-﻿class dvlDict0
+﻿using Microsoft.VisualBasic;
+using static Doyle_Addin.Genius.Classes.lib0;
+
+namespace Doyle_Addin.Genius.Classes;
+
+ public class dvlDict0
 {
-    public string aiDocPartNum(Inventor.Document AiDoc, string ifNone = "")
+    public static string aiDocPartNum(Document AiDoc, string ifNone = "")
     {
-        if (AiDoc == null)
-            aiDocPartNum = ifNone;
-        else
-            aiDocPartNum = AiDoc.PropertySets.Item(gnDesign).Item(pnPartNum).Value;
+        return AiDoc == null ? ifNone : AiDoc.PropertySets.get_Item(gnDesign).get_Item(pnPartNum).Value;
     }
 
-    public Scripting.Dictionary dc0g1f0(Inventor.Document AiDoc, string prName = "", Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */)
+    public static Dictionary dc0g1f0(Document AiDoc, string prName = "", Dictionary dc = null)
     {
-        Scripting.Dictionary rt;
-        string pn;
-        string ky;
-
-        if (dc == null)
-            dc0g1f0 = dc0g1f0(AiDoc, prName, new Scripting.Dictionary());
-        else
+        while (true)
         {
-            rt = dc;
+            if (dc == null)
+            {
+                dc = new Dictionary();
+                continue;
+            }
+
+            var rt = dc;
 
             {
-                var withBlock = AiDoc;
-                pn = withBlock.PropertySets.Item(gnDesign).Item(pnPartNum).Value;
-                ky = prName + Constants.vbTab + pn;
+                string pn = AiDoc.PropertySets.get_Item(gnDesign).get_Item(pnPartNum).Value;
+                var ky = prName + Constants.vbTab + pn;
                 {
-                    var withBlock1 = rt;
-                    if (withBlock1.Exists(ky))
+                    if (rt.Exists(ky))
                     {
-                        if (withBlock1.Item(ky) == AiDoc)
-                        {
-                        }
-                        else
+                        if (rt.get_Item(ky) == AiDoc)
                         {
                         }
                     }
                     else
-                        withBlock1.Add(ky, AiDoc);
+                        rt.Add(ky, AiDoc);
                 }
 
-                if (withBlock.DocumentType == kAssemblyDocumentObject)
+                if (AiDoc.DocumentType == kAssemblyDocumentObject)
                     rt = dc0g1f1(AiDoc, rt);
-                else if (withBlock.DocumentType != kPartDocumentObject)
-                    System.Diagnostics.Debugger.Break();
-                else
-                {
-                }
+                else if (AiDoc.DocumentType != kPartDocumentObject) Debugger.Break();
             }
 
-            dc0g1f0 = rt;
+            return rt;
         }
     }
 
-    public Scripting.Dictionary dc0g1f1(Inventor.AssemblyDocument AiDoc, Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */)
+    public static Dictionary dc0g1f1(AssemblyDocument AiDoc, Dictionary dc = null)
     {
-        Scripting.Dictionary rt;
-        Inventor.ComponentOccurrence aiOcc;
-        string pn;
-
-        if (dc == null)
-            dc0g1f1 = dc0g1f1(AiDoc, new Scripting.Dictionary());
-        else
+        while (true)
         {
-            rt = dc;
-
+            if (dc == null)
             {
-                var withBlock = AiDoc;
-                pn = withBlock.PropertySets.Item(gnDesign).Item(pnPartNum).Value;
-                {
-                    var withBlock1 = withBlock.ComponentDefinition;
-                    foreach (var aiOcc in withBlock1.Occurrences)
-                        rt = dc0g1f0(aiOcc.Definition.Document, pn, rt);
-                }
+                dc = new Dictionary();
             }
-
-            dc0g1f1 = rt;
-        }
-    }
-
-    public Scripting.Dictionary dc0g2f0(Inventor.Document AiDoc = null/* TODO Change to default(_) if this is not a reference type */)
-    {
-        Scripting.Dictionary wk;
-        Scripting.Dictionary rt;
-        Variant ky;
-
-        if (AiDoc == null)
-            dc0g2f0 = dc0g2f0(ThisApplication.ActiveDocument);
-        else
-        {
-            wk = dcAiDocsByPtNum(dcAiDocComponents(AiDoc)); // dcAiDocPartNumbers
-            rt = new Scripting.Dictionary();
+            else
             {
-                var withBlock = wk;
-                foreach (var ky in withBlock.Keys)
-                    rt = dc0g2f2(aiDocument(obOf(withBlock.Item(ky))), rt);
+                {
+                    string pn = AiDoc.PropertySets.get_Item(gnDesign).get_Item(pnPartNum).Value;
+                    {
+                        var withBlock1 = AiDoc.ComponentDefinition;
+                    }
+                }
+
+                return Enumerable.Cast<ComponentOccurrence>(withBlock1.Occurrences).Aggregate(dc,
+                    (current, aiOcc) => dc0g1f0(aiOcc.Definition.Document, pn, current));
             }
-            dc0g2f0 = rt;
         }
     }
 
-    public Scripting.Dictionary dc0g2f1(Inventor.AssemblyDocument AiDoc, Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */)
+    public static Dictionary dc0g2f0(Document AiDoc = null)
     {
-        // Dim rt As Scripting.Dictionary
-        Inventor.ComponentOccurrence aiOcc;
-        string prName;
-        string ptName;
-        string ky;
-        long ct;
-
-        if (dc == null)
-            dc0g2f1 = dc0g2f1(AiDoc, new Scripting.Dictionary());
-        else
+        while (true)
         {
-            prName = aiDocPartNum(AiDoc);
+            if (AiDoc == null)
+            {
+                AiDoc = ThisApplication.ActiveDocument;
+                continue;
+            }
+
+            var wk = dcAiDocsByPtNum(dcAiDocComponents(AiDoc));
+            var rt = new Dictionary();
+            {
+                foreach (var ky in wk.Keys) rt = dc0g2f2(aiDocument(obOf(wk.get_Item(ky))), rt);
+            }
+            return rt;
+        }
+    }
+
+    public static Dictionary dc0g2f1(AssemblyDocument AiDoc, Dictionary dc = null)
+    {
+        while (true)
+        {
+            // Dim rt As Scripting.Dictionary
+
+            if (dc == null)
+            {
+                dc = new Dictionary();
+                continue;
+            }
+
+            var prName = aiDocPartNum(AiDoc);
             {
                 var withBlock = AiDoc.ComponentDefinition;
-                foreach (var aiOcc in withBlock.Occurrences)
+                foreach (ComponentOccurrence aiOcc in withBlock.Occurrences)
                 {
-                    ptName = aiDocPartNum(aiOcc.Definition.Document);
-                    ky = prName + Constants.vbTab + ptName;
+                    var ptName = aiDocPartNum(aiOcc.Definition.Document);
+                    var ky = prName + Constants.vbTab + ptName;
 
                     {
-                        var withBlock1 = dc;
-                        if (withBlock1.Exists(ky))
+                        if (dc.Exists(ky))
                         {
-                            ct = withBlock1.Item(ky);
-                            withBlock1.Item(ky) = 1 + ct;
+                            long ct = dc.get_Item(ky);
+                            dc.get_Item(ky) = 1 + ct;
                         }
                         else
-                            withBlock1.Add(ky, 1);
+                            dc.Add(ky, 1);
                     }
                 }
             }
-            dc0g2f1 = dc;
+            return dc;
         }
     }
 
-    public Scripting.Dictionary dc0g2f2(Inventor.Document AiDoc, Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */)
+    public static Dictionary dc0g2f2(Document AiDoc, Dictionary dc = null)
     {
-        if (AiDoc.DocumentType == kAssemblyDocumentObject)
-            dc0g2f2 = dc0g2f1(AiDoc, dc);
-        else
-            dc0g2f2 = dc;
+        return AiDoc.DocumentType == kAssemblyDocumentObject ? dc0g2f1(AiDoc, dc) : dc;
     }
 
-    public Scripting.Dictionary dc0g3f0(Scripting.Dictionary dc)
+    public static Dictionary dc0g3f0(Dictionary dc)
     {
-        /// (just so we don't forget what this is for)
-        /// This function accepts a Dictionary
-        /// of Inventor Documents, and generates
-        /// a new Dictionary of Dictionaries,
-        /// keyed on Genius Family names, and
-        /// containing all Documents in its Family,
-        /// themselves keyed on Part Number.
-        /// 
-        /// Function dc0g3f1 makes use of this below.
-        /// 
-        Scripting.Dictionary rt;
-        Scripting.Dictionary fm;
-        Variant ky;
-        Inventor.Document ad;
-        string nm;
-        string pn;
+        // (just so we don't forget what this is for)
+        // This function accepts a Dictionary
+        // of Inventor Documents, and generates
+        // a new Dictionary of Dictionaries,
+        // keyed on Genius Family names, and
+        // containing all Documents in its Family,
+        // themselves keyed on Part Number.
+        // 
+        // Function dc0g3f1 makes use of this below.
+        // 
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dc.Keys)
             {
-                ad = aiDocument(obOf(withBlock.Item(ky)));
+                Document ad = aiDocument(obOf(dc.get_Item(ky)));
                 if (ad == null)
                 {
                 }
                 else
                 {
+                    string nm;
+                    string pn;
                     {
-                        var withBlock1 = ad.PropertySets.Item(gnDesign);
-                        nm = withBlock1.Item(pnFamily).Value;
-                        pn = withBlock1.Item(pnPartNum).Value;
+                        var withBlock1 = ad.PropertySets.get_Item(gnDesign);
+                        nm = withBlock1.get_Item(pnFamily).Value;
+                        pn = withBlock1.get_Item(pnPartNum).Value;
                     }
 
+                    Dictionary fm;
                     {
-                        var withBlock1 = rt;
-                        if (withBlock1.Exists(nm))
-                            fm = withBlock1.Item(nm);
+                        if (rt.Exists(nm))
+                            fm = rt.get_Item(nm);
                         else
                         {
-                            fm = new Scripting.Dictionary();
-                            withBlock1.Add(nm, fm);
+                            fm = new Dictionary();
+                            rt.Add(nm, fm);
                         }
                     }
 
                     {
-                        var withBlock1 = fm;
-                        if (withBlock1.Exists(pn))
-                            System.Diagnostics.Debugger.Break();
+                        if (fm.Exists(pn))
+                            Debugger.Break();
                         else
-                            withBlock1.Add(pn, ad);
+                            fm.Add(pn, ad);
                     }
                 }
             }
         }
 
-        dc0g3f0 = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dc0g3f1()
+    public static Dictionary dc0g3f1()
     {
-        /// This function calls dc0g3f0 above
-        /// against a Dictionary of Inventor Documents
-        /// generated from the components of the active
-        /// Inventor Document. It then dumps a list of
-        /// the Genius Family names encountered, and if
-        /// any were blank, the list of part numbers
-        /// in the blank Family group is also revealed.
-        /// 
+        // This function calls dc0g3f0 above
+        // against a Dictionary of Inventor Documents
+        // generated from the components of the active
+        // Inventor Document. It then dumps a list of
+        // the Genius Family names encountered, and if
+        // any were blank, the list of part numbers
+        // in the blank Family group is also revealed.
+        // 
         {
             var withBlock = dc0g3f0(dcAssyDocComponents(aiDocAssy(aiDocActive())));
             Debug.Print(txDumpLs(withBlock.Keys));
-            System.Diagnostics.Debugger.Break();
+            Debugger.Break();
             if (withBlock.Exists(""))
             {
                 Debug.Print("NO FAMILY");
                 {
-                    var withBlock1 = dcOb(withBlock.Item(""));
+                    var withBlock1 = dcOb(withBlock.get_Item(""));
                     Debug.Print(txDumpLs(withBlock1.Keys));
                 }
-                System.Diagnostics.Debugger.Break();
+                Debugger.Break();
             }
             else
-                System.Diagnostics.Debugger.Break();
+                Debugger.Break();
         }
     }
 
-    public Scripting.Dictionary dc0g4f0(Inventor.AssemblyDocument AiDoc)
+    public static Dictionary dc0g4f0(AssemblyDocument AiDoc)
     {
-        Scripting.Dictionary rt;
-        Variant ky;
-        Variant ki;
-
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
             var withBlock = dcAssyComponentsImmediate(AiDoc);
             foreach (var ky in withBlock.Keys)
             {
                 {
-                    var withBlock1 = dcAssyComponentsImmediate(aiDocAssy(withBlock.Item(ky)));
+                    var withBlock1 = dcAssyComponentsImmediate(aiDocAssy(withBlock.get_Item(ky)));
                     foreach (var ki in withBlock1.Keys)
                     {
                         if (!rt.Exists(ki))
-                            rt.Add(ki, withBlock1.Item(ki));
+                            rt.Add(ki, withBlock1.get_Item(ki));
                     }
                 }
             }
         }
-        dc0g4f0 = rt;
+        return rt;
     }
     // Debug.Print txDumpLs(dcAssyComponentsImmediate(ThisApplication.ActiveDocument).Keys)
     // Debug.Print txDumpLs(dc0g4f0(ThisApplication.ActiveDocument).Keys)
     // Debug.Print txDumpLs(dcAiDocPartNumbers(dc0g4f0(ThisApplication.ActiveDocument)).Keys)
 
-    public Scripting.Dictionary dc0g4f1(Inventor.AssemblyDocument adIn, Inventor.AssemblyDocument adOut)
+    public static Dictionary dc0g4f1(AssemblyDocument adIn, AssemblyDocument adOut)
     {
-        Variant ky;
-        Inventor.ComponentOccurrences tg;
-        Inventor.ComponentOccurrence oc;
-        Inventor.Matrix ps;
+        var ps = ThisApplication.TransientGeometry.CreateMatrix();
 
-        ps = ThisApplication.TransientGeometry.CreateMatrix();
-
-        tg = adOut.ComponentDefinition.Occurrences;
+        var tg = adOut.ComponentDefinition.Occurrences;
         {
             var withBlock = dc0g4f0(adIn);
             foreach (var ky in withBlock.Keys)
-                oc = tg.Add(ky, ps);
+            {
+                var oc = tg.Add(ky, ps);
+            }
         }
     }
 
-    public Scripting.Dictionary dcBoxDims(Inventor.Box bx)
+    public static Dictionary dcBoxDims(Box bx)
     {
-        Scripting.Dictionary rt;
         Inventor.Point mx;
         Inventor.Point mn;
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
 
         {
-            var withBlock = bx;
-            mx = withBlock.MaxPoint;
-            mn = withBlock.MinPoint;
+            mx = bx.MaxPoint;
+            mn = bx.MinPoint;
         }
 
         {
-            var withBlock = rt;
-            withBlock.Add("X", (mx.X - mn.X)); withBlock.Add("Y", (mx.Y - mn.Y)); withBlock.Add("Z", (mx.Z - mn.Z));
+            rt.Add("X", (mx.X - mn.X));
+            rt.Add("Y", (mx.Y - mn.Y));
+            rt.Add("Z", (mx.Z - mn.Z));
         }
 
-        dcBoxDims = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcBoxDimsCm2in(Inventor.Box bx)
+    public static Dictionary dcBoxDimsCm2in(Box bx)
     {
-        Scripting.Dictionary rt;
-        Variant ky;
-
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
 
         {
             var withBlock = dcBoxDims(bx);
             foreach (var ky in withBlock.Keys)
-                rt.Add(ky, System.Convert.ToDouble(withBlock.Item(ky)) / cvLenIn2cm);
+                rt.Add(ky, Convert.ToDouble(withBlock.get_Item(ky)) / cvLenIn2cm);
         }
 
-        dcBoxDimsCm2in = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcAiPropsInSet(Inventor.PropertySet ps)
+    public static Dictionary dcAiPropsInSet(PropertySet ps)
     {
-        Scripting.Dictionary rt;
-        Inventor.Property pr;
-
-        rt = new Scripting.Dictionary();
-        foreach (var pr in ps)
+        var rt = new Dictionary();
+        foreach (Property pr in ps)
         {
             if (rt.Exists(pr.Name))
-                System.Diagnostics.Debugger.Break();
+                Debugger.Break();
             else
                 rt.Add(pr.Name, pr);
         }
-        dcAiPropsInSet = rt;
+
+        return rt;
     }
-    // Debug.Print Join(Filter(dcAiPropsInSet(ThisApplication.ActiveDocument.PropertySets(gnDesign)).Keys, "web", , vbTextCompare), vbNewLine)
+    // Debug.Print Join(Filter(dcAiPropsInSet(ThisApplication.ActiveDocument.PropertySets(gnDesign)).Keys, "web", , vbTextCompare), vbCrLf)
 
-    public Scripting.Dictionary dcAiDocParVals(Inventor.Document AiDoc)
+    public static Dictionary dcAiDocParVals(Document AiDoc)
     {
-        dcAiDocParVals = dcAiParValues(dcAiDocParams(AiDoc));
+        return dcAiParValues(dcAiDocParams(AiDoc));
     }
 
-    public Scripting.Dictionary dcAiParValues(Scripting.Dictionary dc)
+    public static Dictionary dcAiParValues(Dictionary dc)
     {
-        Scripting.Dictionary rt;
-        Variant ky;
-        Inventor.Parameter pr;
-
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
 
         if (dc == null)
         {
         }
         else
         {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dc.Keys)
             {
-                pr = obAiParam(obOf(withBlock.Item(ky)));
+                Parameter pr = obAiParam(obOf(dc.get_Item(ky)));
                 if (pr == null)
                 {
                 }
                 else
-                    rt.Add(ky, Array(pr.Value, pr.Units));
+                    rt.Add(ky, new[] { pr.Value, pr.Units });
             }
         }
 
-        dcAiParValues = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcAiDocParams(Inventor.Document AiDoc)
+    public static Dictionary dcAiDocParams(Document AiDoc)
     {
-        dcAiDocParams = dcCompDefParams(compDefOf(AiDoc));
+        return dcCompDefParams(compDefOf(AiDoc));
     }
-    // Debug.Print Join(Filter(dcAiDocParams(ThisApplication.ActiveDocument.PropertySets(gnDesign)).Keys, "web", , vbTextCompare), vbNewLine)
+    // Debug.Print Join(Filter(dcAiDocParams(ThisApplication.ActiveDocument.PropertySets(gnDesign)).Keys, "web", , vbTextCompare), vbCrLf)
 
-    public Scripting.Dictionary dcCompDefParams(Inventor.ComponentDefinition CpDef, Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */)
+    public static Dictionary dcCompDefParams(ComponentDefinition CpDef, Dictionary dc = null)
     {
-        if (CpDef == null)
-            dcCompDefParams = new Scripting.Dictionary();
-        else if (CpDef is Inventor.AssemblyComponentDefinition)
-            dcCompDefParams = dcCompDefParamsAssy(CpDef);
-        else if (CpDef is Inventor.PartComponentDefinition)
-            dcCompDefParams = dcCompDefParamsPart(CpDef);
-        else
-            dcCompDefParams = dcCompDefParams(null/* TODO Change to default(_) if this is not a reference type */);
-    }
-
-    public Scripting.Dictionary dcCompDefParamsPart(Inventor.PartComponentDefinition CpDef, Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */)
-    {
-        Inventor.Parameters pr;
-
-        if (CpDef == null)
-            pr = null/* TODO Change to default(_) if this is not a reference type */;
-        else
-            pr = CpDef.Parameters;
-
-        dcCompDefParamsPart = dcOfAiParameters(pr, dc);
+        while (true)
+        {
+            switch (CpDef)
+            {
+                case null:
+                    return new Dictionary();
+                case AssemblyComponentDefinition:
+                    return dcCompDefParamsAssy(CpDef);
+                case PartComponentDefinition:
+                    return dcCompDefParamsPart(CpDef);
+                default:
+                    CpDef = null;
+                    dc = null;
+                    break;
+            }
+        }
     }
 
-    public Scripting.Dictionary dcCompDefParamsAssy(Inventor.AssemblyComponentDefinition CpDef, Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */)
+    public static Dictionary dcCompDefParamsPart(PartComponentDefinition CpDef, Dictionary dc = null)
     {
-        Inventor.Parameters pr;
+        var pr = CpDef?.Parameters;
 
-        if (CpDef == null)
-            pr = null/* TODO Change to default(_) if this is not a reference type */;
-        else
-            pr = CpDef.Parameters;
-
-        dcCompDefParamsAssy = dcOfAiParameters(pr, dc);
+        return dcOfAiParameters(pr, dc);
     }
 
-    public Scripting.Dictionary dcOfAiParameters(Inventor.Parameters AiPars, Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */)
+    public  static Dictionary dcCompDefParamsAssy(AssemblyComponentDefinition CpDef, Dictionary dc = null)
     {
-        Scripting.Dictionary rt;
-        Inventor.Parameter pr;
+        var pr = CpDef?.Parameters;
+
+        return dcOfAiParameters(pr, dc);
+    }
+
+    public static Dictionary dcOfAiParameters(Parameters AiPars, Dictionary dc = null)
+    {
+        Dictionary rt;
 
         if (dc == null)
-            rt = dcOfAiParameters(AiPars, new Scripting.Dictionary());
+            rt = dcOfAiParameters(AiPars, new Dictionary());
         else
         {
             rt = dc;
@@ -422,182 +378,168 @@
             {
             }
             else
-                foreach (var pr in AiPars)
+                foreach (Parameter pr in AiPars)
                     rt.Add(pr.Name, pr);
         }
 
-        dcOfAiParameters = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcOfPropsInAiDoc(Inventor.Document AiDoc)
+    public static Dictionary dcOfPropsInAiDoc(Document AiDoc)
     {
-        Scripting.Dictionary rt;
-        Scripting.Dictionary wk;
-        Inventor.PropertySet ps;
-        Variant ky;
-
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
 
         if (AiDoc == null)
         {
         }
         else
         {
-            var withBlock = AiDoc;
-            foreach (var ps in withBlock.PropertySets)
+            foreach (var wk in from PropertySet ps in AiDoc.PropertySets select dcAiPropsInSet(ps))
             {
-                wk = dcAiPropsInSet(ps);
-
                 {
                     var withBlock1 = dcKeysMissing(wk, rt);
                     foreach (var ky in withBlock1.Keys)
                     {
-                        rt.Add(ky, withBlock1.Item(ky));
+                        rt.Add(ky, withBlock1.get_Item(ky));
                         wk.Remove(ky);
                     }
                 }
 
                 {
-                    var withBlock1 = wk // dcKeysInCommon(wk, rt)
-       ;
-                    if (withBlock1.Count > 0)
-                    {
-                        Debug.Print("=== DUPLICATE PROPERTY NAMES ===");
-                        Debug.Print("  Item " + aiProperty(rt.Item(pnPartNum)).Value + " (" + AiDoc.FullDocumentName + ")");
-                        Debug.Print(dumpLsKeyVal(dcPropVals(wk), ": "));
-                        Debug.Print("--- previously found");
-                        Debug.Print(dumpLsKeyVal(dcPropVals(dcKeysInCommon(wk, rt, 2)), ": "));
-                        Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Breakpoint Landing
-                    }
+                    if (wk.Count <= 0) continue;
+                    Debug.Print("=== DUPLICATE PROPERTY NAMES ===");
+                    Debug.Print(" Item " + aiProperty(rt.get_Item(pnPartNum)).Value + " (" + AiDoc.FullDocumentName +
+                                ")");
+                    Debug.Print(dumpLsKeyVal(dcPropVals(wk), ": "));
+                    Debug.Print("--- previously found");
+                    Debug.Print(dumpLsKeyVal(dcPropVals(dcKeysInCommon(wk, rt, 2)), ": "));
+                    Debug.Print(""); // Breakpoint Landing
                 }
             }
         }
 
-        dcOfPropsInAiDoc = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcAiPropValsFromDc(Scripting.Dictionary dc, long Flags = 0)
+    public static Dictionary dcAiPropValsFromDc(Dictionary dc, bool Flags = false)
     {
-        Scripting.Dictionary rt;
-        Inventor.Property pr;
-        Variant ky;
-
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
             var withBlock = dcNewIfNone(dc);
             foreach (var ky in withBlock.Keys)
             {
-                pr = aiProperty(obOf(withBlock.Item(ky)));
+                Property pr = aiProperty(obOf(withBlock.get_Item(ky)));
                 if (pr == null)
                 {
-                    if (Flags & 1)
+                    if (Flags & true)
                         // Keep non-Property Items
-                        rt.Add(ky, withBlock.Item(ky));
+                        rt.Add(ky, withBlock.get_Item(ky));
                 }
                 else
-                    rt.Add(ky, aiPropVal(pr, Empty));
+                    rt.Add(ky, aiPropVal(pr, null));
             }
         }
 
-        Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Breakpoint Landing
-        dcAiPropValsFromDc = rt;
+        Debug.Print(""); // Breakpoint Landing
+        return rt;
     }
 
-    public Scripting.Dictionary dcForAiDocIType(Scripting.Dictionary dc, Inventor.Document AiDoc)
+    public static Dictionary dcForAiDocIType(Dictionary dc, Document AiDoc)
     {
-        Scripting.Dictionary wk;
+        Dictionary wk;
         string ky;
 
-        if (AiDoc is Inventor.PartDocument)
+        switch (AiDoc)
         {
-            ky = "Part";
+            case PartDocument:
             {
-                var withBlock = aiDocPart(AiDoc).ComponentDefinition;
-                if (withBlock.IsContentMember)
-                    ky = "c" + ky;
-                if (withBlock.IsiPartFactory)
-                    ky = "f" + ky;
-                if (withBlock.IsiPartMember)
-                    ky = "i" + ky;
-                if (withBlock.IsModelStateFactory)
+                ky = "Part";
                 {
+                    var withBlock = aiDocPart(AiDoc).ComponentDefinition;
+                    if (withBlock.IsContentMember)
+                        ky = "c" + ky;
+                    if (withBlock.IsiPartFactory)
+                        ky = "f" + ky;
+                    if (withBlock.IsiPartMember)
+                        ky = "i" + ky;
+                    if (withBlock.IsModelStateFactory)
+                    {
+                    }
+
+                    if (withBlock.IsModelStateMember)
+                        ky = "s" + ky;
                 }
-                if (withBlock.IsModelStateMember)
-                    ky = "s" + ky;
+                break;
             }
-        }
-        else if (AiDoc is Inventor.AssemblyDocument)
-        {
-            ky = "Assy";
+            case AssemblyDocument:
             {
-                var withBlock = aiDocAssy(AiDoc).ComponentDefinition;
-                if (withBlock.IsiAssemblyFactory)
-                    ky = "f" + ky;
-                if (withBlock.IsiAssemblyMember)
-                    ky = "i" + ky;
-                if (withBlock.IsModelStateFactory)
-                    ky = "msf" + ky;
-                if (withBlock.IsModelStateMember)
-                    ky = "s" + ky;
+                ky = "Assy";
+                {
+                    var withBlock = aiDocAssy(AiDoc).ComponentDefinition;
+                    if (withBlock.IsiAssemblyFactory)
+                        ky = "f" + ky;
+                    if (withBlock.IsiAssemblyMember)
+                        ky = "i" + ky;
+                    if (withBlock.IsModelStateFactory)
+                        ky = "msf" + ky;
+                    if (withBlock.IsModelStateMember)
+                        ky = "s" + ky;
+                }
+                break;
             }
+            default:
+                ky = "";
+                break;
         }
-        else
-            ky = "";
 
         {
-            var withBlock = dc;
-            if (!withBlock.Exists(ky))
-                withBlock.Add(ky, new Scripting.Dictionary());
-            dcForAiDocIType = withBlock.Item(ky);
+            if (!dc.Exists(ky))
+                dc.Add(ky, new Dictionary());
+            return dc.get_Item(ky);
         }
     }
 
-    public Scripting.Dictionary dcAiDocsByIType(Scripting.Dictionary dc, long Flags = 0)
+    public static Dictionary dcAiDocsByIType(Dictionary dc, bool Flags = false)
     {
-        Scripting.Dictionary rt;
         // Dim pr As Inventor.Property
-        Variant ky;
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
             var withBlock = dcNewIfNone(dc);
             foreach (var ky in withBlock.Keys)
-                // pr = aiProperty(obOf(.Item(ky)))
+                // pr = aiProperty(obOf(.get_Item(ky)))
                 // If pr Is Nothing Then
                 // If Flags And 1 Then
                 // Keep non-Property Items
-                rt.Add(ky, withBlock.Item(ky));
+                rt.Add(ky, withBlock.get_Item(ky));
         }
 
-        Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Breakpoint Landing
-        dcAiDocsByIType = rt;
+        Debug.Print(""); // Breakpoint Landing
+        return rt;
     }
 
-    public Variant nvmTest01()
+    public static dynamic nvmTest01()
     {
-        Inventor.ApplicationAddIn ad;
-        object il; // Inventor.ApplicationAddIn '
-        Inventor.NameValueMap mp;
-        Inventor.Document md;
-
-        ad = ThisApplication.ApplicationAddIns.ItemById(guidILogicAdIn);
+        ApplicationAddIn ad = ThisApplication.ApplicationAddIns.ItemById(guidILogicAdIn);
         if (!ad.Activated)
             ad.Activate();
-        il = ad.Automation;
-        md = ThisApplication.Documents.ItemByName(@"C:\Doyle_Vault\Designs\Misc\andrewT\dvl\iLogVltSrch_2022-0622_01.ipt");
-        mp = dc2aiNameValMap(nuDcPopulator().Setting("PartNumber", "60-").Dictionary);  // IN 60- 04-
+        var il = ad.Automation; // Inventor.ApplicationAddIn '
+        Document md =
+            ThisApplication.Documents.ItemByName(
+                @"C:\Doyle_Vault\Designs\Misc\andrewT\dvl\iLogVltSrch_2022-0622_01.ipt");
+        NameValueMap mp = dc2aiNameValMap(nuDcPopulator().Setting("PartNumber", "60-").Dictionary); // IN 60- 04-
 
-        il.RunRuleWithArguments(md, "vlt02", mp);     // il.RunRule md, "tst01" ', mp
+        il.RunRuleWithArguments(md, "vlt02", mp); // il.RunRule md, "tst01" ', mp
 
         Debug.Print(mp.Value("OUT"));
         Debug.Print(mp.Count);
     }
 
-    /// 
+    // 
 
-    /// 
+    // 
     public string dvlDict0()
     {
-        dvlDict0 = "dvlDict0";
+        return "dvlDict0";
     }
 }

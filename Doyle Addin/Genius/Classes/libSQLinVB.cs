@@ -1,24 +1,26 @@
-﻿class SurroundingClass
-{
-    public string sqlTextInVBcode(string nm)
-    {
-        Variant ar;
+﻿using Microsoft.VisualBasic;
 
-        ar = Split(nm, "'''SQL'''");
-        if (UBound(ar) < 1)
-            sqlTextInVBcode = "";
-        else
+namespace Doyle_Addin.Genius.Classes;
+
+internal class libSQLinVB
+{
+    private string sqlTextInVBcode(string nm)
+    {
+        dynamic ar = Split(nm, "'''SQL'''");
+        return UBound(ar) < 1
+            ? ""
+            :
             // sqlTextInVBcode = ar(1)
-            sqlTextInVBcode = Join(Split(ar(1), Constants.vbNewLine + "'"), Constants.vbNewLine);
+            Join(Split(ar(1), Constants.vbCrLf + "'"), Constants.vbCrLf);
     }
 
-    public string sqlTextInDict(string nm, Scripting.Dictionary dc)
+    private string sqlTextInDict(string nm, Dictionary dc)
     {
-        sqlTextInDict = sqlTextInVBcode(vbTextOfProcInDict(nm, dc));
+        return sqlTextInVBcode(vbTextOfProcInDict(nm, dc));
     }
 
     public string sqlTextInProject(string nm, VBIDE.VBProject pj)
     {
-        sqlTextInProject = sqlTextInDict(nm, dcOfVbProcsFlat(pj));
+        return sqlTextInDict(nm, dcOfVbProcsFlat(pj));
     }
 }

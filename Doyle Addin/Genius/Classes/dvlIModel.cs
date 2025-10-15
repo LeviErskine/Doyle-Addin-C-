@@ -1,73 +1,56 @@
-﻿class dvlIModel
+﻿namespace Doyle_Addin.Genius.Classes;
+
+class dvlIModel
 {
-    public Inventor.PartDocument dImG1f1iPart(Inventor.PartDocument md)
+    public PartDocument dImG1f1iPart(PartDocument md)
     {
         if (md == null)
-            dImG1f1iPart = null/* TODO Change to default(_) if this is not a reference type */;
-        else
+            return null;
+        var withBlock = md.ComponentDefinition;
+        if (withBlock.IsiPartFactory)
         {
-            var withBlock = md.ComponentDefinition;
-            if (withBlock.IsiPartFactory)
-            {
-                if (withBlock.iPartFactory == null)
-                {
-                    System.Diagnostics.Debugger.Break();
-                    dImG1f1iPart = null/* TODO Change to default(_) if this is not a reference type */;
-                }
-                else
-                    dImG1f1iPart = aiDocPart(withBlock.iPartFactory.Parent);
-            }
-            else if (withBlock.IsiPartMember)
-            {
-                if (withBlock.iPartMember == null)
-                {
-                    System.Diagnostics.Debugger.Break();
-                    dImG1f1iPart = null/* TODO Change to default(_) if this is not a reference type */;
-                }
-                else
-                    dImG1f1iPart = dImG1f1iPart(withBlock.iPartMember.ParentFactory.Parent);
-            }
-            else
-                dImG1f1iPart = null/* TODO Change to default(_) if this is not a reference type */;
+            if (withBlock.iPartFactory != null) return aiDocPart(withBlock.iPartFactory.Parent);
+            Debugger.Break();
+            return null;
         }
+
+        if (!withBlock.IsiPartMember) return null;
+        if (withBlock.iPartMember != null) return dImG1f1iPart(withBlock.iPartMember.ParentFactory.Parent);
+        Debugger.Break();
+        return null;
     }
 
-    public Scripting.Dictionary dImG1f2iPart(Inventor.Document md)
+    public Dictionary dImG1f2iPart(Document md)
     {
-        Scripting.Dictionary rt;
-        Variant ky;
-        Inventor.PartDocument pt;
-        Inventor.PartDocument ck;
-
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
 
         {
             var withBlock = dcAiPartDocs(dcAiDocComponents(md));
             foreach (var ky in withBlock.Keys)
             {
-                pt = aiDocPart(withBlock.Item(ky));
+                PartDocument pt = aiDocPart(withBlock.get_Item(ky));
                 if (pt == null)
                 {
                 }
                 else
                 {
-                    ck = dImG1f1iPart(pt);
+                    var ck = dImG1f1iPart(pt);
                     if (ck == null)
                     {
                     }
                     else
                         // ck.File.FullFileName
                         // Stop
-                        Debug.Print();/* TODO ERROR: Skipped SkippedTokensTrivia */// Breakpoint Landing
+                        Debug.Print(""); // Breakpoint Landing
                 }
             }
         }
 
-        dImG1f2iPart = rt;
+        return rt;
     }
 
     public string dImG0f0()
     {
-        dImG0f0 = "REV[2023.01.19.1046]";
+        return "REV[2023.01.19.1046]";
     }
 }

@@ -1,42 +1,40 @@
-﻿class kyPickAiShMtl4sure : kyPick
+﻿namespace Doyle_Addin.Genius.Classes;
+
+class kyPickAiShMtl4sure : kyPick
 {
     private kyPick pk;
     private const string txVersion = "kyPickAiShMtl4sure v0.0.0.1 [2022.03.08.1336]";
-    /// prior Versions
+    // prior Versions
 
-    /// ""
+    // ""
 
-    /// 
+    // 
 
-    /// kyPick Implementation code follows
+    // kyPick Implementation code follows
 
-    /// 
+    // 
 
     private kyPick kyPick_Itself()
     {
-        kyPick_Itself = this;
+        return this;
     }
 
-
-    private kyPick kyPick_WithInDc(Scripting.IDictionary Dict)
+    private kyPick kyPick_WithInDc(Dictionary Dict)
     {
         pk = pk.WithInDc(Dict);
-        kyPick_WithInDc = this;
+        return this;
     }
 
-    private kyPick kyPick_WithOutDc(Scripting.IDictionary Dict)
+    private kyPick kyPick_WithOutDc(Dictionary Dict)
     {
         pk = pk.WithOutDc(Dict);
-        kyPick_WithOutDc = this;
+        return this;
     }
 
-
-    private kyPick kyPick_AfterScanning(Scripting.IDictionary dSrc)
+    private kyPick kyPick_AfterScanning(Dictionary dSrc)
     {
-        Scripting.Dictionary dcI;
-        Scripting.Dictionary dcO;
-        Scripting.Dictionary dCk;
-        Variant ky;
+        Dictionary dcI;
+        Dictionary dcO;
 
         {
             var withBlock = pk.AfterScanning(dSrc);
@@ -45,174 +43,145 @@
         }
 
         {
-            var withBlock = dcI;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dcI.Keys)
             {
-                dCk = kyPick_DcFor(withBlock.Item(ky));
+                Dictionary dCk = kyPick_DcFor(dcI.get_Item(ky));
                 if (dCk == dcI)
                     // don't need to do anything here
-                    Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Breakpoint Landing
+                    Debug.Print(""); // Breakpoint Landing
                 else
                 {
-                    var withBlock1 = dCk;
-                    if (withBlock1.Exists(ky))
-                        System.Diagnostics.Debugger.Break();
+                    if (dCk.Exists(ky))
+                        Debugger.Break();
                     else
-                        withBlock1.Add(ky, dcI.Item(ky));
+                        dCk.Add(ky, dcI.get_Item(ky));
                 }
             }
         }
         pk = pk.WithInDc(dcKeysMissing(dcI, dcO));
 
-        kyPick_AfterScanning = this;
+        return this;
     }
 
-
-    private Scripting.IDictionary kyPick_DcIn()
+    private IDictionary kyPick_DcIn()
     {
-        kyPick_DcIn = dcIn();
+        return dcIn();
     }
 
-    private Scripting.IDictionary kyPick_DcOut()
+    private IDictionary kyPick_DcOut()
     {
-        kyPick_DcOut = dcOut();
+        return dcOut();
     }
 
-
-    private Scripting.IDictionary kyPick_DcFor(Variant Item)
+    private IDictionary kyPick_DcFor(dynamic Item)
     {
-        Inventor.PartDocument ob; // .Document
-
-        ob = aiDocPart(aiDocument(obOf(Item)));
-        if (ob == null)
-            kyPick_DcFor = pk.dcFor(0);
-        else
-            kyPick_DcFor = g0f1(ob.ComponentDefinition);
+        PartDocument ob = // .Document
+            aiDocPart(aiDocument(obOf(Item)));
+        return ob == null ? pk.dcFor(0) : g0f1(ob.ComponentDefinition);
     }
-    /// 
+    // 
 
-    /// General Class handling code follows
+    // General Class handling code follows
 
-    /// 
+    // 
 
     private void Class_Initialize()
     {
         pk = new kyPickAiSheetMetal(); // kyPick
     }
-    /// 
+    // 
 
-    /// kyPickAiShMtl4sure Class
+    // kyPickAiShMtl4sure Class
 
-    /// implementation code follows
+    // implementation code follows
 
-    /// 
+    // 
 
     public kyPick Itself()
     {
-        Itself = this;
+        return this;
     }
 
-
-    public kyPick WithInDc(Scripting.Dictionary Dict)
+    public kyPick WithInDc(Dictionary Dict)
     {
-        WithInDc = kyPick_WithInDc(Dict);
+        return kyPick_WithInDc(Dict);
     }
 
-    public kyPick WithOutDc(Scripting.Dictionary Dict)
+    public kyPick WithOutDc(Dictionary Dict)
     {
-        WithOutDc = kyPick_WithOutDc(Dict);
+        return kyPick_WithOutDc(Dict);
     }
 
-
-    public Scripting.Dictionary dcIn()
+    public Dictionary dcIn()
     {
-        dcIn = pk.dcIn;
+        return pk.dcIn;
     }
 
-    public Scripting.Dictionary dcOut()
+    public Dictionary dcOut()
     {
-        dcOut = pk.dcOut;
+        return pk.dcOut;
     }
 
-
-    public kyPick AfterScanning(Scripting.Dictionary dSrc)
+    public kyPick AfterScanning(Dictionary dSrc)
     {
-        AfterScanning = kyPick_AfterScanning(dSrc);
+        return kyPick_AfterScanning(dSrc);
     }
 
-
-    public Scripting.IDictionary dcFor(Variant Item)
+    public IDictionary dcFor(dynamic Item)
     {
-        dcFor = kyPick_DcFor(Item);
+        return kyPick_DcFor(Item);
     }
-    /// 
+    // 
 
-    /// Internal support code follows
+    // Internal support code follows
 
-    /// 
+    // 
 
-    private Scripting.Dictionary g0f0(Inventor.PartDocument ob)
+    private Dictionary g0f0(PartDocument ob)
     {
-        if (ob == null)
-            g0f0 = pk.dcFor(0);
-        else
-            g0f0 = g0f1(ob.ComponentDefinition);
+        return ob == null ? pk.dcFor(0) : g0f1(ob.ComponentDefinition);
     }
 
-    private Scripting.Dictionary g0f1(Inventor.PartComponentDefinition ob)
+    private Dictionary g0f1(PartComponentDefinition ob)
     {
-        if (ob is Inventor.SheetMetalComponentDefinition)
-            g0f1 = g0f2(ob);
-        else
-            g0f1 = pk.dcFor(0);
+        return ob is SheetMetalComponentDefinition ? g0f2(ob) : pk.dcFor(0);
     }
 
-    private Scripting.Dictionary g0f2(Inventor.SheetMetalComponentDefinition ob)
+    private Dictionary g0f2(SheetMetalComponentDefinition ob)
     {
-        double smThk;
+        if (ob is not { HasFlatPattern: true })
+            return pk.dcFor(0);
+        // '  check stated thickness...
+        double smThk = ob.Thickness.Value;
+        // Debug.Print "Thickness: " & CStr(smThk)
+
+        // '  against flat pattern height
         double fpHgt;
-        double dfRns;
-
-        if (ob == null)
-            g0f2 = pk.dcFor(0);
-        else
         {
-            var withBlock = ob;
-            if (withBlock.HasFlatPattern)
-            {
-                // '  check stated thickness...
-                smThk = withBlock.Thickness.Value;
-                // Debug.Print "Thickness: " & CStr(smThk)
-
-                // '  against flat pattern height
-                {
-                    var withBlock1 = nuAiBoxData().UsingBox(withBlock.FlatPattern.RangeBox);
-                    // Debug.Print .Dump()
-                    Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Breakpoint Landing
-                    fpHgt = withBlock1.SpanZ;
-                }
-
-                dfRns = fpHgt - smThk;
-                if (Abs(dfRns) < 0.001)
-                    // '  assume it's valid
-                    g0f2 = pk.dcFor(ob.Document);
-                else
-                    // '  assume likely not
-                    // Stop
-                    g0f2 = pk.dcFor(0);
-            }
-            else
-                g0f2 = pk.dcFor(0);
+            var withBlock1 = nuAiBoxData().UsingBox(ob.FlatPattern.RangeBox);
+            // Debug.Print .Dump()
+            Debug.Print(""); // Breakpoint Landing
+            fpHgt = withBlock1.SpanZ;
         }
+
+        var dfRns = fpHgt - smThk;
+        return pk.dcFor(double.Abs(dfRns) < 0.001
+            ?
+            // '  assume it's valid
+            ob.Document
+            :
+            // '  assume likely not
+            // Stop
+            0);
     }
-    /// 
+    // 
 
-    /// Version code follows
+    // Version code follows
 
-    /// 
+    // 
 
     public string Version()
     {
-        Version = txVersion;
+        return txVersion;
     }
 }

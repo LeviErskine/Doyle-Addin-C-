@@ -1,17 +1,20 @@
-﻿class SurroundingClass
+﻿using Microsoft.VisualBasic;
+
+namespace Doyle_Addin.Genius.Classes;
+
+public class sql0
 {
-    public string sqlTextLocal(string nm)
+    public static  string sqlTextLocal(string nm)
     {
-        sqlTextLocal = sqlTextInProject(nm, vbProjectLocal());
+        return sqlTextInProject(nm, vbProjectLocal());
     }
 
-    public string sqlOf_()
+    public static  string sqlOf_()
     {
-        /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-        sqlOf_ = sqlTextLocal("sqlOf_");
+        return sqlTextLocal("sqlOf_");
     }
 
-    public string sqlOf_simpleSelWhere(string FromView, string GetField, string WhereField, Variant Matches)
+    public static  string sqlOf_simpleSelWhere(string FromView, string GetField, string WhereField, dynamic Matches)
     {
         string mtExpr;
 
@@ -21,131 +24,135 @@
         if (IsArray(Matches))
         {
             mtExpr = " in ('" + Join(Matches, "', '") + "') ";
-            System.Diagnostics.Debugger.Break();
+            Debugger.Break();
         }
         else if (IsNumeric(Matches))
-            mtExpr = " = " + System.Convert.ToHexString(Matches) + " ";
+            mtExpr = " = " + Convert.ToHexString(Matches) + " ";
         else if (VarType(Matches) == Constants.vbString)
-            /// for String data, single quotes
-            /// must be "escaped" by repeating
-            /// each instance, that is, replace
-            /// each one with two of the same.
+            // for String data, single quotes
+            // must be "escaped" by repeating
+            // each instance, that is, replace
+            // each one with two of the same.
             mtExpr = " = '" + Replace(Matches, "'", "''") + "' ";
         else if (IsDate(Matches))
         {
-            mtExpr = " = #" + System.Convert.ToHexString(Format(Matches, "yyyy/mm/dd")) + "# ";
-            System.Diagnostics.Debugger.Break();
+            mtExpr = " = #" + Convert.ToHexString(Format(Matches, "yyyy/mm/dd")) + "# ";
+            Debugger.Break();
         }
         else if (IsNull(Matches))
             mtExpr = " is null ";
         else
-            System.Diagnostics.Debugger.Break();
+            Debugger.Break();
         // NOTE: this block MIGHT want
         // exported to its own function
 
-        sqlOf_simpleSelWhere = " select " + GetField + " from " + FromView + " where " + WhereField + mtExpr + ";";
+        return " select " + GetField + " from " + FromView + " where " + WhereField + mtExpr + ";";
     }
 
-    public string sqlOf_gnsMatlSpec1ops()
+    public static  string sqlOf_gnsMatlSpec1ops()
     {
-        sqlOf_gnsMatlSpec1ops = sqlOf_gnsMatlSpec1ops_v0_1();
+        return sqlOf_gnsMatlSpec1ops_v0_1();
     }
 
-    public string sqlOf_gnsMatlSpec1ops_v0_1()
+    public static  string sqlOf_gnsMatlSpec1ops_v0_1()
     {
-        /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-        sqlOf_gnsMatlSpec1ops_v0_1 = sqlTextLocal("sqlOf_gnsMatlSpec1ops_v0_1");
+        return sqlTextLocal("sqlOf_gnsMatlSpec1ops_v0_1");
     }
 
-    public string sqlOf_MatlSpecXref()
+    public static  string sqlOf_MatlSpecXref()
     {
-        sqlOf_MatlSpecXref = sqlOf_MatlSpecXref_v0_1();
+        return sqlOf_MatlSpecXref_v0_1();
     }
 
-    public string sqlOf_MatlSpecXref_v0_1()
+    public static  string sqlOf_MatlSpecXref_v0_1()
     {
-        /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-        sqlOf_MatlSpecXref_v0_1 = sqlTextLocal("sqlOf_MatlSpecXref_v0_1");
+        return sqlTextLocal("sqlOf_MatlSpecXref_v0_1");
     }
 
-    public string sqlOf_GnsPartInfo(string Item)
+    public static  string sqlOf_GnsPartInfo(string Item)
     {
-        sqlOf_GnsPartInfo = Replace(sqlTextLocal("sqlOf_GnsPartInfo"), "%%%", Item);
+        return Replace(sqlTextLocal("sqlOf_GnsPartInfo"), "%%%", Item);
     }
 
-    public string sqlOf_GnsPartMatl(string Item)
+    public static  string sqlOf_GnsPartMatl(string Item)
     {
-        sqlOf_GnsPartMatl = Replace(sqlTextLocal("sqlOf_GnsPartMatl"), "%%%", Item);
+        return Replace(sqlTextLocal("sqlOf_GnsPartMatl"), "%%%", Item);
     }
 
-    public string sqlOf_GnsMatlOptions(string Matl, Variant Dims)
+    public static  string sqlOf_GnsMatlOptions(string Matl, dynamic Dims)
     {
-        sqlOf_GnsMatlOptions = sqlOf_GnsMatlOptions_v0_2(Matl, Dims);
+        return sqlOf_GnsMatlOptions_v0_2(Matl, Dims);
     }
 
-    public string sqlOf_GnsMatlOptions_v0_1(string Matl, double Wdth, double Hght, double Thck = -1, double Lgth = 0)
+    public static  string sqlOf_GnsMatlOptions_v0_1(string Matl, double Wdth, double Hght, double Thck = -1, double Lgth = 0)
     {
-        /// DON'T try to do anything with this yet!
-        /// see notes on where things are
-        sqlOf_GnsMatlOptions_v0_1 = Replace(Replace(Replace(Replace(Replace(sqlTextLocal("sqlOf_GnsMatlOptions_v0_1"), "$MTL$", Matl), "#THK#", ""), "#WID#", ""), "#HGT#", ""), "#LNG#", "");// ''
+        // DON'T try to do anything with this yet!
+        // see notes on where things are
+        return Replace(
+            Replace(
+                Replace(Replace(Replace(sqlTextLocal("sqlOf_GnsMatlOptions_v0_1"), "$MTL$", Matl), "#THK#", ""),
+                    "#WID#", ""), "#HGT#", ""), "#LNG#", ""); // ''
     }
 
-    public string sqlOf_GnsMatlOptions_v0_2(string Matl, Variant Dims)
+    public static  string sqlOf_GnsMatlOptions_v0_2(string Matl, dynamic Dims)
     {
-        /// DON'T try to do anything with this yet!
-        /// see notes on where things are
-        if (IsArray(Dims))
-            sqlOf_GnsMatlOptions_v0_2 = Replace(Replace(sqlTextLocal("sqlOf_GnsMatlOptions_v0_2"), "%%S6%%", Matl), "%%LS%%", Join(Dims, "), ("));// ''
-        else if (IsNumeric(Dims))
-            sqlOf_GnsMatlOptions_v0_2 = sqlOf_GnsMatlOptions_v0_2(Matl, Array(Dims));
-        else
+        while (true)
         {
-            System.Diagnostics.Debugger.Break(); // because this might be an issue
-            /// will resort to a sane default for now
-            sqlOf_GnsMatlOptions_v0_2 = sqlOf_GnsMatlOptions_v0_2(Matl, Array(0.075)); // should pick up 14GA sheet metal only
+            // DON'T try to do anything with this yet!
+            // see notes on where things are
+            if (IsArray(Dims))
+                return Replace(Replace(sqlTextLocal("sqlOf_GnsMatlOptions_v0_2"), "%%S6%%", Matl), "%%LS%%",
+                    Join(Dims, "), (")); // ''
+            if (IsNumeric(Dims))
+            {
+                Dims = new[] { Dims };
+            }
+            else
+            {
+                Debugger.Break(); // because this might be an issue
+                // will resort to a sane default for now
+                Dims = new[] { 0.075 };
+            }
         }
     }
 
-    public string sqlOf_GnsTubeHose(double Diam = 0)
+    public static  string sqlOf_GnsTubeHose(double Diam = 0)
     {
-        sqlOf_GnsTubeHose = sqlOf_GnsTubeHose_v0_1(Diam);
+        return sqlOf_GnsTubeHose_v0_1(Diam);
     }
 
-    public string sqlOf_GnsTubeHose_v0_1(double Diam = 0) // , Matl As String, Dims As Variant
+    public static  string sqlOf_GnsTubeHose_v0_1(double Diam = 0) // , Matl As String, Dims As dynamic
     {
-        /// DON'T try to do anything with this yet!
-        /// see notes on where things are
-        string txDiam;
+        // DON'T try to do anything with this yet!
+        // see notes on where things are
 
-        if (Diam > 0)
-            txDiam = Join(Array("between", System.Convert.ToHexString(Diam - 0.01), "and", System.Convert.ToHexString(Diam + 0.01)), " ");
-        else
-            txDiam = "> 0.0";
+        var txDiam = Diam > 0
+            ? Join(new[] { "between", Convert.ToHexString(Diam - 0.01), "and", Convert.ToHexString(Diam + 0.01) }, " ")
+            : "> 0.0";
 
-        sqlOf_GnsTubeHose_v0_1 = Replace(sqlTextLocal("sqlOf_GnsTubeHose_v0_1"), "%%DI%%", txDiam); // ''
+        return Replace(sqlTextLocal("sqlOf_GnsTubeHose_v0_1"), "%%DI%%", txDiam); // ''
     }
 
-    public string sqlOf_ASDF(string Item)
+    public static  string sqlOf_ASDF(string Item)
     {
-        sqlOf_ASDF = Replace(sqlTextLocal("sqlOf_ASDF"), "%%%", Item);
+        return Replace(sqlTextLocal("sqlOf_ASDF"), "%%%", Item);
     }
 
-    public string sqlOf_03R4LC09_NOCOND()
+    public static  string sqlOf_03R4LC09_NOCOND()
     {
-        /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-        sqlOf_03R4LC09_NOCOND = sqlTextLocal("sqlOf_03R4LC09_NOCOND");
+        return sqlTextLocal("sqlOf_03R4LC09_NOCOND");
     }
 
-    public string sqlOf_ERC_PTOSIZE()
+    public static  string sqlOf_ERC_PTOSIZE()
     {
-        /// SQL'''
+        // SQL'''
         // -- ERC-PTOSIZE
         // select I.Item, I.Description1, I.OptionPrice, I.Specification7
         // , D.Item as PartsKit
         // 
         // from vgMfiItems I
         // inner join vgMfiItems D
-        // on  I.Specification1 = D.Specification1
+        // on I.Specification1 = D.Specification1
         // and I.Specification2 = D.Specification2
         // and I.Specification4 = D.Specification4
         // and I.Specification5 = D.Specification5
@@ -160,13 +167,12 @@
         // 
         // Order by Description1
         // ; --
-        /// SQL'''
-        sqlOf_ERC_PTOSIZE = sqlTextLocal("sqlOf_ERC_PTOSIZE"); // vbTextOfProcInDict
+        // SQL'''
+        return sqlTextLocal("sqlOf_ERC_PTOSIZE"); // vbTextOfProcInDict
     }
 
-    public string sqlOf_test2()
+    public static  string sqlOf_test2()
     {
-        /* TODO ERROR: Skipped IfDirectiveTrivia *//* TODO ERROR: Skipped DisabledTextTrivia *//* TODO ERROR: Skipped EndIfDirectiveTrivia */
-        sqlOf_test2 = sqlTextLocal("sqlOf_test2");
+        return sqlTextLocal("sqlOf_test2");
     }
 }

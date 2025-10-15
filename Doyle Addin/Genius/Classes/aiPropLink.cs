@@ -1,10 +1,12 @@
-﻿class aiPropLink
+﻿namespace Doyle_Addin.Genius.Classes;
+
+class aiPropLink
 {
-    private Scripting.Dictionary dc;
+    private Dictionary dc;
 
     private void Class_Initialize()
     {
-        dc = new Scripting.Dictionary();
+        dc = new Dictionary();
     }
 
     private void Class_Terminate()
@@ -13,29 +15,22 @@
         dc = null;
     }
 
-    public aiPropLink PrepFrom(Inventor.Document AiDoc)
+    public aiPropLink PrepFrom(Document AiDoc)
     {
-        Inventor.PropertySet ps;
-        Inventor.Property pr;
-        string psName;
-        string prName;
-
         {
-            var withBlock = AiDoc;
-            foreach (var ps in withBlock.PropertySets)
+            foreach (PropertySet ps in AiDoc.PropertySets)
             {
-                psName = ps.Name;
-                foreach (var pr in ps)
+                var psName = ps.Name;
+                foreach (var prName in from Property pr in ps select pr.Name)
                 {
-                    prName = pr.Name;
                     if (dc.Exists(prName))
-                        System.Diagnostics.Debugger.Break();
+                        Debugger.Break();
                     else
                         dc.Add(prName, psName);
                 }
             }
         }
 
-        PrepFrom = this;
+        return this;
     }
 }

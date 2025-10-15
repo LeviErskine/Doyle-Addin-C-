@@ -1,58 +1,50 @@
-﻿class dvlVault
+﻿using Microsoft.VisualBasic;
+
+namespace Doyle_Addin.Genius.Classes;
+
+class dvlVault
 {
-    /// 
+    // 
 
-    /// see module mod3 for other functions of possible use here
+    // see module mod3 for other functions of possible use here
 
-    /// named functions here originated there
+    // named functions here originated there
 
-    /// '
+    // '
 
-    public Variant ArrayFrom(Variant ls)
+    public dynamic ArrayFrom(dynamic ls)
     {
-        /// ArrayFrom -- return basic Variant Array
-        /// from one of several various types
-        /// of supplied Variant Values
-        /// 
-        Scripting.Dictionary dc;
+        // ArrayFrom -- return basic dynamic Array
+        // from one of several various types
+        // of supplied dynamic Values
+        // 
 
-        dc = dcOb(obOf(ls));
-        if (dc == null)
-        {
-            if (IsObject(ls))
-                ArrayFrom = Array();
-            else if (IsArray(ls))
-                ArrayFrom = ls;
-            else
-                ArrayFrom = Array(ls);
-        }
-        else
-            ArrayFrom = dc.Keys;
+        Dictionary dc = dcOb(obOf(ls));
+        if (dc != null) return dc.Keys;
+        if (ls is not null)
+
+            return Array.Empty<string>();
+        if (false)
+            return ls;
+        return new
+            string[] { (dynamic)null };
     }
 
-    public Scripting.Dictionary dcMapFSysVsVault(Scripting.Dictionary dc)
+    public Dictionary dcMapFSysVsVault(Dictionary dc)
     {
-        Scripting.Dictionary rt;
-        string bp;
-        Variant fp;
-        string vp;
+        var rt = new Dictionary();
 
-        rt = new Scripting.Dictionary();
-
-        bp = vaultBasePath();
+        var bp = vaultBasePath();
         if (Strings.Len(bp) == 0)
-            System.Diagnostics.Debugger.Break();// for debug/devel
+            Debugger.Break(); // for debug/devel
 
         {
-            var withBlock = dc // dcAiDocComponents(aiDocActive())
-       ;
-            foreach (var fp in withBlock.Keys)
+            foreach (var fp in dc.Keys)
             {
-                vp = Replace(Replace(fp, bp, "$/"), @"\", "/");
+                string vp = Replace(Replace(fp, bp, "$/"), @"\", "/");
                 {
-                    var withBlock1 = rt;
-                    if (withBlock1.Exists(fp) | withBlock1.Exists(vp))
-                        System.Diagnostics.Debugger.Break();
+                    if (rt.Exists(fp) | rt.Exists(vp))
+                        Debugger.Break();
                     else
                     {
                         rt.Add(fp, vp);
@@ -62,83 +54,69 @@
             }
         }
 
-        dcMapFSysVsVault = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcRemapped2vaultPaths(Scripting.Dictionary dc)
+    public Dictionary dcRemapped2vaultPaths(Dictionary dc)
     {
-        Scripting.Dictionary rt;
-        Variant ky;
-        string bp;
+        var rt = new Dictionary();
 
-        rt = new Scripting.Dictionary();
-
-        bp = vaultBasePath();
+        var bp = vaultBasePath();
         if (Strings.Len(bp) == 0)
-            System.Diagnostics.Debugger.Break();// for debug/devel
+            Debugger.Break(); // for debug/devel
 
         {
-            var withBlock = dc // dcAiDocComponents(aiDocActive())
-       ;
-            foreach (var ky in withBlock.Keys)
-                rt.Add(Replace(Replace(ky, bp, "$/"), @"\", "/"), withBlock.Item(ky));
+            foreach (var ky in dc.Keys)
+                rt.Add(Replace(Replace(ky, bp, "$/"), @"\", "/"), dc.get_Item(ky));
         }
 
-        dcRemapped2vaultPaths = rt;
+        return rt;
     }
 
     public string vaultBasePath()
     {
         {
-            var withBlock = dcOb(nuILogicIfc().Apply("vltBasePath", new Scripting.Dictionary()));
+            var withBlock = dcOb(nuILogicIfc().Apply("vltBasePath", new Dictionary()));
             if (withBlock.Exists("OUT"))
-                vaultBasePath = withBlock.Item("OUT");
-            else
-                vaultBasePath = "";
+                return withBlock.get_Item("OUT");
+            return "";
         }
     }
 
     public string vaultPropKeys()
     {
         {
-            var withBlock = dcOb(nuILogicIfc().Apply("vltPropKeys", new Scripting.Dictionary()));
-            if (withBlock.Exists("OUT"))
-                vaultPropKeys = withBlock.Item("OUT");
-            else
-                vaultPropKeys = "";
+            var withBlock = dcOb(nuILogicIfc().Apply("vltPropKeys", new Dictionary()));
+            return withBlock.Exists("OUT") ? (string)withBlock.get_Item("OUT") : "";
         }
     }
 
-    public Scripting.Dictionary dcOfDcByVltPathAndName(Scripting.Dictionary dc)
+    public Dictionary dcOfDcByVltPathAndName(Dictionary dc)
     {
-        /// 
-        /// 
-        /// this one should probably call
-        /// dcOfDcByNameAndPath against dc
-        /// 
-        /// actually, EACH should call
-        /// some common function
-        /// to perform similar task
-        /// 
-        Scripting.Dictionary rt;
-        Scripting.Dictionary gp;
-        Variant ky;
-        Variant ar;
-        long bk;
-        string bp;
-        string fn;
+        // 
+        // 
+        // this one should probably call
+        // dcOfDcByNameAndPath against dc
+        // 
+        // actually, EACH should call
+        // some common function
+        // to perform similar task
+        // 
+        Dictionary gp;
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
 
         {
             var withBlock = dcRemapped2vaultPaths(dc);
             foreach (var ky in withBlock.Keys)
             {
-                ar = Array(withBlock.Item(ky));
+                dynamic ar = new[] { withBlock.get_Item(ky) };
 
-                bk = InStrRev(ky, "/");
+                long bk = InStrRev(ky, "/");
+                string bp;
+                string fn;
                 if (bk == 0)
-                    System.Diagnostics.Debugger.Break();
+                    Debugger.Break();
                 else
                 {
                     fn = Mid(ky, bk + 1);
@@ -146,57 +124,52 @@
                 }
 
                 {
-                    var withBlock1 = rt;
-                    if (!withBlock1.Exists(bp))
-                        withBlock1.Add(bp, new Scripting.Dictionary());
+                    if (!rt.Exists(bp))
+                        rt.Add(bp, new Dictionary());
 
                     // gp =
                     {
-                        var withBlock2 = dcOb(withBlock1.Item(bp));
+                        var withBlock2 = dcOb(rt.get_Item(bp));
                         withBlock2.Add(fn, ar(0));
                     }
                 }
             }
+
+            ;
         }
 
-        dcOfDcByVltPathAndName = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcOfDcByNameAndPath(Scripting.Dictionary dc)
+    public Dictionary dcOfDcByNameAndPath(Dictionary dc)
     {
-        /// 
-        /// 
-        /// closely related to
-        /// dcOfDcByVltPathAndName
-        /// (see above)
-        /// 
-        Scripting.Dictionary rt;
-        Scripting.Dictionary gp;
-        Inventor.Document md;
-        Variant ky;
-        Variant ar;
-        long bk;
-        string fn;
-        string bp;
+        // 
+        // 
+        // closely related to
+        // dcOfDcByVltPathAndName
+        // (see above)
+        // 
+        Dictionary gp;
+        dynamic ar;
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
 
         {
-            var withBlock = dc // dcRemapped2vaultPaths(dc)
-       ;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dc.Keys)
             {
-                // ar = Array(.Item(ky))
-                md = aiDocument(obOf(withBlock.Item(ky)));
+                // ar = new string[] {.get_Item(ky))
+                Document md = aiDocument(obOf(dc.get_Item(ky)));
                 if (md == null)
-                    Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Breakpoint Landing
+                    Debug.Print(""); // Breakpoint Landing
                 else
                 {
                     // Stop
 
-                    bk = InStrRev(ky, @"\");
+                    long bk = InStrRev(ky, @"\");
+                    string fn;
+                    string bp;
                     if (bk == 0)
-                        System.Diagnostics.Debugger.Break();
+                        Debugger.Break();
                     else
                     {
                         bp = Left(ky, bk - 1);
@@ -204,13 +177,12 @@
                     }
 
                     {
-                        var withBlock1 = rt;
-                        if (!withBlock1.Exists(fn))
-                            withBlock1.Add(fn, new Scripting.Dictionary());
+                        if (!rt.Exists(fn))
+                            rt.Add(fn, new Dictionary());
 
                         // gp =
                         {
-                            var withBlock2 = dcOb(withBlock1.Item(fn));
+                            var withBlock2 = dcOb(rt.get_Item(fn));
                             withBlock2.Add(bp, md);
                         }
                     }
@@ -218,89 +190,83 @@
             }
         }
 
-        dcOfDcByNameAndPath = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary d0g1f4d(Scripting.Dictionary dc)
+    public Dictionary d0g1f4d(Dictionary dc)
     {
-        /// d0g1f4d - categorize supplied Dictionary
-        /// of Part/Assembly components
-        /// by Vault Property Values
-        /// 1 - takes same sort of
-        /// Dictionary as d0g1f4c
-        /// 2 - applies d0g1f4c to it
-        /// 3 - rekeys the result
-        /// 4 - transposes its sub Dictionaries
-        /// 
-        /// 
-        Scripting.Dictionary rt;
-        Variant ky;
+        // d0g1f4d - categorize supplied Dictionary
+        // of Part/Assembly components
+        // by Vault Property Values
+        // 1 - takes same sort of
+        // Dictionary as d0g1f4c
+        // 2 - applies d0g1f4c to it
+        // 3 - rekeys the result
+        // 4 - transposes its sub Dictionaries
+        // 
+        // 
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
 
         {
             var withBlock = dcOfDcRekeyedSecToPri(d0g1f4c(dc));
             foreach (var ky in withBlock.Keys)
-                rt.Add(ky, dcTransGrouped(dcOb(withBlock.Item(ky))));
+                rt.Add(ky, dcTransGrouped(dcOb(withBlock.get_Item(ky))));
         }
 
-        d0g1f4d = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary d0g1f4c(Scripting.Dictionary dc)
+    public Dictionary d0g1f4c(Dictionary dc)
     {
-        Scripting.Dictionary rt;
         // Dim ag As Scripting.Dictionary
 
-        Variant ls;
-        Variant ky;
+        // Dim nm As dynamic
 
-        Scripting.Dictionary sd;
-        // Dim nm As Variant
-        Variant pg;
-        Variant rw;
-        string p2;
         // Dim fl As Scripting.File
+        var rt = new Dictionary();
 
-        rt = new Scripting.Dictionary();
-
-        ls = dc.Keys;
+        dynamic ls = dc.Keys;
         {
             var withBlock = nuILogicIfc();
             foreach (var ky in ls)
             {
                 // send2clipBdWin10 ConvertToJson(nuILogicIfc()
-                Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Breakpoint Landing
-                                                                             // pg =
+                Debug.Print(""); // Breakpoint Landing
+                // pg =
+                dynamic pg;
                 {
-                    var withBlock1 = withBlock.Apply("dvl0", nuDcPopulator().Setting("PropName", "Name").Setting("Value", ky).Dictionary());
+                    var withBlock1 = withBlock.Apply("dvl0",
+                        nuDcPopulator().Setting("PropName", "Name").Setting("Value", ky).Dictionary());
                     if (withBlock1.Exists("OUT"))
-                        pg = withBlock1.Item("OUT");
-                    else
-                    {
-                    }
+                        pg = withBlock1.get_Item("OUT");
                 }
                 // PropName", "FolderPath
                 // FullPath
                 // FullName
                 // "$/Designs/doyle/(72) G3 Conveyor/I Parts/72-XXX-90403 G3 HD 8IN WRAP DRIVE 6IN END ROLLERS CONVEYOR BELT CRESCENT TOP ASSEMBLY"
                 // , vbTab)
-                /// REV[2023.03.03.1140]
-                /// preceding pg assignment
-                /// replaces the one following
-                /// 
-                // pg = .Apply("vlt04", nuDcPopulator().Setting("fullname", ky).Dictionary()).Item("OUT") '.DataFor(CStr(nm))
+                // REV[2023.03.03.1140]
+                // preceding pg assignment
+                // replaces the one following
+                // 
+                // pg = .Apply("vlt04", nuDcPopulator().Setting("fullname", ky).Dictionary()).get_Item("OUT") '.DataFor(CStr(nm))
                 // or "Full Path"
                 foreach (var rw in pg)
                 {
-                    if (rw is Inventor.NameValueMap)
-                        sd = dcFromAiNameValMap(obOf(rw));
-                    else if (rw is Scripting.Dictionary)
-                        sd = rw;
-                    else
+                    Dictionary sd;
+                    switch (rw)
                     {
-                        System.Diagnostics.Debugger.Break();
-                        sd = null/* TODO Change to default(_) if this is not a reference type */;
+                        case NameValueMap:
+                            sd = dcFromAiNameValMap(obOf(rw));
+                            break;
+                        case Dictionary:
+                            sd = rw;
+                            break;
+                        default:
+                            Debugger.Break();
+                            sd = null;
+                            break;
                     }
 
                     if (sd == null)
@@ -308,54 +274,53 @@
                     }
                     else
                     {
-                        p2 = sd.Item("fullname"); // .LocalForm()  'CStr(rw)
+                        string p2 = sd.get_Item("fullname");
                         rt.Add(p2, sd);
                     }
                 }
             }
         }
 
-        d0g1f4c = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary d0g1f4b(Variant ls)
+    public Dictionary d0g1f4b(dynamic ls)
     {
-        Scripting.Dictionary rt;
-        Scripting.Dictionary sd;
-        Variant nm;
-        Variant pg;
-        Variant rw;
-        string p2;
+        Dictionary rt;
+
         Scripting.File fl;
 
-        if (IsObject(ls))
-        {
-        }
-        else if (IsArray(ls))
+        if (ls is not null)
         {
         }
         else
-            rt = d0g1f4b(Array(ls));
+            rt = d0g1f4b(new[] { ls });
 
-        rt = new Scripting.Dictionary();
+        rt = new Dictionary();
 
         {
             var withBlock = nuILogicIfc() // nuIfcVault()
-       ;
+                ;
             foreach (var nm in ArrayFrom(ls))
             {
-                pg = withBlock.Apply("vlt04", nuDcPopulator().Setting("PartNumber", nm).Dictionary()).Item("OUT"); // .DataFor(CStr(nm))
-                foreach (var rw in pg) // Split(pg, vbNewLine)
+                dynamic pg = withBlock.Apply("vlt04", nuDcPopulator().Setting("PartNumber", nm).Dictionary())
+                    .get_Item("OUT");
+                foreach (var rw in pg) // Split(pg, vbCrLf)
                 {
                     // Stop
-                    if (rw is Inventor.NameValueMap)
-                        sd = dcFromAiNameValMap(obOf(rw));
-                    else if (rw is Scripting.Dictionary)
-                        sd = rw;
-                    else
+                    Dictionary sd;
+                    switch (rw)
                     {
-                        System.Diagnostics.Debugger.Break();
-                        sd = null/* TODO Change to default(_) if this is not a reference type */;
+                        case NameValueMap:
+                            sd = dcFromAiNameValMap(obOf(rw));
+                            break;
+                        case Dictionary:
+                            sd = rw;
+                            break;
+                        default:
+                            Debugger.Break();
+                            sd = null;
+                            break;
                     }
 
                     if (sd == null)
@@ -363,271 +328,242 @@
                     }
                     else
                     {
-                        p2 = sd.Item("fullname"); // .LocalForm()  'CStr(rw)
+                        string p2 = sd.get_Item("fullname");
                         rt.Add(p2, sd);
                         {
-                            var withBlock1 = sd;
                             // .Add "ext", fnExt(p2)
-                            withBlock1.Add("fileObj", fileIfPresent(p2));
+                            sd.Add("fileObj", fileIfPresent(p2));
                         }
                     }
                 }
+
                 {
                     var withBlock1 = rt;
                 }
             }
         }
 
-        Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Breakpoint Landing
+        Debug.Print(""); // Breakpoint Landing
         if (false)
         {
         }
 
-        d0g1f4b = rt;
+        return rt;
     }
 
-    public ADODB.Recordset d0g2f1d(Scripting.Dictionary dc) // Scripting.Dictionary
+    public ADODB.Recordset d0g2f1d(Dictionary dc) // Scripting.Dictionary
     {
-        /// d0g2f1d --
-        /// derived from d0g2f1b
-        /// 
-        Scripting.Dictionary rt;
-        ADODB.Recordset rs;
-        Scripting.Dictionary xt;
-        Variant ls;
-        Variant k0;
-        Variant k1;
-        Scripting.Dictionary i0;
+        // d0g2f1d --
+        // derived from d0g2f1b
+        // 
+        Dictionary xt;
         string fx;
-        string ds;
         string pn;
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
 
-        ls = Array("Part Number", "Description");// ,"ext", "fullname"'
+        dynamic ls = new[] { "Part Number", "Description" }; // ,"ext", "fullname"'
 
-        rs = new ADODB.Recordset();
+        var rs = new ADODB.Recordset();
         {
-            var withBlock = rs;
             {
-                var withBlock1 = withBlock.Fields;
+                var withBlock1 = rs.Fields;
                 foreach (var k1 in ls)
                     withBlock1.Append(k1, adVarChar, 127);
             }
-            withBlock.Open();
+            rs.Open();
         }
 
         {
-            var withBlock = dc;
-            foreach (var k0 in withBlock.Keys)
+            foreach (var k0 in dc.Keys)
             {
-                i0 = withBlock.Item(k0);
+                Dictionary i0 = dc.get_Item(k0);
 
                 rs.AddNew();
 
                 foreach (var k1 in ls)
                 {
+                    string ds;
                     {
-                        var withBlock1 = i0;
                         ds = "";
-                        if (withBlock1.Exists(k1))
+                        if (i0.Exists(k1))
                         {
-                            if (IsEmpty(withBlock1.Item(k1)))
+                            if (IsEmpty(i0.get_Item(k1)))
                             {
                             }
                             else
-                                ds = withBlock1.Item(k1);
+                                ds = i0.get_Item(k1);
                         }
                     }
 
                     {
                         var withBlock1 = rs.Fields;
-                        withBlock1.Item(k1) = ds;
+                        withBlock1.get_Item(k1) = ds;
                     }
                 }
             }
         }
         rs.Filter = "";
 
-        d0g2f1d = rs;
+        return rs;
     }
 
-    public Scripting.Dictionary dVg1f1(Variant argIn)
+    public Dictionary dVg1f1(dynamic argIn)
     {
-        Scripting.Dictionary dc = new Scripting.Dictionary();
-        Scripting.Dictionary rt;
+        var dc = new Dictionary();
+        Dictionary rt;
 
         dc.Add("IN", argIn);
         {
             var withBlock = nuILogicIfc();
             rt = withBlock.Apply("vlt05", dc);
         }
-        dVg1f1 = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dVg2f1(Scripting.Dictionary dc)
+    public Dictionary dVg2f1(Dictionary dc)
     {
-        /// dVg2f1 - take Dictionary
-        /// of Inventor Documents keyed
-        /// to FullFileName as returned
-        /// by dcAiDocComponents
-        /// return Dictionary of Dictionaries
-        /// of Inventor Documents keyed
-        /// first to File Name only and
-        /// then to ParentFolder Path
-        /// 
-        Scripting.Dictionary rt;
-        Scripting.Dictionary ls;
-        Scripting.File fl;
-        Variant ky;
-        string nm;
-        string fp;
+        // dVg2f1 - take Dictionary
+        // of Inventor Documents keyed
+        // to FullFileName as returned
+        // by dcAiDocComponents
+        // return Dictionary of Dictionaries
+        // of Inventor Documents keyed
+        // first to File Name only and
+        // then to ParentFolder Path
+        // 
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
 
         {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dc.Keys)
             {
-                fl = fileIfPresent(System.Convert.ToHexString(ky));
-                if (!fl == null)
+                var fl = fileIfPresent(Convert.ToString(ky as string));
+                if (fl != null) continue;
+                string nm;
+                string fp;
                 {
-                    {
-                        var withBlock1 = fl;
-                        nm = withBlock1.Name;
-                        fp = withBlock1.ParentFolder.Path;
-                    }
+                    nm = fl.Name;
+                    fp = fl.ParentFolder.Path;
+                }
 
-                    {
-                        var withBlock1 = rt;
-                        if (!withBlock1.Exists(nm))
-                            withBlock1.Add(nm, new Scripting.Dictionary());
-                        ls = withBlock1.Item(nm);
-                    }
+                Dictionary ls;
+                {
+                    if (!rt.Exists(nm))
+                        rt.Add(nm, new Dictionary());
+                    ls = rt.get_Item(nm);
+                }
 
-                    {
-                        var withBlock1 = ls;
-                        if (!withBlock1.Exists(fp))
-                            withBlock1.Add(fp, fl);
-                    }
+                {
+                    if (!ls.Exists(fp))
+                        ls.Add(fp, fl);
                 }
             }
         }
 
-        dVg2f1 = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dVg3f1(Scripting.Dictionary dc)
+    public Dictionary dVg3f1(Dictionary dc)
     {
-        Scripting.Dictionary rt;
-        Scripting.Dictionary wk;
-        Variant ob;
-        string ky;
-
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
             var withBlock = dVg1f1(dVg2f1(dc).Keys);
             if (withBlock.Exists("OUT"))
             {
-                foreach (var ob in withBlock.Item("OUT"))
+                foreach (var ob in withBlock.get_Item("OUT"))
                 {
-                    wk = dcOb(ob);
+                    Dictionary wk = dcOb(ob);
 
                     if (wk == null)
-                        System.Diagnostics.Debugger.Break();
+                        Debugger.Break();
                     else
                     {
-                        var withBlock1 = wk;
-                        if (withBlock1.Exists("fullname"))
+                        if (wk.Exists("fullname"))
                         {
-                            ky = withBlock1.Item("fullname");
+                            string ky = wk.get_Item("fullname");
                             {
-                                var withBlock2 = rt;
-                                if (withBlock2.Exists(ky))
-                                    System.Diagnostics.Debugger.Break();
+                                if (rt.Exists(ky))
+                                    Debugger.Break();
                                 else
-                                    withBlock2.Add(ky, wk);
+                                    rt.Add(ky, wk);
                             }
                         }
                         else
-                            System.Diagnostics.Debugger.Break();
+                            Debugger.Break();
                     }
                 }
             }
             else
-                System.Diagnostics.Debugger.Break();
+                Debugger.Break();
         }
-        dVg3f1 = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dVg3f2(Scripting.Dictionary dc)
+    public Dictionary dVg3f2(Dictionary dc)
     {
-        /// dVg3f2 -    '
-        /// NOTE the following:
-        /// dcMapFSysVsVault maps the full file names
-        /// from the supplied Dictionary's Keys
-        /// to their Vault paths/names,
-        /// and vice-versa
-        /// dVg3f1 returns a Dictionary
-        /// keyed to Vault paths/names
-        /// which must be translated
-        /// to full file names
-        /// dcKeysInCommon will return a Dictionary
-        /// also keyed to Vault paths/names
-        /// containing matching entries
-        /// from the results of each
-        /// of the prior two
-        /// the Dictionary returned is keyed
-        /// to the FIRST value in each
-        /// entry from dcKeysInCommon,
-        /// mapping it to the SECOND value
-        /// in this way, each model's full file path
-        /// is mapped to its Vault data
-        /// 
-        Scripting.Dictionary rt;
-        Variant ky;
-        Variant it;
+        // dVg3f2 - '
+        // NOTE the following:
+        // dcMapFSysVsVault maps the full file names
+        // from the supplied Dictionary's Keys
+        // to their Vault paths/names,
+        // and vice-versa
+        // dVg3f1 returns a Dictionary
+        // keyed to Vault paths/names
+        // which must be translated
+        // to full file names
+        // dcKeysInCommon will return a Dictionary
+        // also keyed to Vault paths/names
+        // containing matching entries
+        // from the results of each
+        // of the prior two
+        // the Dictionary returned is keyed
+        // to the FIRST value in each
+        // entry from dcKeysInCommon,
+        // mapping it to the SECOND value
+        // in this way, each model's full file path
+        // is mapped to its Vault data
+        // 
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
 
         {
             var withBlock = dcKeysInCommon(dcMapFSysVsVault(dc), dVg3f1(dc));
             foreach (var ky in withBlock.Keys)
             {
-                it = withBlock.Item(ky);
+                var it = withBlock.get_Item(ky);
                 rt.Add(it(0), it(1));
             }
         }
-        dVg3f2 = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dVg3f3(Scripting.Dictionary dc)
+    public Dictionary dVg3f3(Dictionary dc)
     {
-        /// dVg3f3 -    given a Dictionary of Inventor Documents
-        /// returns
-        /// 
-        Scripting.Dictionary d2;
-        Scripting.Dictionary rt;
-        Variant ky;
-        Variant it;
+        // dVg3f3 - given a Dictionary of Inventor Documents
+        // returns
+        // 
+        Dictionary d2;
+        dynamic ky;
+        dynamic it;
 
         // rt =
         // New Scripting.Dictionary
         // d2 =
         // With
-        rt = dcKeysCombined(dc, dVg3f2(dc));
+        var rt = dcKeysCombined(dc, dVg3f2(dc));
+
         // For Each ky In .Keys
         // Stop
         // Next: End With
-
-        dVg3f3 = rt;
+        return rt;
     }
 
-    /// END of module dvlVault
+    // END of module dvlVault
 
-    /// 
+    // 
 
-    /// 
+    // 
     private string dvlVault()
     {
     }

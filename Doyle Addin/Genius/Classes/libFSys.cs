@@ -1,96 +1,74 @@
-﻿class SurroundingClass
+﻿using Microsoft.VisualBasic;
+
+namespace Doyle_Addin.Genius.Classes;
+
+public class libFSys
 {
-    public Scripting.FileSystemObject nuFso()
+    public static FileSystemObject nuFso()
     {
-        nuFso = new Scripting.FileSystemObject();
+        return new FileSystemObject();
     }
 
-    public Scripting.Folder fdUserHome()
+    public static Folder fdUserHome()
     {
-        fdUserHome = nuFso.GetFolder(Interaction.Environ("AppData")).ParentFolder;
+        return nuFso().GetFolder(Interaction.Environ("AppData")).ParentFolder;
     }
 
-    public string fnExt(string fn)
+    public static string fnExt(string fn)
     {
-        Variant ar;
-        long mx;
-
-        ar = Split(fn, ".");
-        mx = UBound(ar);
-        if (mx < 0)
-            fnExt = "";
-        else
-            fnExt = ar(mx);
+        var ar = Strings.Split(fn, ".");
+        var mx = ar.Length - 1;
+        return mx < 0 ? "" : ar[mx];
     }
 
-    public Scripting.Folder folderIfPresent(string Path, Scripting.Folder Base = null/* TODO Change to default(_) if this is not a reference type */)
+    public static Folder folderIfPresent(string Path, Folder Base = null)
     {
-        Scripting.Folder rt;
+        Folder rt;
 
         if (Base == null)
         {
-            {
-                var withBlock = nuFso();
-                if (withBlock.FolderExists(Path))
-                    rt = withBlock.GetFolder(Path);
-                else
-                    rt = null/* TODO Change to default(_) if this is not a reference type */;
-            }
+            var withBlock = nuFso();
+            rt = withBlock.FolderExists(Path) ? withBlock.GetFolder(Path) : null;
         }
         else
             rt = folderIfPresent(Base.Path + @"\" + Path);
 
-        folderIfPresent = rt;
+        return rt;
     }
 
-    public Scripting.File fileIfPresent(string Path, Scripting.Folder Base = null/* TODO Change to default(_) if this is not a reference type */)
+    public static Scripting.File fileIfPresent(string Path, Folder Base = null)
     {
         Scripting.File rt;
 
         if (Base == null)
         {
-            {
-                var withBlock = nuFso();
-                if (withBlock.FileExists(Path))
-                    rt = withBlock.GetFile(Path);
-                else
-                    rt = null/* TODO Change to default(_) if this is not a reference type */;
-            }
+            var withBlock = nuFso();
+            rt = withBlock.FileExists(Path) ? withBlock.GetFile(Path) : null;
         }
         else
             rt = fileIfPresent(Base.Path + @"\" + Path);
 
-        fileIfPresent = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcFilesIn(Scripting.Folder fd)
+    public static Dictionary dcFilesIn(Folder fd)
     {
-        Scripting.Dictionary rt;
-        Scripting.File fl;
-
-        rt = new Scripting.Dictionary();
-        if (!fd == null)
-        {
-            foreach (var fl in fd.Files)
-                rt.Add(fl.Name, fl);
-        }
-        dcFilesIn = rt;
+        var rt = new Dictionary();
+        if (fd == null) return rt;
+        foreach (Scripting.File fl in fd.Files)
+            rt.Add(fl.Name, fl);
+        return rt;
     }
     // send2clipBd dcFilesIn(nuFso.GetFolder(""))
-    // send2clipBd Join(dcFoldersIn(nuFso.GetFolder("C:\Doyle_Vault\Designs\doyle")).Keys, vbNewLine)
-    // send2clipBd Join(dcFilesIn(nuFso.GetFolder("W:\Parts Lists")).Keys, vbNewLine)
+    // send2clipBd Join(dcFoldersIn(nuFso.GetFolder("C:\Doyle_Vault\Designs\doyle")).Keys, vbCrLf)
+    // send2clipBd Join(dcFilesIn(nuFso.GetFolder("W:\Parts Lists")).Keys, vbCrLf)
 
-    public Scripting.Dictionary dcFoldersIn(Scripting.Folder fd)
+    public static Dictionary dcFoldersIn(Folder fd)
     {
-        Scripting.Dictionary rt;
-        Scripting.Folder fl;
-
-        rt = new Scripting.Dictionary();
-        if (!fd == null)
-        {
-            foreach (var fl in fd.SubFolders)
-                rt.Add(fl.Name, fl);
-        }
-        dcFoldersIn = rt;
+        var rt = new Dictionary();
+        if (fd == null) return rt;
+        foreach (Folder fl in fd.SubFolders)
+            rt.Add(fl.Name, fl);
+        return rt;
     }
 }

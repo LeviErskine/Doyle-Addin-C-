@@ -1,17 +1,14 @@
-﻿class SurroundingClass
+﻿class fmTest0 : Form
 {
-    /* TODO ERROR: Skipped SkippedTokensTrivia */
     private var VB_Name = "fmTest0";
-    /* TODO ERROR: Skipped SkippedTokensTrivia */
+
     private var VB_GlobalNameSpace = false;
-    /* TODO ERROR: Skipped SkippedTokensTrivia */
+
     private var VB_Creatable = false;
-    /* TODO ERROR: Skipped SkippedTokensTrivia */
+
     private var VB_PredeclaredId = true;
-    /* TODO ERROR: Skipped SkippedTokensTrivia */
+
     private var VB_Exposed = false;
-
-
 
     public long ft0g0f0(stdole.StdPicture im)
     {
@@ -20,7 +17,7 @@
             withBlock.imTNail.Picture = im;
             withBlock.Show(1);
         }
-        ft0g0f0 = 0;
+        return 0;
     }
 
     private void UserForm_QueryClose(int Cancel, int CloseMode

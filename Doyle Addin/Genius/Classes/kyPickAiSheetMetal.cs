@@ -1,163 +1,144 @@
-﻿class kyPickAiSheetMetal : kyPick
+﻿namespace Doyle_Addin.Genius.Classes;
+
+class kyPickAiSheetMetal : kyPick
 {
     private kyPick pk;
     private const string txVersion = "kyPickAiSheetMetal v0.0.0.1 [2022.03.08.1332]";
-    /// prior Versions
+    // prior Versions
 
-    /// ""
+    // ""
 
-    /// 
+    // 
 
-    /// kyPick Implementation code follows
+    // kyPick Implementation code follows
 
-    /// 
+    // 
 
     private kyPick kyPick_Itself()
     {
-        kyPick_Itself = this;
+        return this;
     }
 
-
-    private kyPick kyPick_WithInDc(Scripting.IDictionary Dict)
+    private kyPick kyPick_WithInDc(IDictionary Dict)
     {
         pk = pk.WithInDc(Dict);
-        kyPick_WithInDc = this;
+        return this;
     }
 
-    private kyPick kyPick_WithOutDc(Scripting.IDictionary Dict)
+    private kyPick kyPick_WithOutDc(IDictionary Dict)
     {
         pk = pk.WithOutDc(Dict);
-        kyPick_WithOutDc = this;
+        return this;
     }
 
-
-    private kyPick kyPick_AfterScanning(Scripting.IDictionary dSrc)
+    private kyPick kyPick_AfterScanning(IDictionary dSrc)
     {
-        Variant ky;
-
         {
-            var withBlock = dSrc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dSrc.Keys)
             {
                 {
-                    var withBlock1 = kyPick_DcFor(withBlock.Item(ky));
+                    var withBlock1 = kyPick_DcFor(dSrc.get_Item(ky));
                     if (withBlock1.Exists(ky))
-                        System.Diagnostics.Debugger.Break();
+                        Debugger.Break();
                     else
-                        withBlock1.Add(ky, dSrc.Item(ky));
+                        withBlock1.Add(ky, dSrc.get_Item(ky));
                 }
             }
         }
-        kyPick_AfterScanning = this;
+        return this;
     }
 
-
-    private Scripting.IDictionary kyPick_DcIn()
+    private IDictionary kyPick_DcIn()
     {
-        kyPick_DcIn = dcIn();
+        return dcIn();
     }
 
-    private Scripting.IDictionary kyPick_DcOut()
+    private IDictionary kyPick_DcOut()
     {
-        kyPick_DcOut = dcOut();
+        return dcOut();
     }
 
-
-    private Scripting.IDictionary kyPick_DcFor(Variant Item)
+    private IDictionary kyPick_DcFor(dynamic Item)
     {
-        Inventor.PartDocument ob; // .Document
-
-        ob = aiDocPart(aiDocument(obOf(Item)));
-        if (ob == null)
-            kyPick_DcFor = pk.dcFor(0);
-        else
-            kyPick_DcFor = g0f1(ob.ComponentDefinition);
+        PartDocument ob = // .Document
+            aiDocPart(aiDocument(obOf(Item)));
+        return ob == null ? pk.dcFor(0) : g0f1(ob.ComponentDefinition);
     }
-    /// 
+    // 
 
-    /// General Class handling code follows
+    // General Class handling code follows
 
-    /// 
+    // 
 
     private void Class_Initialize()
     {
         pk = new kyPick();
     }
-    /// 
+    // 
 
-    /// kyPickAiSheetMetal Class
+    // kyPickAiSheetMetal Class
 
-    /// implementation code follows
+    // implementation code follows
 
-    /// 
+    // 
 
     public kyPick Itself()
     {
-        Itself = this;
+        return this;
     }
 
-
-    public kyPick WithInDc(Scripting.Dictionary Dict)
+    public kyPick WithInDc(Dictionary Dict)
     {
-        WithInDc = kyPick_WithInDc(Dict);
+        return kyPick_WithInDc(Dict);
     }
 
-    public kyPick WithOutDc(Scripting.Dictionary Dict)
+    public kyPick WithOutDc(Dictionary Dict)
     {
-        WithOutDc = kyPick_WithOutDc(Dict);
+        return kyPick_WithOutDc(Dict);
     }
 
-
-    public Scripting.Dictionary dcIn()
+    public Dictionary dcIn()
     {
-        dcIn = pk.dcIn;
+        return pk.dcIn;
     }
 
-    public Scripting.Dictionary dcOut()
+    public Dictionary dcOut()
     {
-        dcOut = pk.dcOut;
+        return pk.dcOut;
     }
 
-
-    public kyPick AfterScanning(Scripting.Dictionary dSrc)
+    public kyPick AfterScanning(Dictionary dSrc)
     {
-        AfterScanning = kyPick_AfterScanning(dSrc);
+        return kyPick_AfterScanning(dSrc);
     }
 
-
-    public Scripting.IDictionary dcFor(Variant Item)
+    public IDictionary dcFor(dynamic Item)
     {
-        dcFor = kyPick_DcFor(Item);
+        return kyPick_DcFor(Item);
     }
-    /// 
+    // 
 
-    /// Internal support code follows
+    // Internal support code follows
 
-    /// 
+    // 
 
-    private Scripting.Dictionary g0f0(Inventor.PartDocument ob)
+    private Dictionary g0f0(PartDocument ob)
     {
-        if (ob == null)
-            g0f0 = pk.dcFor(0);
-        else
-            g0f0 = g0f1(ob.ComponentDefinition);
+        return ob == null ? pk.dcFor(0) : g0f1(ob.ComponentDefinition);
     }
 
-    private Scripting.Dictionary g0f1(Inventor.PartComponentDefinition ob)
+    private Dictionary g0f1(PartComponentDefinition ob)
     {
-        if (ob is Inventor.SheetMetalComponentDefinition)
-            g0f1 = pk.dcFor(ob.Document);
-        else
-            g0f1 = pk.dcFor(0);
+        return pk.dcFor(ob is SheetMetalComponentDefinition ? ob.Document : 0);
     }
-    /// 
+    // 
 
-    /// Version code follows
+    // Version code follows
 
-    /// 
+    // 
 
     public string Version()
     {
-        Version = txVersion;
+        return txVersion;
     }
 }

@@ -1,66 +1,62 @@
-﻿class kyPick
+﻿namespace Doyle_Addin.Genius.Classes;
+
+public class kyPick
 {
-    private Scripting.Dictionary dcGrpIn;
-    private Scripting.Dictionary dcGrpOut;
+    private Dictionary dcGrpIn;
+    private Dictionary dcGrpOut;
 
     private void Class_Initialize()
     {
-        dcGrpIn = new Scripting.Dictionary();
-        dcGrpOut = new Scripting.Dictionary();
+        dcGrpIn = new Dictionary();
+        dcGrpOut = new Dictionary();
     }
 
     public kyPick Itself()
     {
-        Itself = this;
+        return this;
     }
 
-    public kyPick WithInDc(Scripting.Dictionary Dict)
+    public kyPick WithInDc(Dictionary Dict)
     {
         dcGrpIn = dcNewIfNone(Dict);
-        WithInDc = this;
+        return this;
     }
 
-    public kyPick WithOutDc(Scripting.Dictionary Dict)
+    public kyPick WithOutDc(Dictionary Dict)
     {
         dcGrpOut = dcNewIfNone(Dict);
-        WithOutDc = this;
+        return this;
     }
 
-    public kyPick AfterScanning(Scripting.Dictionary dSrc)
+    public kyPick AfterScanning(Dictionary dSrc)
     {
-        Variant ky;
-
         {
-            var withBlock = dSrc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dSrc.Keys)
             {
                 {
-                    var withBlock1 = dcFor(withBlock.Item(ky));
+                    var withBlock1 = dcFor(dSrc.get_Item(ky));
                     if (withBlock1.Exists(ky))
-                        System.Diagnostics.Debugger.Break();
+                        Debugger.Break();
                     else
-                        withBlock1.Add(ky, dSrc.Item(ky));
+                        withBlock1.Add(ky, dSrc.get_Item(ky));
                 }
             }
         }
-        AfterScanning = this;
+        return this;
     }
 
-    public Scripting.Dictionary dcIn()
+    public Dictionary dcIn()
     {
-        dcIn = dcGrpIn;
+        return dcGrpIn;
     }
 
-    public Scripting.Dictionary dcOut()
+    public Dictionary dcOut()
     {
-        dcOut = dcGrpOut;
+        return dcGrpOut;
     }
 
-    public Scripting.Dictionary dcFor(Variant Item)
+    public Dictionary dcFor(dynamic Item)
     {
-        if (IsObject(Item))
-            dcFor = dcGrpIn;
-        else
-            dcFor = dcGrpOut;
+        return Item is not null ? dcGrpIn : dcGrpOut;
     }
 }

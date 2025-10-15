@@ -1,126 +1,110 @@
-﻿class libDcGeneral
+﻿using Microsoft.VisualBasic;
+
+namespace Doyle_Addin.Genius.Classes;
+
+public class libDcGeneral
 {
-    public Scripting.Dictionary dcCopy(Scripting.Dictionary dc)
+    public  static  Dictionary dcCopy(Dictionary dc)
     {
-        /// dcCopy -- return a new Dictionary
-        /// copying the contents of the
-        /// one supplied, including COPIES
-        /// of any Dictionary Objects within.
-        /// 
-        Scripting.Dictionary rt;
-        Scripting.Dictionary ck;
-        Variant bx;
-        Variant ky;
+        // dcCopy -- return a new Dictionary
+        // copying the contents of the
+        // one supplied, including COPIES
+        // of any Dictionary Objects within.
+        // 
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
 
         if (dc == null)
         {
         }
         else
         {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dc.Keys)
             {
-                bx = Array(withBlock.Item(ky));
-                ck = dcOb(obOf(bx(0)));
+                dynamic bx = new[] { dc.get_Item(ky) };
+                Dictionary ck = dcOb(obOf(bx(0)));
 
-                if (ck == null)
-                    rt.Add(ky, bx(0));
-                else
-                    rt.Add(ky, dcCopy(ck));
+                rt.Add(ky, ck == null ? bx(0) : dcCopy(ck));
             }
+
+            ;
         }
 
-        dcCopy = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcWith(Variant ky, Variant it, Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */)
+    public static  Dictionary dcWith(dynamic ky, dynamic it, Dictionary dc = null)
     {
         if (dc == null)
-            dcWith = dcWith(ky, it, new Scripting.Dictionary());
-        else
+            return dcWith(ky, it, new Dictionary());
         {
-            {
-                var withBlock = dc;
-                if (withBlock.Exists(ky))
-                    withBlock.Remove(ky);
-                withBlock.Add(ky, it);
-            }
-            dcWith = dc;
+            if (dc.Exists(ky))
+                dc.Remove(ky);
+            dc.Add(ky, it);
         }
+        return dc;
     }
 
-    public dcPopulator nuDcPopulator(Scripting.Dictionary Dict = null/* TODO Change to default(_) if this is not a reference type */, long Opts = 0)
+    public  static dcPopulator nuDcPopulator(Dictionary Dict = null, long Opts = 0)
     {
         {
             var withBlock = new dcPopulator();
-            nuDcPopulator = withBlock.Using(Dict, Opts);
+            return withBlock.Using(Dict, Opts);
         }
     }
 
-    public Variant dcItemIfPresent(Scripting.Dictionary dc, Variant ky, VbVarType vtMissing = )
+    public static  dynamic dcItemIfPresent(Dictionary dc, dynamic ky, VbVarType vtMissing = )
     {
         if (dc == null)
-            dcItemIfPresent = noVal(vtMissing);
-        else
+            return noVal(vtMissing);
+        if (dc.Exists(ky))
         {
-            var withBlock = dc;
-            if (withBlock.Exists(ky))
-            {
-                if (IsObject(withBlock.Item(ky)))
-                    dcItemIfPresent = withBlock.Item(ky);
-                else
-                    dcItemIfPresent = withBlock.Item(ky);
-            }
-            else if (vtMissing == Constants.vbObject)
-                dcItemIfPresent = noVal(vtMissing);
-            else
-                dcItemIfPresent = noVal(vtMissing);
+            return IsObject(dc.get_Item(ky)) ? dc.get_Item(ky) : dc.get_Item(ky);
         }
+
+        if (vtMissing == Constants.vbObject)
+            return noVal(vtMissing);
+        return noVal(vtMissing);
     }
 
-    public Scripting.Dictionary dcInDc(string dcKey, Scripting.Dictionary inDc)
+    public static  Dictionary dcInDc(string dcKey, Dictionary inDc)
     {
-        dcInDc = dcOb(obOf(dcItemIfPresent(inDc, dcKey, Constants.vbObject)));
+        return dcOb(obOf(dcItemIfPresent(inDc, dcKey, Constants.vbObject)));
     }
 
-    public Scripting.Dictionary dcInDcMk(Variant ky, Scripting.Dictionary dc)
+    public static  Dictionary dcInDcMk(dynamic ky, Dictionary dc)
     {
-        /// dcInDcMk --
-        /// 
-        Scripting.Dictionary rt;
+        // dcInDcMk --
+        // 
+        Dictionary rt;
 
         {
-            var withBlock = dc;
-            if (withBlock.Exists(ky))
-                rt = dcOb(withBlock.Item(ky));
+            if (dc.Exists(ky))
+                rt = dcOb(dc.get_Item(ky));
             else
             {
-                rt = new Scripting.Dictionary();
-                withBlock.Add(ky, rt);
+                rt = new Dictionary();
+                dc.Add(ky, rt);
             }
         }
 
-        dcInDcMk = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcOfKeys2match(Variant ls)
+    public static  Dictionary dcOfKeys2match(dynamic ls)
     {
-        /// dcOfKeys2match -- generate a Dictionary
-        /// mapping a supplied Key, or Array
-        /// of Keys to itself or themselves
-        /// '
-        /// primary purpose is to provide
-        /// a 'reference' Dictionary of Keys
-        /// to be sought in other Dictionaries
-        /// '
-        /// (formerly d4g4f2)
-        /// 
-        Scripting.Dictionary rt;
-        Variant ky;
+        // dcOfKeys2match -- generate a Dictionary
+        // mapping a supplied Key, or Array
+        // of Keys to itself or themselves
+        // '
+        // primary purpose is to provide
+        // a 'reference' Dictionary of Keys
+        // to be sought in other Dictionaries
+        // '
+        // (formerly d4g4f2)
+        // 
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
 
         if (IsArray(ls))
         {
@@ -130,95 +114,85 @@
         else
             rt.Add(ls, ls);
 
-        dcOfKeys2match = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcKeysInCommon(Scripting.Dictionary d0, Scripting.Dictionary d1, long pk = 0)
+    public static  Dictionary dcKeysInCommon(Dictionary d0, Dictionary d1, long pk = 0)
     {
-        /// dcKeysInCommon -- return intersection
-        /// of two Dictionary Objects based on
-        /// matching keys. Use optional pk value
-        /// to select which Dictionary's Items
-        /// to return in result:
-        /// 
-        /// 0 returns an array of Items from both
-        /// this is the default
-        /// 1 returns only Items from the first
-        /// 2 returns only Items from the second
-        /// 
-        /// NOTE that if either Dictionary Object
-        /// is not supplied (is Nothing), then
-        /// an empty Dictionary is returned,
-        /// just as if an empty Dictionary
-        /// had been supplied.
-        /// 
-        Scripting.Dictionary rt;
-        Variant ky;
-        Variant ls;
+        // dcKeysInCommon -- return intersection
+        // of two Dictionary Objects based on
+        // matching keys. Use optional pk value
+        // to select which Dictionary's Items
+        // to return in result:
+        // 
+        // 0 returns an array of Items from both
+        // this is the default
+        // 1 returns only Items from the first
+        // 2 returns only Items from the second
+        // 
+        // NOTE that if either Dictionary dynamic
+        // is not supplied (is Nothing), then
+        // an null Dictionary is returned,
+        // just as if an null Dictionary
+        // had been supplied.
+        // 
+        Dictionary rt;
 
         if (d0 == null)
-            rt = dcKeysInCommon(new Scripting.Dictionary(), d1);
+            rt = dcKeysInCommon(new Dictionary(), d1);
         else if (d1 == null)
-            rt = dcKeysInCommon(d0, new Scripting.Dictionary());
+            rt = dcKeysInCommon(d0, new Dictionary());
         else
         {
-            rt = new Scripting.Dictionary();
+            rt = new Dictionary();
             {
-                var withBlock = d0;
-                foreach (var ky in withBlock.Keys)
+                foreach (var ky in d0.Keys)
                 {
-                    if (d1.Exists(ky))
-                    {
-                        ls = Array(withBlock.Item(ky), d1.Item(ky));
-                        rt.Add(ky, Array(ls, ls(0), ls(1))(pk));
-                    }
+                    if (!d1.Exists(ky)) continue;
+                    dynamic ls = new[] { d0.get_Item(ky), d1.get_Item(ky) };
+                    rt.Add(ky, new[] { ls, ls(0), ls(1)}(pk) ;
                 }
             }
         }
-        dcKeysInCommon = rt;
+
+        return rt;
     }
 
-    public Scripting.Dictionary dcKeysMissing(Scripting.Dictionary dcWith, Scripting.Dictionary dcWout)
+    public  static Dictionary dcKeysMissing(Dictionary dcWith, Dictionary dcWout)
     {
-        /// dcKeysMissing -- return difference
-        /// of first Dictionary Object minus
-        /// those keys found in the second.
-        /// 
-        Scripting.Dictionary rt;
-        Variant ky;
+        // dcKeysMissing -- return difference
+        // of first Dictionary dynamic minus
+        // those keys found in the second.
+        // 
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
-            var withBlock = dcWith;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dcWith.Keys)
             {
                 if (dcWout.Exists(ky))
                 {
                 }
                 else
-                    rt.Add(ky, withBlock.Item(ky));
+                    rt.Add(ky, dcWith.get_Item(ky));
             }
         }
-        dcKeysMissing = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcKeysCombined(Scripting.Dictionary d0, Scripting.Dictionary d1, long pk = 0)
+    public static Dictionary dcKeysCombined(Dictionary d0, Dictionary d1, long pk = 0)
     {
-        /// dcKeysCombined -- return union
-        /// of two Dictionary Objects. For
-        /// keys in both, use optional pk
-        /// value to select which Dictionary's
-        /// Items to return in result:
-        /// 
-        /// 0 returns an array of Items from both
-        /// this is the default
-        /// 1 returns only Items from the first
-        /// 2 returns only Items from the second
-        /// 
-        Scripting.Dictionary rt;
-        Scripting.Dictionary ob;
-        Variant ky;
-        Variant ls;
+        // dcKeysCombined -- return union
+        // of two Dictionary Objects. For
+        // keys in both, use optional pk
+        // value to select which Dictionary's
+        // Items to return in result:
+        // 
+        // 0 returns an array of Items from both
+        // this is the default
+        // 1 returns only Items from the first
+        // 2 returns only Items from the second
+        // 
+        Dictionary rt;
 
         if (pk > 1)
             rt = dcKeysCombined(d1, d0, 1);
@@ -226,14 +200,13 @@
         {
             rt = dcKeysInCommon(d0, d1, pk);
 
-            foreach (var ls in Array(d0, d1))
+            foreach (var ls in new[] { d0, d1 })
             {
-                ob = ls;
                 {
-                    var withBlock = dcKeysMissing(ob, rt) // d0
-           ;
+                    var withBlock = dcKeysMissing(ls, rt) // d0
+                        ;
                     foreach (var ky in withBlock.Keys)
-                        rt.Add(ky, withBlock.Item(ky));
+                        rt.Add(ky, withBlock.get_Item(ky));
                 }
             }
         }
@@ -241,43 +214,38 @@
         // rt = dcKeysInCommon()
 
         if (d0 == null)
-            System.Diagnostics.Debugger.Break();
+            Debugger.Break();
         else if (d1 == null)
-            System.Diagnostics.Debugger.Break();
+            Debugger.Break();
         else
-        /// NOTE[2023.04.10.1449]
-        /// need to review what's going on here
-        /// this LOOKS like an effor to include items
-        /// left out of earlier operation, however,
-        /// it's not clear this stage isn't redundant.
+            // NOTE[2023.04.10.1449]
+            // need to review what's going on here
+            // this LOOKS like an effor to include items
+            // left out of earlier operation, however,
+            // it's not clear this stage isn't redundant.
         {
-            var withBlock = d0;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in d0.Keys)
             {
-                if (d1.Exists(ky))
+                if (!d1.Exists(ky)) continue;
+                dynamic ls = new[] { d0.get_Item(ky), d1.get_Item(ky) };
+                if (rt.Exists(ky))
                 {
-                    ls = Array(withBlock.Item(ky), d1.Item(ky));
-                    if (rt.Exists(ky))
-                    {
-                        if (ConvertToJson(Array(ls, ls(0), ls(1))(pk)) != ConvertToJson(rt.Item(ky)))
-                            System.Diagnostics.Debugger.Break();
-                    }
-                    else
-                        rt.Add(ky, Array(ls, ls(0), ls(1))(pk));
+                    if (ConvertToJson(new[] { ls, ls(0), ls(1))(pk)) != ConvertToJson(rt.get_Item(ky) });
+                    Debugger.Break();
                 }
+                else
+                    rt.Add(ky, new[] { ls, ls(0), ls(1))(pk) };
             }
         }
-        dcKeysCombined = rt;
+
+        return rt;
     }
 
-    public Scripting.Dictionary dcOfIdent(Variant src)
+    public static  Dictionary dcOfIdent(dynamic src)
     {
-        Scripting.Dictionary rt;
-        Variant ky;
+        var rt = new Dictionary();
 
-        rt = new Scripting.Dictionary();
-
-        if (IsArray(src))
+        if (src is Array)
         {
             foreach (var ky in src)
                 rt.Add(ky, ky);
@@ -285,246 +253,204 @@
         else
             rt.Add(src, src);
 
-        dcOfIdent = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcTransposed(Scripting.Dictionary dc)
+    public static  Dictionary dcTransposed(Dictionary dc)
     {
-        /// Transpose Key values of supplied
-        /// Dictionary with matching Item values.
-        /// 
-        /// As written, will ONLY work against
-        /// a Dictionary whose Item values,
-        /// like its Keys, are unique.
-        /// 
-        Scripting.Dictionary rt;
-        Variant fm;
+        // Transpose Key values of supplied
+        // Dictionary with matching Item values.
+        // 
+        // As written, will ONLY work against
+        // a Dictionary whose Item values,
+        // like its Keys, are unique.
+        // 
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
-            var withBlock = dc;
-            foreach (var fm in withBlock.Keys)
+            foreach (var fm in dc.Keys)
             {
-                if (rt.Exists(withBlock.Item(fm)))
-                    System.Diagnostics.Debugger.Break();
+                if (rt.Exists(dc.get_Item(fm)))
+                    Debugger.Break();
                 else
-                    rt.Add.Item(fm);/* TODO ERROR: Skipped SkippedTokensTrivia *//* TODO ERROR: Skipped SkippedTokensTrivia */
+                    rt.Add.get_Item(fm);
             }
         }
-        dcTransposed = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcTransGrouped(Scripting.Dictionary dc)
+    public static  Dictionary dcTransGrouped(Dictionary dc)
     {
-        /// dcTransGrouped
-        /// (derived from dcTransposed)
-        /// 
-        /// generate new Dictionary "tramsposing"
-        /// Key values with matching Item values
-        /// in supplied Dictionary.
-        /// 
-        /// because more than one Key might map to
-        /// the same Item, the returned Dictionary
-        /// maps each (Item) Key to a Dictionary of
-        /// the Keys which originally mapped to it.
-        /// 
-        /// each of these Dictionaries in turn
-        /// maps the original Key back to its
-        /// corresponding Item once more,
-        /// since, HEY, it might as well!
-        /// 
-        /// obviously, an effor to work around
-        /// the main limitation of the original
-        /// dcTransposed, which can only work
-        /// against a Dictionary whose Items,
-        /// like its Keys, are unique.
-        /// 
-        Scripting.Dictionary rt;
-        Scripting.Dictionary it;
-        Variant ky;
-        Variant ar;
+        // dcTransGrouped
+        // (derived from dcTransposed)
+        // 
+        // generate new Dictionary "tramsposing"
+        // Key values with matching Item values
+        // in supplied Dictionary.
+        // 
+        // because more than one Key might map to
+        // the same Item, the returned Dictionary
+        // maps each (Item) Key to a Dictionary of
+        // the Keys which originally mapped to it.
+        // 
+        // each of these Dictionaries in turn
+        // maps the original Key back to its
+        // corresponding Item once more,
+        // since, HEY, it might as well!
+        // 
+        // obviously, an effor to work around
+        // the main limitation of the original
+        // dcTransposed, which can only work
+        // against a Dictionary whose Items,
+        // like its Keys, are unique.
+        // 
+        Dictionary it;
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dc.Keys)
             {
-                ar = Array(withBlock.Item(ky));
+                dynamic ar = new[] { dc.get_Item(ky) };
                 if (!rt.Exists(ar(0)))
-                    rt.Add(ar(0), new Scripting.Dictionary());
-                dcOb(rt.Item(ar(0))).Add(ky, ar(0));
+                    rt.Add(ar(0), new Dictionary());
+                dcOb(rt.get_Item(ar(0))).Add(ky, ar(0));
             }
+
+            ;
         }
-        dcTransGrouped = rt;
+        return rt;
     }
 
-    public long dcDepth(Scripting.Dictionary dc)
+    public static  long dcDepth(Dictionary dc)
     {
-        /// this function extracts the "depth"
-        /// of the supplied Dictionary object,
-        /// that is, how many "levels" of
-        /// Dictionary objects it contains,
-        /// counting the supplied Dictionary
-        /// itself. When an actual Dictionary
-        /// is supplied, the value returned
-        /// will be at least 1. It will only
-        /// be zero when Nothing is supplied.
-        /// 
-        long rt;
-        long ck;
-        Variant ky;
+        // this function extracts the "depth"
+        // of the supplied Dictionary dynamic,
+        // that is, how many "levels" of
+        // Dictionary objects it contains,
+        // counting the supplied Dictionary
+        // itself. When an actual Dictionary
+        // is supplied, the value returned
+        // will be at least 1. It will only
+        // be zero when Nothing is supplied.
+        // 
 
         if (dc == null)
-            dcDepth = 0;
-        else
+            return 0;
+        long rt = 0;
+
         {
-            rt = 0;
-
+            foreach (var ky in dc.Keys)
             {
-                var withBlock = dc;
-                foreach (var ky in withBlock.Keys)
-                {
-                    ck = dcDepth(dcOb(obOf(withBlock.Item(ky))));
-                    if (ck > rt)
-                        rt = ck;
-                }
+                var ck = dcDepth(dcOb(obOf(dc.get_Item(ky))));
+                if (ck > rt)
+                    rt = ck;
             }
-
-            dcDepth = 1 + rt;
         }
+
+        return 1 + rt;
     }
 
-    public Scripting.Dictionary dcFlattenDown(Scripting.Dictionary Dict, long DownTo = 1)
+    public static  Dictionary dcFlattenDown(Dictionary Dict, long DownTo = 1)
     {
-        /// this function partially "flattens"
-        /// a hierarchy of Dictionary objects
-        /// (a Dictionary of Dictionaries,
-        /// potentially of more Dictionaries)
-        /// starting from the top, working
-        /// down to 'DownTo' levels
-        /// 
-        Scripting.Dictionary rt;
-        Scripting.Dictionary sd;
-        Variant ky;
-        Variant it;
-        Variant sk;
+        // this function partially "flattens"
+        // a hierarchy of Dictionary objects
+        // (a Dictionary of Dictionaries,
+        // potentially of more Dictionaries)
+        // starting from the top, working
+        // down to 'DownTo' levels
+        // 
 
         if (Dict == null)
-            dcFlattenDown = null/* TODO Change to default(_) if this is not a reference type */;
-        else
-        {
-            rt = new Scripting.Dictionary();
-
-            {
-                var withBlock = Dict;
-                foreach (var ky in withBlock.Keys)
-                {
-                    it = Array(withBlock.Item(ky));
-
-                    if (DownTo > 0)
-                        sd = dcFlattenDown(dcOb(obOf(it(0))), DownTo - 1);
-                    else
-                        sd = null/* TODO Change to default(_) if this is not a reference type */;
-
-                    if (sd == null)
-                        rt.Add(ky, it(0));
-                    else
-                    {
-                        var withBlock1 = sd;
-                        foreach (var sk in withBlock1.Keys)
-                            rt.Add(ky + "." + sk, withBlock1.Item(sk));
-                    }
-                }
-            }
-
-            dcFlattenDown = rt;
-        }
-    }
-
-    public Scripting.Dictionary dcFlattenUp(Scripting.Dictionary Dict, long DownFrom = 0)
-    {
-        /// this function partially "flattens"
-        /// a hierarchy of Dictionary objects
-        /// (a Dictionary of Dictionaries,
-        /// potentially of more Dictionaries)
-        /// starting BELOW the top, skipping
-        /// DownFrom levels before "flattening"
-        /// Dictionaries below and at that level
-        /// 
-        Scripting.Dictionary rt;
-        Scripting.Dictionary sd;
-        Variant ky;
-        Variant it;
-        Variant sk;
-
-        if (Dict == null)
-            dcFlattenUp = null/* TODO Change to default(_) if this is not a reference type */;
-        else
-        {
-            rt = new Scripting.Dictionary();
-
-            {
-                var withBlock = Dict;
-                foreach (var ky in withBlock.Keys)
-                {
-                    it = Array(withBlock.Item(ky));
-                    sd = dcOb(obOf(it(0))); // dcFlattenUp(, DownFrom - 1)
-
-                    if (sd == null)
-                        rt.Add(ky, it(0));
-                    else if (DownFrom > 0)
-                        rt.Add(ky, dcFlattenUp(sd, DownFrom - 1));
-                    else
-                    {
-                        var withBlock1 = dcFlattenUp(sd, 0);
-                        foreach (var sk in withBlock1.Keys)
-                            rt.Add(ky + "." + sk, withBlock1.Item(sk));
-                    }
-                }
-            }
-
-            dcFlattenUp = rt;
-        }
-    }
-
-    public Scripting.Dictionary dcOfDcRekeyedSecToPri(Scripting.Dictionary dc)
-    {
-        /// dcOfDcRekeyedSecToPri - take Dictionary of Dictionaries
-        /// and return Dictionary of Dictionaries
-        /// with Secondary Keys promoted to Primary,
-        /// and Primary demoted to Secondary
-        /// 
-        Scripting.Dictionary rt;
-        Scripting.Dictionary sb;
-        Variant kp;
-        Variant ks;
-        Variant ar;
-
-        rt = new Scripting.Dictionary();
+            return null;
+        var rt = new Dictionary();
 
         {
-            var withBlock = dc;
-            foreach (var kp in withBlock.Keys)
+            foreach (var ky in Dict.Keys)
             {
-                sb = dcOb(withBlock.Item(kp));
-                if (sb == null)
-                    // Stop
-                    Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Breakpoint Landing
+                dynamic it = new[] { Dict.get_Item(ky) };
+
+                var sd = DownTo > 0 ? dcFlattenDown(dcOb(obOf(it(0))), DownTo - 1) : null;
+
+                if (sd == null)
+                    rt.Add(ky, it(0));
                 else
                 {
-                    var withBlock1 = sb;
-                    foreach (var ks in withBlock1.Keys)
+                    foreach (var sk in sd.Keys)
+                        rt.Add(ky + "." + sk, sd.get_Item(sk));
+                }
+            }
+        }
+
+        return rt;
+    }
+
+    public static  Dictionary dcFlattenUp(Dictionary Dict, long DownFrom = 0)
+    {
+        // this function partially "flattens"
+        // a hierarchy of Dictionary objects
+        // (a Dictionary of Dictionaries,
+        // potentially of more Dictionaries)
+        // starting BELOW the top, skipping
+        // DownFrom levels before "flattening"
+        // Dictionaries below and at that level
+        // 
+
+        if (Dict == null)
+            return null;
+        var rt = new Dictionary();
+
+        {
+            foreach (var ky in Dict.Keys)
+            {
+                dynamic it = new[] { Dict.get_Item(ky) };
+                Dictionary sd = dcOb(obOf(it(0)));
+
+                if (sd == null)
+                    rt.Add(ky, it(0));
+                else if (DownFrom > 0)
+                    rt.Add(ky, dcFlattenUp(sd, DownFrom - 1));
+                else
+                {
+                    var withBlock1 = dcFlattenUp(sd, 0);
+                    foreach (var sk in withBlock1.Keys)
+                        rt.Add(ky + "." + sk, withBlock1.get_Item(sk));
+                }
+            }
+        }
+
+        return rt;
+    }
+
+    public static  Dictionary dcOfDcRekeyedSecToPri(Dictionary dc)
+    {
+        // dcOfDcRekeyedSecToPri - take Dictionary of Dictionaries
+        // and return Dictionary of Dictionaries
+        // with Secondary Keys promoted to Primary,
+        // and Primary demoted to Secondary
+        // 
+
+        var rt = new Dictionary();
+
+        {
+            foreach (var kp in dc.Keys)
+            {
+                Dictionary sb = dcOb(dc.get_Item(kp));
+                if (sb == null)
+                    // Stop
+                    Debug.Print(""); // Breakpoint Landing
+                else
+                {
+                    foreach (var ks in sb.Keys)
                     {
-                        ar = Array(withBlock1.Item(ks));
+                        dynamic ar = new[] { sb.get_Item(ks) };
                         {
-                            var withBlock2 = rt;
-                            if (!withBlock2.Exists(ks))
-                                withBlock2.Add(ks, new Scripting.Dictionary());
+                            if (!rt.Exists(ks))
+                                rt.Add(ks, new Dictionary());
 
                             {
-                                var withBlock3 = dcOb(withBlock2.Item(ks));
+                                var withBlock3 = dcOb(rt.get_Item(ks));
                                 if (withBlock3.Exists(kp))
-                                    System.Diagnostics.Debugger.Break();
+                                    Debugger.Break();
                                 else
                                     withBlock3.Add(kp, ar(0));
                             }
@@ -534,132 +460,124 @@
             }
         }
 
-        dcOfDcRekeyedSecToPri = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcCmpTextOf2items(string id0, string id1, Variant it0, Variant it1)
+    public static  Dictionary dcCmpTextOf2items(string id0, string id1, dynamic it0, dynamic it1)
     {
-        Scripting.Dictionary rt;
-        Scripting.Dictionary dc0;
-        Scripting.Dictionary dc1;
-        object ob0;
-        object ob1;
-        string tx0;
-        string tx1;
-        long ck;
-        long c2;
+        Dictionary rt;
+        Dictionary dc0;
+        Dictionary dc1;
+        dynamic ob0;
+        dynamic ob1;
 
-        ck = IIf(IsObject(it0), 1, 0) + IIf(IsObject(it1), 2, 0) + IIf(IsEmpty(it0), 4, 0) + IIf(IsEmpty(it1), 8, 0);
+        long ck = IIf(IsObject(it0), 1, 0) + IIf(IsObject(it1), 2, 0) + IIf(IsEmpty(it0), 4, 0) +
+                  IIf(IsEmpty(it1), 8, 0);
         if (ck & 1)
             ck = ck + Interaction.IIf(it0 == null, 4, 0);
         if (ck & 2)
             ck = ck + Interaction.IIf(it1 == null, 8, 0);
-        /// UPDATE[2021.12.09]:
-        /// Added trap for Nothing Objects
-        /// to treat them as Empty as well
 
-        c2 = ck & 12; // $11XX
+        // UPDATE[2021.12.09]:
+        // Added trap for Nothing Objects
+        // to treat them as null as well
+        var c2 = ck & 12; // $11XX
         if (c2)
         {
-            // is Empty/Nothing
+            // is null/Nothing
             {
                 var withBlock = nuDcPopulator();
-                if (c2 == 12)
-                    // are equally Empty
-                    rt = withBlock.Setting("==", "").Dictionary();
-                else if (c2 == 8)
+                rt = c2 switch
+                {
+                    // are equally null
+                    12 => withBlock.Setting("==", "").Dictionary(),
                     // and id0 needs processed
                     // If ck And 1 Then
-                    // rt = dcCmpTextOf2dc('        dcOb(it0), .Dictionary()'    )
+                    // rt = dcCmpTextOf2dc(' dcOb(it0), .Dictionary()' )
                     // Else
-                    rt = withBlock.Setting(id0, it0).Dictionary();
-                else
-                    // and id1 needs processed
-                    // If ck And 2 Then
-                    // rt = dcCmpTextOf2dc('        .Dictionary(), dcOb(it1)'    )
-                    // Else
-                    rt = withBlock.Setting(id1, it1).Dictionary();
-            }
-        }
-        else if (ck == 3)
-            // of comparable Dictionaries.
-            // compare these recursively
-            rt = dcCmpTextOf2dc(dcOb(it0), dcOb(it1));
-        else if (ck == 0)
-        {
-            // just a couple of String
-            // or (hopefully) String-
-            // compatible values.
-            // compare them directly.
-            tx0 = System.Convert.ToHexString(it0);
-            tx1 = System.Convert.ToHexString(it1);
-
-            // rt = New Scripting.Dictionary
-            // With rt
-            {
-                var withBlock = nuDcPopulator();
-                if (tx0 == tx1)
-                    rt = withBlock.Setting("==", tx0).Dictionary();
-                else
-                    rt = withBlock.Setting(id0, tx0).Setting(id1, tx1).Dictionary();
+                    8 => withBlock.Setting(id0, it0).Dictionary(),
+                    _ => withBlock.Setting(id1, it1).Dictionary()
+                };
             }
         }
         else
-        // can't compare them in any way
-        // just add each on its own side
-        {
-            var withBlock = nuDcPopulator();
-            rt = withBlock.Setting(id0, it0).Setting(id1, it1).Dictionary();
-        }
+            switch (ck)
+            {
+                // of comparable Dictionaries.
+                // compare these recursively
+                case 3:
+                    rt = dcCmpTextOf2dc(dcOb(it0), dcOb(it1));
+                    break;
+                case 0:
+                {
+                    // just a couple of String
+                    // or (hopefully) String-
+                    // compatible values.
+                    // compare them directly.
+                    var tx0 = Convert.ToHexString(it0);
+                    var tx1 = Convert.ToHexString(it1);
 
-        dcCmpTextOf2items = rt;
+                    // rt = New Scripting.Dictionary
+                    // With rt
+                    {
+                        var withBlock = nuDcPopulator();
+                        rt = tx0 == tx1
+                            ? (Dictionary)withBlock.Setting("==", tx0).Dictionary()
+                            : (Dictionary)withBlock.Setting(id0, tx0).Setting(id1, tx1).Dictionary();
+                    }
+                    break;
+                }
+                // can't compare them in any way
+                // just add each on its own side
+                default:
+                {
+                    var withBlock = nuDcPopulator();
+                    rt = withBlock.Setting(id0, it0).Setting(id1, it1).Dictionary();
+                    break;
+                }
+            }
+
+        return rt;
     }
 
-    public Scripting.Dictionary dcCmpTextOf2dc(Scripting.Dictionary dc0, Scripting.Dictionary dc1)
+    public static  Dictionary dcCmpTextOf2dc(Dictionary dc0, Dictionary dc1)
     {
-        Scripting.Dictionary rt;
-        Scripting.Dictionary qi;
-        string nm0;
-        string nm1;
+        Dictionary rt;
+        Dictionary qi;
         string tx0;
         string tx1;
-        Variant ky;
         string nm;
 
-        nm0 = "src0";
-        nm1 = "src1";
+        const string nm0 = "src0";
+        const string nm1 = "src1";
 
         if (dc0 == null)
-            rt = dcCmpTextOf2dc(new Scripting.Dictionary(), dc1);
+            rt = dcCmpTextOf2dc(new Dictionary(), dc1);
         else if (dc1 == null)
-            rt = dcCmpTextOf2dc(dc0, new Scripting.Dictionary());
+            rt = dcCmpTextOf2dc(dc0, new Dictionary());
         else
         {
-            rt = new Scripting.Dictionary();
+            rt = new Dictionary();
 
             {
-                var withBlock = dc0 // add all from wb0
-       ;
                 // and matching from wb1
-                foreach (var ky in withBlock.Keys)
+                foreach (var ky in dc0.Keys)
                 {
-                    // tx0 = CStr(.Item(ky))
+                    // tx0 = CStr(.get_Item(ky))
 
                     // qi = New Scripting.Dictionary
                     // rt.Add ky, qi
 
-                    if (dc1.Exists(ky))
-                        rt.Add(ky, dcCmpTextOf2items(nm0, nm1, withBlock.Item(ky), dc1.Item(ky)));
-                    else
-                        // qi.Add nm0, tx0
-                        rt.Add(ky, dcCmpTextOf2items(nm0, nm1, withBlock.Item(ky), Empty));
+                    rt.Add(ky,
+                        dc1.Exists(ky)
+                            ? dcCmpTextOf2items(nm0, nm1, dc0.get_Item(ky), dc1.get_Item(ky))
+                            // qi.Add nm0, tx0
+                            : dcCmpTextOf2items(nm0, nm1, dc0.get_Item(ky), null));
                 }
             }
 
             {
-                var withBlock = dc1 // add any missed from wb1
-       ;
-                foreach (var ky in withBlock.Keys)
+                foreach (var ky in dc1.Keys)
                 {
                     if (rt.Exists(ky))
                     {
@@ -667,61 +585,57 @@
                     else
                         // so add it now
 
-                        // tx1 = CStr(.Item(ky))
+                        // tx1 = CStr(.get_Item(ky))
                         // 
                         // qi = New Scripting.Dictionary
                         // qi.Add nm1, tx1
                         // rt.Add ky, qi
-                        rt.Add(ky, dcCmpTextOf2items(nm0, nm1, Empty, withBlock.Item(ky)));
+                        rt.Add(ky, dcCmpTextOf2items(nm0, nm1, null, dc1.get_Item(ky)));
                 }
             }
         }
 
-        dcCmpTextOf2dc = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcCmpTextOf2subDc(Scripting.Dictionary dc, string k0, string k1)
+    public static  Dictionary dcCmpTextOf2subDc(Dictionary dc, string k0, string k1)
     {
-        Scripting.Dictionary rt;
-
-        rt = dcCmpTextOf2dc(dcInDc(k0, dc), dcInDc(k1, dc));
-        Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */
-        dcCmpTextOf2subDc = rt;
+        var rt = dcCmpTextOf2dc(dcInDc(k0, dc), dcInDc(k1, dc));
+        Debug.Print("");
+        return rt;
     }
 
-    public Scripting.Dictionary dcWBQbyCmpResult(Scripting.Dictionary dc)
+    public static  Dictionary dcWBQbyCmpResult(Dictionary dc)
     {
-        Scripting.Dictionary rt;
-        Scripting.Dictionary ck;
-        Scripting.Dictionary gp;
-        Variant ky;
-        Variant gk;
-
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
 
         {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dc.Keys)
             {
-                ck = withBlock.Item(ky);
+                Dictionary ck = dc.get_Item(ky);
 
-                if (ck.Count > 1)
-                    gk = "!=";
-                else if (ck.Count < 1)
+                dynamic gk;
+                switch (ck.Count)
                 {
-                    System.Diagnostics.Debugger.Break(); // because SOMETHING went wrong
-                    gk = "**";
+                    case > 1:
+                        gk = "!=";
+                        break;
+                    case < 1:
+                        Debugger.Break(); // because SOMETHING went wrong
+                        gk = "**";
+                        break;
+                    default:
+                        gk = ck.Keys(0);
+                        break;
                 }
-                else
-                    gk = ck.Keys(0);
 
                 {
-                    var withBlock1 = rt;
-                    if (withBlock1.Exists(gk))
-                        gp = withBlock1.Item(gk);
+                    Dictionary gp;
+                    if (rt.Exists(gk))
+                        gp = rt.get_Item(gk);
                     else
                     {
-                        gp = new Scripting.Dictionary();
+                        gp = new Dictionary();
                         rt.Add(gk, gp);
                     }
 
@@ -730,6 +644,6 @@
             }
         }
 
-        dcWBQbyCmpResult = rt;
+        return rt;
     }
 }

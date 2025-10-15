@@ -1,43 +1,99 @@
-﻿class libFmSelectors
-{
-    public string lbxPickedStr(MSForms.ListBox lbx, string dlm = Constants.vbVerticalTab)
-    {
-        long dw;
-        long mx;
-        long dx;
-        string rt;
+﻿using Microsoft.VisualBasic;
 
-        dw = Strings.Len(dlm);
+namespace Doyle_Addin.Genius.Classes;
+
+public class libFmSelectors
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="lbx"></param>
+    /// <param name="dlm"></param>
+    /// <returns></returns>
+    public static string lbxPickedStr(ListBox lbx, string dlm = Constants.vbVerticalTab)
+    {
+        long dw = Strings.Len(dlm);
         {
-            var withBlock = lbx;
-            rt = "";
-            mx = withBlock.ListCount - 1;
-            for (dx = 0; dx <= mx; dx++)
+            var rt = "";
+            long mx = lbx.Items.Count - 1;
+            for (long dx = 0; dx <= mx; dx++)
             {
-                if (withBlock.Selected(dx))
-                    rt = rt + dlm;/* TODO ERROR: Skipped SkippedTokensTrivia *//* TODO ERROR: Skipped SkippedTokensTrivia */
+                if (lbx.GetSelected((int)dx))
+                    rt = rt + dlm + (lbx.Items[(int)dx]?.ToString() ?? "");
             }
-            lbxPickedStr = Mid(rt, 1 + dw);
+
+            return Strings.Mid(rt, (int)(1 + dw));
         }
     }
 
-    public Variant lbxPicked(MSForms.ListBox lbx, string dlm = Constants.vbVerticalTab)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="lbx"></param>
+    /// <param name="dlm"></param>
+    /// <returns></returns>
+    public static dynamic lbxPicked(ListBox lbx, string dlm = Constants.vbVerticalTab)
     {
-        lbxPicked = Split(lbxPickedStr(lbx, dlm), dlm);
+        return Strings.Split(lbxPickedStr(lbx, dlm), dlm);
     }
 
-    public fmSelectorList nuSelector()
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public static fmSelectorList nuSelector()
     {
-        nuSelector = new fmSelectorList();
+        return new fmSelectorList();
     }
 
-    public fmSelectorV2 nuSelectorV2()
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public static fmSelectorV2 nuSelectorV2()
     {
-        nuSelectorV2 = new fmSelectorV2();
+        return new fmSelectorV2();
     }
 
-    public fmSelectorList nuSelFromDict(Scripting.Dictionary dc, string hOhKay = "", string mOhKay = "", string hCancl = "", string mCancl = "", string hNoSel = "", string mNoSel = "")
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="dc"></param>
+    /// <param name="hOhKay"></param>
+    /// <param name="mOhKay"></param>
+    /// <param name="hCancl"></param>
+    /// <param name="mCancl"></param>
+    /// <param name="hNoSel"></param>
+    /// <param name="mNoSel"></param>
+    /// <returns></returns>
+    public static fmSelectorList nuSelFromDict(System.Collections.IDictionary dc, string hOhKay = "",
+        string mOhKay = "",
+        string hCancl = "",
+        string mCancl = "", string hNoSel = "", string mNoSel = "")
     {
-        nuSelFromDict = nuSelector().SetHdrOK(Interaction.IIf(Strings.Len(hOhKay) > 0, hOhKay, "Confirm Selection")).SetMsgOK(IIf(Strings.Len(mOhKay) > 0, mOhKay, Join(Array("Action will proceed using", "%%%", "(Click CANCEL to quit with no action)"), Constants.vbNewLine))).SetHdrCancel(Interaction.IIf(Strings.Len(hCancl) > 0, hCancl, "Cancel Operation?")).SetMsgCancel(IIf(Strings.Len(mCancl) > 0, mCancl, Join(Array("No action will be taken on", "%%%"), Constants.vbNewLine))).SetHdrNoSelection(Interaction.IIf(Strings.Len(hNoSel) > 0, hNoSel, "No Item Selected!")).SetMsgNoSelection(IIf(Strings.Len(mNoSel) > 0, mNoSel, Join(Array("Do you wish to cancel the operation?", "(Click NO to return to list)"), Constants.vbNewLine))).WithList(dc.Keys);
+        return nuSelector().SetHdrOK((string)Interaction.IIf(Strings.Len(hOhKay) > 0, hOhKay, "Confirm Selection"))
+            .SetMsgOK(
+                (string)Interaction.IIf(Strings.Len(mOhKay) > 0, mOhKay, Strings.Join([
+                        "Action will proceed using",
+                        "%%%",
+                        "(Click CANCEL to quit with no action)"
+                    ],
+                    Constants.vbCrLf))).SetHdrCancel((string)Interaction.IIf(Strings.Len(hCancl) > 0,
+                hCancl,
+                "Cancel Operation?")).SetMsgCancel((string)Interaction.IIf(Strings.Len(mCancl) > 0,
+                mCancl,
+                Strings.Join([
+                        "No action will be taken on",
+                        "%%%"
+                    ],
+                    Constants.vbCrLf))).SetHdrNoSelection((string)Interaction.IIf(Strings.Len(hNoSel) > 0,
+                hNoSel,
+                "No Item Selected!")).SetMsgNoSelection((string)Interaction.IIf(Strings.Len(mNoSel) > 0,
+                mNoSel,
+                Strings.Join([
+                        "Do you wish to cancel the operation?",
+                        "(Click NO to return to list)"
+                    ],
+                    Constants.vbCrLf))).WithList(dc.Keys);
     }
 }

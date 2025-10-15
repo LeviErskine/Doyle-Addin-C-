@@ -1,309 +1,268 @@
-﻿class SurroundingClass
+﻿using Microsoft.VisualBasic;
+using stdole;
+
+namespace Doyle_Addin.Genius.Classes;
+
+class Module1
+
 {
-    public Scripting.Dictionary dcCutTimePerimeter(Inventor.Document ad, Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */, long incTop = 0)
+    public static Dictionary dcCutTimePerimeter(Document ad, Dictionary dc = null, bool incTop = false)
     {
-        Scripting.Dictionary rt;
-        Inventor.Document ActiveDoc;
-        Inventor.Document pt;
-        Variant ky;
+        Document ActiveDoc;
 
         // If dc Is Nothing Then
-        // dcCutTimePerimeter = dcCutTimePerimeter(            ad, New Scripting.Dictionary, incTop        )
+        // dcCutTimePerimeter = dcCutTimePerimeter( ad, New Scripting.Dictionary, incTop )
         // Else
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
 
         {
             var withBlock = dcAiDocComponents(ad, dc, incTop);
             foreach (var ky in withBlock.Keys)
             {
-                pt = aiDocument(withBlock.Item(ky));
-                rt.Addpt.PropertySets.Item(gnDesign).Item(pnPartNum).Value(null/* Conversion error: Set to default value for this argument */, fpPerimeterInch(pt));
+                Document pt = aiDocument(withBlock.get_Item(ky));
+                rt.Addpt.PropertySets.get_Item(gnDesign).get_Item(pnPartNum).Value(null, fpPerimeterInch(pt));
             }
         }
 
-        dcCutTimePerimeter = rt;
+        return rt;
     }
     // Debug.Print dumpLsKeyVal(dcCutTimePerimeter(ThisApplication.ActiveDocument))
 
-    public long mdl1g0f0()
+    public static long mdl1g0f0()
     {
-        Scripting.Dictionary dc;
-        Variant ky;
-        Inventor.Document ad;
         // Dim ps As Inventor.PropertySet
-        Inventor.Property pr;
-
-        dc = dcAssyDocComponents(ThisApplication.Documents.ItemByName(@"C:\Doyle_Vault\Designs\Misc\andrewT\02\02-weldmentStd-01.iam"));
+        var dc =
+            dcAssyDocComponents(
+                ThisApplication.Documents.ItemByName(@"C:\Doyle_Vault\Designs\Misc\andrewT\02\02-weldmentStd-01.iam"));
         {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dc.Keys)
             {
-                ad = aiDocument(withBlock.Item(ky));
+                Document ad = aiDocument(dc.get_Item(ky));
                 {
                     var withBlock1 = dcGeniusProps(ad);
-                    if (withBlock1.Exists(pnRawMaterial))
+                    if (!withBlock1.Exists(pnRawMaterial)) continue;
+                    Property pr = ad.PropertySets(gnCustom).get_Item(pnRawMaterial);
                     {
-                        pr = ad.PropertySets(gnCustom).Item(pnRawMaterial);
+                        var withBlock2 = pr;
+                        Debug.Print.Value();
+
+                        if (.Value Like "FM-*");
                         {
-                            var withBlock2 = pr;
-                            Debug.Print.Value();
-                            ;/* Cannot convert MultiLineIfBlockSyntax, System.NotSupportedException: LikeExpression not supported!
-   at ICSharpCode.CodeConverter.CSharp.SyntaxKindExtensions.ConvertToken(SyntaxKind t, TokenContext context) in /home/runner/work/CodeConverter/CodeConverter/.temp/codeconverter/ICSharpCode.CodeConverter/CSharp/SyntaxKindExtensions.cs:line 278
-   at ICSharpCode.CodeConverter.CSharp.VisualBasicConverter.NodesVisitor.VisitBinaryExpression(BinaryExpressionSyntax node) in /home/runner/work/CodeConverter/CodeConverter/.temp/codeconverter/ICSharpCode.CodeConverter/CSharp/NodesVisitor.cs:line 1415
-   at Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor`1.Visit(SyntaxNode node)
-   at ICSharpCode.CodeConverter.CSharp.CommentConvertingNodesVisitor.DefaultVisit(SyntaxNode node) in /home/runner/work/CodeConverter/CodeConverter/.temp/codeconverter/ICSharpCode.CodeConverter/CSharp/CommentConvertingNodesVisitor.cs:line 28
-   at ICSharpCode.CodeConverter.CSharp.VisualBasicConverter.MethodBodyVisitor.VisitMultiLineIfBlock(MultiLineIfBlockSyntax node) in /home/runner/work/CodeConverter/CodeConverter/.temp/codeconverter/ICSharpCode.CodeConverter/CSharp/MethodBodyVisitor.cs:line 353
-   at Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor`1.Visit(SyntaxNode node)
-   at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisit(SyntaxNode node) in /home/runner/work/CodeConverter/CodeConverter/.temp/codeconverter/ICSharpCode.CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 27
+                            with new fmTest1;
 
-Input: 
-                        If .Value Like "FM-*" Then
-                            With New fmTest1
-                                If .AskAbout(ad) = vbYes Then
-                                    With .ItemData
-                                        '
-                                        Stop
-                                        pr.Value = .Item(pnRawMaterial)
-                                    End With
-                                End If
-                            End With
-                        End If
+                            if (.AskAbout(ad) = vbYes);
+                            {
+                                with.ItemData;
+                            }
 
- */
+                            pr.Value =  .get_Item(pnRawMaterial);
+                            end with
                         }
-                    }
-                    else
-                    {
+                        end With
                     }
                 }
             }
         }
     }
-    // Debug.Print cnGnsDoyle.Execute("select I.ItemID, I.Thickness, I.Item, I.Description1 from vgMfiItems as I where I.Family='DSHEET'").GetString
+}
+// Debug.Print cnGnsDoyle.Execute("select I.ItemID, I.Thickness, I.Item, I.Description1 from vgMfiItems as I where I.Family='DSHEET'").GetString
 
-    public long mdl1g1f0()
+public static long mdl1g1f0()
+{
     {
+        var withBlock = new fmTest1();
+        withBlock.AskAbout(ThisApplication.ActiveDocument);
+    }
+}
+
+public static float mdl1g1f2(Label lb) // , txt As String
+{
+    long x0;
+    long y0;
+
+    Control ct = lb;
+    {
+        // x0 = .Left
+        // y0 = .Top
+        float x1 = ct.Width;
+        float y1 = ct.Height;
         {
-            var withBlock = new fmTest1();
-            withBlock.AskAbout(ThisApplication.ActiveDocument);
+            // .Caption = txt
+            lb.AutoSize = true;
+            lb.AutoSize = false;
+        }
+        ct.Width = (int)x1;
+        return ct.Height - y1;
+    }
+}
+
+public static float mdl1g1f3(Control ct, float byX, float byY)
+{
+    {
+        ct.Left = (int)(ct.Left + byX);
+        ct.Top = (int)(ct.Top + byY);
+    }
+    return Sqr(byX * byX + byY * byY);
+}
+
+// For lack of a better place to put it, creating this node
+
+// The following is a basic example of accessing Parameters,
+
+// such as dimensions, from an Inventor Part Document.
+public static long mdl1g1f1()
+{
+    {
+        var withBlock = aiDocPart(ThisApplication.ActiveDocument);
+        // aiDocPart casts an Inventor Part Document
+        // from its general Document reference, if valid.
+        {
+            var withBlock1 = withBlock.ComponentDefinition.Parameters.get_Item("Thickness");
+            Debug.Print.ExposedAsProperty();
+            Debug.Print.Value();
         }
     }
+}
+// This example was written as a quick one-off to see how
 
-    public float mdl1g1f2(MSForms.Label lb) // , txt As String
+// an Inventor Parameter like the Thickness setting for
+
+// Sheet Metal Parts might have its "Export" status
+
+// modified programmatically.
+
+public static dynamic aiPropVal(Property pr, dynamic ifNot = "")
+{
+    return pr == null ? ifNot : aiPropValAux(pr.Value, ifNot);
+}
+// This example was written as a quick one-off to see how
+
+// an Inventor Parameter like the Thickness setting for
+
+// Sheet Metal Parts might have its "Export" status
+
+// modified programmatically.
+
+public static dynamic aiPropValAux(dynamic vl, string ifNot = "")
+{
+    if (vl is null) return null;
+    switch (vl)
     {
-        long x0;
-        float x1;
-        long y0;
-        float y1;
-        MSForms.Control ct;
-
-        ct = lb;
-        {
-            var withBlock = ct;
-            // x0 = .Left
-            // y0 = .Top
-            x1 = withBlock.Width;
-            y1 = withBlock.Height;
-            {
-                var withBlock1 = lb;
-                // .Caption = txt
-                withBlock1.AutoSize = true;
-                withBlock1.AutoSize = false;
-            }
-            withBlock.Width = x1;
-            mdl1g1f2 = withBlock.Height - y1;
-        }
+        case null:
+            return ifNot;
+        case StdPicture:
+            return "<stdole.StdPicture>";
+            Debug.Print(""); // Breakpoint Landing
+            break;
+        default:
+            Debugger.Break(); // and see what we need to do
+            return "<dynamic:" + TypeName(vl) + ">";
     }
 
-    public float mdl1g1f3(MSForms.Control ct, float byX, float byY)
+    return vl;
+}
+
+public static Property aiPropGnsItmFamily(Document AiDoc)
+{
+    if (AiDoc == null)
+        return null;
+    return AiDoc.PropertySets(gnDesign).get_Item(pnFamily);
+}
+
+public static Property aiPropShtMetalThickness(PartDocument adPart)
+{
+    if (adPart == null)
+        return null;
+    if (adPart.SubType != guidSheetMetal) return null;
+    if (smThicknessExposed(adPart.ComponentDefinition))
+        return adPart.PropertySets(gnCustom).get_Item(pnThickness);
+    return null;
+}
+
+public static long smThicknessExposed(SheetMetalComponentDefinition smDef)
+{
+    if (smDef.Parameters.IsExpressionValid(pnThickness, "in"))
+        return parExposed(smDef.Parameters(pnThickness), true);
+    Debugger.Break();
+}
+
+public static long parExposed(Parameter par, bool tryTo = false)
+{
+    // ' Check Inventor Parameter for exposure as Property.
+    // ' Return 0 if not, unless caller requests exposure
+    // ' (tryTo <> 0). Nonzero return indicates exposed
+    // ' Parameter, with sign indicating initial status.
+    // ' -1 indicates Parameter already exposed
+    // ' 1 indicates status change to expose it.
+    // ' No provision is made for failure to expose,
+    // ' nor to reverse exposure status.
     {
-        {
-            var withBlock = ct;
-            withBlock.Left = withBlock.Left + byX;
-            withBlock.Top = withBlock.Top + byY;
-        }
-        mdl1g1f3 = Sqr(byX * byX + byY * byY);
+        if (par.ExposedAsProperty)
+            return -1;
+        if (!tryTo) return 0;
+        par.ExposedAsProperty = true;
+        return 1 & parExposed(par);
     }
+}
 
-    /// For lack of a better place to put it, creating this node
-
-    /// The following is a basic example of accessing Parameters,
-
-    /// such as dimensions, from an Inventor Part Document.
-    public long mdl1g1f1()
+public static Dictionary dcGnsPropsListed(Document ad, dynamic ls, Dictionary dc = null, bool ifNone = true)
+{
+    while (true)
     {
-        {
-            var withBlock = aiDocPart(ThisApplication.ActiveDocument);
-            // aiDocPart casts an Inventor Part Document
-            // from its general Document reference, if valid.
-            {
-                var withBlock1 = withBlock.ComponentDefinition.Parameters.Item("Thickness");
-                Debug.Print.ExposedAsProperty();
-                Debug.Print.Value();
-            }
-        }
-    }
-    /// This example was written as a quick one-off to see how
-
-    /// an Inventor Parameter like the Thickness setting for
-
-    /// Sheet Metal Parts might have its "Export" status
-
-    /// modified programmatically.
-
-    public Variant aiPropVal(Inventor.Property pr, Variant ifNot = "")
-    {
-        if (pr == null)
-            aiPropVal = ifNot;
-        else
-            aiPropVal = aiPropValAux(pr.Value, ifNot);
-    }
-    /// This example was written as a quick one-off to see how
-
-    /// an Inventor Parameter like the Thickness setting for
-
-    /// Sheet Metal Parts might have its "Export" status
-
-    /// modified programmatically.
-
-    public Variant aiPropValAux(Variant vl, Variant ifNot = "")
-    {
-        if (IsObject(vl))
-        {
-            if (vl == null)
-                aiPropValAux = ifNot;
-            else if (vl is stdole.StdPicture)
-            {
-                aiPropValAux = "<stdole.StdPicture>";
-                Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Breakpoint Landing
-            }
-            else
-            {
-                System.Diagnostics.Debugger.Break(); // and see what we need to do
-                aiPropValAux = "<Object:" + TypeName(vl) + ">";
-            }
-        }
-        else
-            aiPropValAux = vl;
-    }
-
-    public Inventor.Property aiPropGnsItmFamily(Inventor.Document AiDoc)
-    {
-        if (AiDoc == null)
-            aiPropGnsItmFamily = null/* TODO Change to default(_) if this is not a reference type */;
-        else
-            aiPropGnsItmFamily = AiDoc.PropertySets(gnDesign).Item(pnFamily);
-    }
-
-    public Inventor.Property aiPropShtMetalThickness(Inventor.PartDocument adPart)
-    {
-        if (adPart == null)
-            aiPropShtMetalThickness = null/* TODO Change to default(_) if this is not a reference type */;
-        else
-        {
-            var withBlock = adPart;
-            if (withBlock.SubType == guidSheetMetal)
-            {
-                if (smThicknessExposed(withBlock.ComponentDefinition))
-                    aiPropShtMetalThickness = withBlock.PropertySets(gnCustom).Item(pnThickness);
-                else
-                    aiPropShtMetalThickness = null/* TODO Change to default(_) if this is not a reference type */;
-            }
-            else
-                aiPropShtMetalThickness = null/* TODO Change to default(_) if this is not a reference type */;
-        }
-    }
-
-    public long smThicknessExposed(Inventor.SheetMetalComponentDefinition smDef)
-    {
-        if (smDef.Parameters.IsExpressionValid(pnThickness, "in"))
-            smThicknessExposed = parExposed(smDef.Parameters(pnThickness), 1);
-        else
-            System.Diagnostics.Debugger.Break();
-    }
-
-    public long parExposed(Inventor.Parameter par, long tryTo = 0)
-    {
-        // '  Check Inventor Parameter for exposure as Property.
-        // '  Return 0 if not, unless caller requests exposure
-        // '  (tryTo <> 0). Nonzero return indicates exposed
-        // '  Parameter, with sign indicating initial status.
-        // '  -1 indicates Parameter already exposed
-        // '  1 indicates status change to expose it.
-        // '  No provision is made for failure to expose,
-        // '  nor to reverse exposure status.
-        {
-            var withBlock = par;
-            if (withBlock.ExposedAsProperty)
-                parExposed = -1;
-            else if (tryTo)
-            {
-                withBlock.ExposedAsProperty = true;
-                parExposed = 1 & parExposed(par);
-            }
-            else
-                parExposed = 0;
-        }
-    }
-
-    public Scripting.Dictionary dcGnsPropsListed(Inventor.Document ad, Variant ls, Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */, long ifNone = 1)
-    {
-        /// dcGnsPropsListed --
-        /// Return a Dictionary of any
-        /// Properties in the supplied list
-        /// from the "custom" PropertySet.
-        /// 
-        /// Missing Property names are addressed
-        /// in one of three (present) ways,
-        /// based on optional argument ifNone:
-        /// 0 - do not add to Dictionary
-        /// missing name is missing
-        /// 1 - attempt to create. failure
-        /// returns Nothing, which is
-        /// still not added
-        /// 2 - add Nothing to Dictionary
-        /// under missing name
-        /// 3 - attempt to create, adding
-        /// Nothing for any failures
-        /// (combines options 1 and 2)
-        /// 
-        Inventor.PropertySet ps;
-        Inventor.Property pr;
-        Variant ky;
-        long mkNf; // try to make any not found
-        long rtNf; // return Nothing for not found
-        Variant wk;
+        // dcGnsPropsListed --
+        // Return a Dictionary of any
+        // Properties in the supplied list
+        // from the "custom" PropertySet.
+        // 
+        // Missing Property names are addressed
+        // in one of three (present) ways,
+        // based on optional argument ifNone:
+        // 0 - do not add to Dictionary
+        // missing name is missing
+        // 1 - attempt to create. failure
+        // returns Nothing, which is
+        // still not added
+        // 2 - add Nothing to Dictionary
+        // under missing name
+        // 3 - attempt to create, adding
+        // Nothing for any failures
+        // (combines options 1 and 2)
+        // 
 
         // rt = New Scripting.Dictionary
-        ps = ad.PropertySets.Item(gnCustom);
+        var ps = ad.PropertySets.get_Item(gnCustom);
 
         if (dc == null)
-            dcGnsPropsListed = dcGnsPropsListed(ad, ls, new Scripting.Dictionary(), ifNone);
-        else if (IsArray(ls))
         {
-            mkNf = ifNone & 1; // IIf(ifNone = 1, 1, 0)
-            rtNf = ifNone & 2; // IIf(ifNone = 2, 1, 0)
-            /// originally used IIf construct
-            /// to force mapping of exact values
-            /// of ifNone to corresponding behaviors.
-            /// 
-            /// changed to bitcode matching once clear
-            /// that each bit would map exclusively
-            /// to a particular behavior, and could
-            /// be combined with the other, if desired.
-            /// 
+            dc = new Dictionary();
+            continue;
+        }
 
-            foreach (var ky in ls) // Array(pnMass, pnArea, pnWidth, pnLength, pnRawMaterial, pnRmQty, pnRmUnit) ', "SPEC01", "SPEC02", "SPEC03", "SPEC04", "SPEC05", "SPEC06", "SPEC07", "SPEC08", "SPEC16"'
+        if (ls is Array)
+        {
+            var mkNf = ifNone & 1; // try to make any not found
+            var rtNf = ifNone & 2; // return Nothing for not found
+            // originally used IIf construct
+            // to force mapping of exact values
+            // of ifNone to corresponding behaviors.
+            // 
+            // changed to bitcode matching once clear
+            // that each bit would map exclusively
+            // to a particular behavior, and could
+            // be combined with the other, if desired.
+            // 
+
+            foreach (var ky in
+                     ls) // new string[] {pnMass, pnArea, pnWidth, pnLength, pnRawMaterial, pnRmQty, pnRmUnit) ', "SPEC01", "SPEC02", "SPEC03", "SPEC04", "SPEC05", "SPEC06", "SPEC07", "SPEC08", "SPEC16"'
             {
-                pr = aiGetProp(ps, System.Convert.ToHexString(ky), mkNf);
-                wk = Array(pr);
+                Property pr = aiGetProp(ps, Convert.ToHexString(ky), mkNf);
+                dynamic wk = new[] { pr };
 
                 if (pr == null)
                 {
                     // if supposed to return Nothings
 
-                    if (rtNf == 0)
-                        wk = Array();
+                    if (rtNf == 0) wk = Array.Empty<string>();
                 }
 
                 if (UBound(wk) < LBound(wk))
@@ -314,384 +273,352 @@ Input:
                     if (dc.Exists(ky))
                     {
                         dc.Remove(ky);
-                        /// WARNING[2021.11.19]
-                        /// This was added to permit
-                        /// replacement of elements
-                        /// already present under a
-                        /// supplied key. It might
-                        /// NOT be the best way to
-                        /// address this situation.
-                        /// Be prepared to correct
-                        /// this with a more robust
-                        /// solution in future.
-                        /// Meanwhile, have a
-                        Debug.Print(); /* TODO ERROR: Skipped SkippedTokensTrivia */ // Breakpoint Landing
+                        // WARNING[2021.11.19]
+                        // This was added to permit
+                        // replacement of elements
+                        // already present under a
+                        // supplied key. It might
+                        // NOT be the best way to
+                        // address this situation.
+                        // Be prepared to correct
+                        // this with a more robust
+                        // solution in future.
+                        // Meanwhile, have a
+                        Debug.Print(""); // Breakpoint Landing
                     }
 
                     dc.Add(ky, pr);
                 }
             }
-            dcGnsPropsListed = dc; // rt
+
+            return dc; // rt
         }
-        else if (VarType(ls) == Constants.vbString)
-            dcGnsPropsListed = dcGnsPropsListed(ad, Array(ls), dc, ifNone);
-        else
-            System.Diagnostics.Debugger.Break();
-    }
 
-    public Scripting.Dictionary dcGnsPropsPart(Inventor.Document ad, Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */, long ifNone = 1)
+        if (VarType(ls) == Constants.vbString)
+            return dcGnsPropsListed(ad, new[] { ls }, dc, ifNone);
+        Debugger.Break();
+
+        break;
+    }
+}
+
+public static Dictionary dcGnsPropsPart(Document ad, Dictionary dc = null, bool ifNone = true)
+{
+    // dcGnsPropsPart
+    // 
+    // REV[2021.11.18]:
+    // Added pnThickness to list
+    // of Properties to return.
+    // 
+    return dcGnsPropsListed(ad, new string[]
     {
-        /// dcGnsPropsPart
-        /// 
-        /// REV[2021.11.18]:
-        /// Added pnThickness to list
-        /// of Properties to return.
-        /// 
-        dcGnsPropsPart = dcGnsPropsListed(ad, Array(pnMass, pnArea, pnWidth, pnLength, pnThickness, pnRawMaterial, pnRmQty, pnRmUnit), dc, ifNone);
-    }
+        pnMass, pnArea, pnWidth, pnLength, pnThickness, pnRawMaterial, pnRmQty, pnRmUnit
+    }, dc, ifNone);
+}
 
-    public Scripting.Dictionary dcGnsPropsAssy(Inventor.Document ad, Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */, long ifNone = 1)
+public static Dictionary dcGnsPropsAssy(Document ad, Dictionary dc = null, long ifNone = 1)
+{
+    // Dim rt As Scripting.Dictionary
+    // Dim ps As Inventor.PropertySet
+    // Dim pr As Inventor.Property
+    // Dim ky As dynamic
+
+    return dcGnsPropsListed(ad,
+        new[] { pnMass, "SPEC01", "SPEC02", "SPEC03", "SPEC04", "SPEC05", "SPEC06", "SPEC07", "SPEC08", "SPEC16" },
+        dc, ifNone);
+}
+
+public static Dictionary dcProps4genius(Document ad, Dictionary dc = null, bool Create = true)
+{
+    while (true)
     {
         // Dim rt As Scripting.Dictionary
-        // Dim ps As Inventor.PropertySet
-        // Dim pr As Inventor.Property
-        // Dim ky As Variant
-
-        dcGnsPropsAssy = dcGnsPropsListed(ad, Array(pnMass, "SPEC01", "SPEC02", "SPEC03", "SPEC04", "SPEC05", "SPEC06", "SPEC07", "SPEC08", "SPEC16"), dc, ifNone);
-    }
-
-    public Scripting.Dictionary dcProps4genius(Inventor.Document ad, Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */, long Create = 1)
-    {
-        // Dim rt As Scripting.Dictionary
-        Inventor.PropertySet ps;
-        Inventor.Property pr;
-        Variant ky;
+        PropertySet ps;
+        Property pr;
+        dynamic ky;
 
         if (dc == null)
-            dcProps4genius = dcProps4genius(ad, new Scripting.Dictionary(), Create);
+        {
+            dc = new Dictionary();
+        }
         else
         {
-            var withBlock = ad;
-            if (withBlock.DocumentType == kAssemblyDocumentObject)
-                dcProps4genius = dcGnsPropsAssy(ad, dc, Create);
-            else if (withBlock.DocumentType == kPartDocumentObject)
-                dcProps4genius = dcGnsPropsPart(ad, dc, Create);
-            else
-                dcProps4genius = dc;
-        }
-    }
-
-    public Inventor.WorkPlanes mdl1g2f1(Inventor.Document ad)
-    {
-        mdl1g2f1 = aiDocPart(ad).ComponentDefinition.WorkPlanes;
-    }
-
-    public double mdl1g3f0(Inventor.Document ad)
-    {
-        double rt;
-
-        switch (ad.DocumentType)
-        {
-            case object _ when kPartDocumentObject:
-                {
-                    rt = aiDocPart(ad).ComponentDefinition.MassProperties.Mass;
-                    break;
-                }
-
-            case object _ when kAssemblyDocumentObject:
-                {
-                    rt = aiDocAssy(ad).ComponentDefinition.MassProperties.Mass;
-                    break;
-                }
-
-            default:
-                {
-                    rt = 0#;
-                    break;
-                }
-        }
-
-        {
-            var withBlock = ad.UnitsOfMeasure;
-            mdl1g3f0 = withBlock.ConvertUnits(rt, kKilogramMassUnits, kLbMassMassUnits); // .MassUnits)
-        }
-    }
-
-    public long mdl1g4f0()
-    {
-        long mx;
-        long dx;
-
-        {
-            var withBlock = ThisApplication.CommandManager.ControlDefinitions;
-            mx = withBlock.Count;
-            for (dx = 1; dx <= mx; dx++)
+            return ad.DocumentType switch
             {
+                kAssemblyDocumentObject => dcGnsPropsAssy(ad, dc, Create),
+                kPartDocumentObject => dcGnsPropsPart(ad, dc, Create),
+                _ => dc
+            };
+        }
+    }
+}
+
+public static WorkPlanes mdl1g2f1(Document ad)
+{
+    return aiDocPart(ad).ComponentDefinition.WorkPlanes;
+}
+
+public static double mdl1g3f0(Document ad)
+{
+    var rt = ad.DocumentType switch
+    {
+        dynamic _ when kPartDocumentObject => aiDocPart(ad).ComponentDefinition.MassProperties.Mass,
+        dynamic _ when kAssemblyDocumentObject => aiDocAssy(ad).ComponentDefinition.MassProperties.Mass,
+        _ => 0
+    };
+
+    {
+        var withBlock = ad.UnitsOfMeasure;
+        return withBlock.ConvertUnits(rt, kKilogramMassUnits, kLbMassMassUnits); // .MassUnits)
+    }
+}
+
+public static long mdl1g4f0()
+{
+    {
+        var withBlock = ThisApplication.CommandManager.ControlDefinitions;
+        long mx = withBlock.Count;
+        for (long dx = 1; dx <= mx; dx++)
+        {
+            {
+                var withBlock1 = withBlock.get_Item(dx);
+
+                if (.InternalNameLike "*ault*")
                 {
-                    var withBlock1 = withBlock.Item(dx);
-                    ;/* Cannot convert MultiLineIfBlockSyntax, System.NotSupportedException: LikeExpression not supported!
-   at ICSharpCode.CodeConverter.CSharp.SyntaxKindExtensions.ConvertToken(SyntaxKind t, TokenContext context) in /home/runner/work/CodeConverter/CodeConverter/.temp/codeconverter/ICSharpCode.CodeConverter/CSharp/SyntaxKindExtensions.cs:line 278
-   at ICSharpCode.CodeConverter.CSharp.VisualBasicConverter.NodesVisitor.VisitBinaryExpression(BinaryExpressionSyntax node) in /home/runner/work/CodeConverter/CodeConverter/.temp/codeconverter/ICSharpCode.CodeConverter/CSharp/NodesVisitor.cs:line 1415
-   at Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor`1.Visit(SyntaxNode node)
-   at ICSharpCode.CodeConverter.CSharp.CommentConvertingNodesVisitor.DefaultVisit(SyntaxNode node) in /home/runner/work/CodeConverter/CodeConverter/.temp/codeconverter/ICSharpCode.CodeConverter/CSharp/CommentConvertingNodesVisitor.cs:line 28
-   at ICSharpCode.CodeConverter.CSharp.VisualBasicConverter.MethodBodyVisitor.VisitMultiLineIfBlock(MultiLineIfBlockSyntax node) in /home/runner/work/CodeConverter/CodeConverter/.temp/codeconverter/ICSharpCode.CodeConverter/CSharp/MethodBodyVisitor.cs:line 353
-   at Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor`1.Visit(SyntaxNode node)
-   at ICSharpCode.CodeConverter.CSharp.CommentConvertingMethodBodyVisitor.DefaultVisit(SyntaxNode node) in /home/runner/work/CodeConverter/CodeConverter/.temp/codeconverter/ICSharpCode.CodeConverter/CSharp/CommentConvertingMethodBodyVisitor.cs:line 27
-
-Input: 
-                If .InternalName Like "*ault*" Then
-                    Debug.Print CStr(dx) & ": " & .InternalName & "/" & .DisplayName
-                End If
-
- */
+                    Debug.Print(CStr(dx) & ": " &.InternalName & "/" & .DisplayName);
                 }
             }
         }
     }
+}
 
-    public Scripting.Dictionary mdl1g5f0(Inventor.Document ad)
+public static Dictionary mdl1g5f0(Document ad)
+{
+    // The purpose of this function is to return a Dictionary
+    // of Genius Family Inventor Properties
+    // for each component Document of an assembly
+    // or a single part Document.
+
+    var rt = new Dictionary();
     {
-        /// The purpose of this function is to return a Dictionary
-        /// of Genius Family Inventor Properties
-        /// for each component Document of an assembly
-        /// or a single part Document.
-        Scripting.Dictionary rt;
-        Variant ky;
-
-        rt = new Scripting.Dictionary();
+        var withBlock = dcAiDocComponents(ad, new Dictionary(), 1) // sc
+            ;
+        foreach (var ky in withBlock.Keys)
         {
-            var withBlock = dcAiDocComponents(ad, new Scripting.Dictionary(), 1) // sc
-       ;
-            foreach (var ky in withBlock.Keys)
+            {
+                var withBlock1 = aiDocument(withBlock.get_Item(ky));
+                rt.Add.FullFileName(null,
+                    aiPropGnsItmFamily(withBlock1.PropertySets.Parent));
+            }
+        }
+    }
+    return rt;
+}
+
+public static Dictionary mdl1g5f1(Document ad)
+{
+    // This function calls mdl1g5f0 to retrieve a Dictionary
+    // of Genius Family Inventor Properties, and then
+    // transforms it into a Dictionary of Dictionaries
+    // grouped by Family Property Value
+    Dictionary gp;
+
+    var rt = new Dictionary();
+    {
+        var withBlock = mdl1g5f0(ad);
+        foreach (var ky in withBlock.Keys)
+        {
+            Property pr = aiProperty(withBlock.get_Item(ky));
+            string fm = pr.Value;
+            {
+                if (!rt.Exists(fm))
+                    rt.Add(fm, new Dictionary());
+                dcOb(rt.get_Item(fm)).Add(ky, pr);
+            }
+        }
+    }
+    return rt;
+}
+// Debug.Print txDumpLs(mdl1g5f1(ThisApplication.ActiveDocument).Keys)
+// Debug.Print txDumpLs(dcOb(mdl1g5f1(ThisApplication.ActiveDocument).get_Item("")).Keys)
+
+public static Dictionary mdl1g5f2(Document ad)
+{
+    // The purpose of this function is to return a Dictionary
+    // of Genius Family Inventor Properties
+    // for each component Document of an assembly
+    // or a single part Document.
+
+    var fm = new fmTest1();
+    var rt = new Dictionary();
+    {
+        var withBlock = mdl1g5f1(ad);
+        if (!withBlock.Exists("")) return rt;
+        {
+            var withBlock1 = dcOb(withBlock.get_Item(""));
+            foreach (var ky in withBlock1.Keys)
             {
                 {
-                    var withBlock1 = aiDocument(withBlock.Item(ky));
-                    rt.Add.FullFileName(null/* Conversion error: Set to default value for this argument */, aiPropGnsItmFamily(withBlock1.PropertySets.Parent));
-                }
-            }
-        }
-        mdl1g5f0 = rt;
-    }
-
-    public Scripting.Dictionary mdl1g5f1(Inventor.Document ad)
-    {
-        /// This function calls mdl1g5f0 to retrieve a Dictionary
-        /// of Genius Family Inventor Properties, and then
-        /// transforms it into a Dictionary of Dictionaries
-        /// grouped by Family Property Value
-        Scripting.Dictionary rt;
-        Scripting.Dictionary gp;
-        Variant ky;
-        string fm;
-        Inventor.Property pr;
-
-        rt = new Scripting.Dictionary();
-        {
-            var withBlock = mdl1g5f0(ad);
-            foreach (var ky in withBlock.Keys)
-            {
-                pr = aiProperty(withBlock.Item(ky));
-                fm = pr.Value;
-                {
-                    var withBlock1 = rt;
-                    if (!withBlock1.Exists(fm))
-                        withBlock1.Add(fm, new Scripting.Dictionary());
-                    dcOb(withBlock1.Item(fm)).Add(ky, pr);
-                }
-            }
-        }
-        mdl1g5f1 = rt;
-    }
-    // Debug.Print txDumpLs(mdl1g5f1(ThisApplication.ActiveDocument).Keys)
-    // Debug.Print txDumpLs(dcOb(mdl1g5f1(ThisApplication.ActiveDocument).Item("")).Keys)
-
-    public Scripting.Dictionary mdl1g5f2(Inventor.Document ad)
-    {
-        /// The purpose of this function is to return a Dictionary
-        /// of Genius Family Inventor Properties
-        /// for each component Document of an assembly
-        /// or a single part Document.
-        Scripting.Dictionary rt;
-        fmTest1 fm;
-        Variant ky;
-
-        fm = new fmTest1();
-        rt = new Scripting.Dictionary();
-        {
-            var withBlock = mdl1g5f1(ad);
-            if (withBlock.Exists(""))
-            {
-                {
-                    var withBlock1 = dcOb(withBlock.Item(""));
-                    foreach (var ky in withBlock1.Keys)
-                    {
-                        {
-                            var withBlock2 = aiProperty(withBlock1.Item(ky));
-                            if (fm.AskAbout(withBlock2.Parent) == Constants.vbOK)
-                                System.Diagnostics.Debugger.Break();
-                            else
-                                System.Diagnostics.Debugger.Break();
-                            System.Diagnostics.Debugger.Break();
-                        }
-                    }
-                }
-            }
-        }
-        mdl1g5f2 = rt;
-    }
-
-    public Scripting.Dictionary mdl1g5f3(Inventor.AssemblyDocument ad)
-    {
-        /// Scan immediate members of Assembly document
-        /// and group in Dictionary by declared Part Number
-        /// and sub-grouped by Full Document Name.
-        /// 
-        /// (I wonder if an ADO Recordset wouldn't be a better choice?)
-        /// 
-        Inventor.ComponentOccurrence oc;
-        Inventor.Document sd;
-        Scripting.Dictionary rt;
-        Scripting.Dictionary gp;
-        // Dim fm As fmTest1
-        // Dim ky As Variant
-        string pn;
-
-        // fm = New fmTest1
-
-        rt = new Scripting.Dictionary();
-        foreach (var oc in ad.ComponentDefinition.Occurrences)
-        {
-            sd = oc.Definition.Document; // aiDocument()
-            pn = sd.PropertySets.Item(gnDesign).Item(pnPartNum).Value;
-            {
-                var withBlock = rt;
-                if (withBlock.Exists(pn))
-                    gp = dcAiDocsByFullDocName(sd, withBlock.Item(pn));
-                else
-                    withBlock.Add(pn, dcAiDocsByFullDocName(sd, new Scripting.Dictionary()));
-            }
-        }
-        mdl1g5f3 = rt;
-    }
-    // Debug.Print txDumpLs(mdl1g5f3(ThisApplication.ActiveDocument).Keys)
-
-    public Scripting.Dictionary mdl1g5f4(Scripting.Dictionary dc)
-    {
-        /// Transform keys from supplied Dictionary
-        /// (expected from mdl1g5f3)
-        /// into header/member indented form.
-        Scripting.Dictionary rt;
-        Variant ky;
-        string dl;
-
-        dl = Constants.vbNewLine + Constants.vbTab;
-        rt = new Scripting.Dictionary();
-        {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
-                rt.Add(ky + Constants.vbTab + Join(dcOb(withBlock.Item(ky)).Keys, Constants.vbNewLine + ky + Constants.vbTab), withBlock.Item(ky));
-        }
-        mdl1g5f4 = rt;
-    }
-    // Debug.Print txDumpLs(mdl1g5f4(mdl1g5f3(ThisApplication.ActiveDocument)).Keys)
-
-    public Scripting.Dictionary dcAiDocsByFullDocName(Inventor.Document ad, Scripting.Dictionary dc)
-    {
-        /// Add supplied Inventor Document
-        /// to supplied Dictionary
-        /// under its Full Document Name
-        /// (supports mdl1g5f3)
-        string ky;
-
-        ky = ad.FullDocumentName;
-        if (dc == null)
-            dcAiDocsByFullDocName = dcAiDocsByFullDocName(ad, new Scripting.Dictionary());
-        else
-        {
-            {
-                var withBlock = dc;
-                if (withBlock.Exists(ky))
-                    withBlock.Item(ky) = 1 + withBlock.Item(ky);
-                else
-                    withBlock.Add(ky, 1);
-            }
-            dcAiDocsByFullDocName = dc;
-        }
-    }
-
-    public Scripting.Dictionary dcAssyDocsByPtNum(Inventor.AssemblyDocument ad)
-    {
-        /// Derived from mdl1g5f3
-        /// 
-        /// Scan immediate members of Assembly Document
-        /// and collect source Documents in Dictionary,
-        /// grouped by declared Part Number.
-        /// 
-        Inventor.ComponentOccurrence oc;
-        Inventor.Document sd;
-        Scripting.Dictionary rt;
-        string pn;
-
-        rt = new Scripting.Dictionary();
-        foreach (var oc in ad.ComponentDefinition.Occurrences)
-        {
-            sd = oc.Definition.Document;
-            pn = sd.PropertySets.Item(gnDesign).Item(pnPartNum).Value;
-            {
-                var withBlock = rt;
-                if (withBlock.Exists(pn))
-                {
-                    if (sd == withBlock.Item(pn))
-                    {
-                    }
+                    var withBlock2 = aiProperty(withBlock1.get_Item(ky));
+                    if (fm.AskAbout(withBlock2.Parent) == Constants.vbOK)
+                        Debugger.Break();
                     else
-                        System.Diagnostics.Debugger.Break();// and check it out
+                        Debugger.Break();
+                    Debugger.Break();
                 }
-                else
-                    withBlock.Add(pn, sd);
             }
         }
-        dcAssyDocsByPtNum = rt;
     }
-    // Debug.Print txDumpLs(dcAssyDocsByPtNum(ThisApplication.ActiveDocument).Keys)
+    return rt;
+}
 
-    public Scripting.Dictionary dcAiDocsByCompList(Scripting.Dictionary dc)
+public static Dictionary mdl1g5f3(AssemblyDocument ad)
+{
+    // Scan immediate members of Assembly document
+    // and group in Dictionary by declared Part Number
+    // and sub-grouped by Full Document Name.
+    // 
+    // (I wonder if an ADO Recordset wouldn't be a better choice?)
+    // 
+    // Dim fm As fmTest1
+    // Dim ky As dynamic
+
+    // fm = New fmTest1
+    var rt = new Dictionary();
+    foreach (Document sd in from ComponentOccurrence oc in ad.ComponentDefinition.Occurrences
+             select oc.Definition.Document)
     {
-        /// Derived from mdl1g5f4
-        /// Transform keys from supplied Dictionary
-        /// (expected from dcAssyDocsByPtNum)
-        /// into tab-delimited list form.
-        Scripting.Dictionary rt;
-        Inventor.Document sd;
-        Variant ky;
-        string dl;
-
-        dl = Constants.vbNewLine + Constants.vbTab;
-        rt = new Scripting.Dictionary();
+        string pn = sd.PropertySets.get_Item(gnDesign).get_Item(pnPartNum).Value;
         {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
+            if (rt.Exists(pn))
+                dcAiDocsByFullDocName(sd, rt.get_Item(pn));
+            else
+                rt.Add(pn, dcAiDocsByFullDocName(sd, new Dictionary()));
+        }
+    }
+
+    return rt;
+}
+// Debug.Print txDumpLs(mdl1g5f3(ThisApplication.ActiveDocument).Keys)
+
+public static Dictionary mdl1g5f4(Dictionary dc)
+{
+    // Transform keys from supplied Dictionary
+    // (expected from mdl1g5f3)
+    // into header/member indented form.
+
+    var dl = Constants.vbCrLf + Constants.vbTab;
+    var rt = new Dictionary();
+    {
+        foreach (var ky in dc.Keys)
+            rt.Add(ky + Constants.vbTab + Join(dcOb(dc.get_Item(ky)).Keys, Constants.vbCrLf + ky + Constants.vbTab),
+                dc.get_Item(ky));
+    }
+    return rt;
+}
+// Debug.Print txDumpLs(mdl1g5f4(mdl1g5f3(ThisApplication.ActiveDocument)).Keys)
+
+public static Dictionary dcAiDocsByFullDocName(Document ad, Dictionary dc)
+{
+    while (true)
+    {
+        // Add supplied Inventor Document
+        // to supplied Dictionary
+        // under its Full Document Name
+        // (supports mdl1g5f3)
+
+        var ky = ad.FullDocumentName;
+        if (dc == null)
+        {
+            dc = new Dictionary();
+        }
+        else
+        {
             {
-                sd = aiDocument(withBlock.Item(ky));
+                if (dc.Exists(ky))
+                    dc.get_Item(ky) = 1 + dc.get_Item(ky);
+                else
+                    dc.Add(ky, 1);
+            }
+            return dc;
+        }
+    }
+}
+
+public static Dictionary dcAssyDocsByPtNum(AssemblyDocument ad)
+{
+    // Derived from mdl1g5f3
+    // 
+    // Scan immediate members of Assembly Document
+    // and collect source Documents in Dictionary,
+    // grouped by declared Part Number.
+    // 
+
+    var rt = new Dictionary();
+    foreach (ComponentOccurrence oc in ad.ComponentDefinition.Occurrences)
+    {
+        Document sd = oc.Definition.Document;
+        string pn = sd.PropertySets.get_Item(gnDesign).get_Item(pnPartNum).Value;
+        {
+            if (rt.Exists(pn))
+            {
+                if (sd == rt.get_Item(pn))
                 {
-                    var withBlock1 = sd;
-                    if (withBlock1.DocumentType == kAssemblyDocumentObject)
-                        rt.Add(ky + Constants.vbTab + Join(Split(txDumpLs(mdl1g5f4(mdl1g5f3(sd)).Keys), Constants.vbNewLine), Constants.vbNewLine + ky + Constants.vbTab), sd);
-                    else if (withBlock1.DocumentType == kPartDocumentObject)
+                }
+                else
+                    Debugger.Break(); // and check it out
+            }
+            else
+                rt.Add(pn, sd);
+        }
+    }
+
+    return rt;
+}
+// Debug.Print txDumpLs(dcAssyDocsByPtNum(ThisApplication.ActiveDocument).Keys)
+
+public static Dictionary dcAiDocsByCompList(Dictionary dc)
+{
+    // Derived from mdl1g5f4
+    // Transform keys from supplied Dictionary
+    // (expected from dcAssyDocsByPtNum)
+    // into tab-delimited list form.
+
+    var rt = new Dictionary();
+    {
+        foreach (var ky in dc.Keys)
+        {
+            Document sd = aiDocument(dc.get_Item(ky));
+            {
+                switch (sd.DocumentType)
+                {
+                    case kAssemblyDocumentObject:
+                        rt.Add(
+                            ky + Constants.vbTab +
+                            Join(Split(txDumpLs(mdl1g5f4(mdl1g5f3(sd)).Keys), Constants.vbCrLf),
+                                Constants.vbCrLf + ky + Constants.vbTab), sd);
+                        break;
+                    case kPartDocumentObject:
                     {
                         // Stop
+                        var dl = Constants.vbCrLf + Constants.vbTab;
                         {
-                            var withBlock2 = dcAiPropsInSet(sd.PropertySets.Item(gnCustom));
+                            var withBlock2 = dcAiPropsInSet(sd.PropertySets.get_Item(gnCustom));
                             if (withBlock2.Exists(pnRawMaterial))
                             {
-                                dl = Trim(aiProperty(withBlock2.Item(pnRawMaterial)).Value);
+                                dl = Trim(aiProperty(withBlock2.get_Item(pnRawMaterial)).Value);
                                 if (Strings.Len(dl) == 0)
                                     dl = "NO_RAW_STOCK" + Constants.vbTab + "<No Raw Stock Declared>";
                                 else
                                 {
-                                    System.Diagnostics.Debugger.Break();
+                                    Debugger.Break();
                                     {
-                                        var withBlock3 = cnGnsDoyle.Execute(Join(Array("select Description1", "from vgMfiItems", "where Item = '" + dl + "';"), Constants.vbNewLine));
+                                        var withBlock3 = cnGnsDoyle.Execute(Join(new[]
+                                            {
+                                                "select Description1", "from vgMfiItems",
+                                                "where Item = '" + dl + "';"
+                                            },
+                                            Constants.vbCrLf));
                                         if (withBlock3.BOF | withBlock3.EOF)
                                             dl = dl + Constants.vbTab + "<Stock Number Not Found>";
                                         else
@@ -699,121 +626,138 @@ Input:
                                     }
                                 }
                             }
+
                             else
                                 dl = "NO_RAW_STOCK" + Constants.vbTab + "<No Raw Stock Declared>";
                         }
+
                         rt.Add(ky + Constants.vbTab + dl, sd);
+                        break;
                     }
-                    else
+                    case kUnknownDocumentObject:
+                    case kDrawingDocumentObject:
+                    case kPresentationDocumentObject:
+                    case kDesignElementDocumentObject:
+                    case kForeignModelDocumentObject:
+                    case kSATFileDocumentObject:
+                    case kNoDocument:
+                    case kNestingDocument:
+                    default:
                         rt.Add(ky + Constants.vbTab + "(UNSUPPORTED DOCUMENT TYPE)", sd);
+                        break;
                 }
             }
         }
-        dcAiDocsByCompList = rt;
     }
-    // Debug.Print txDumpLs(dcAiDocsByCompList(dcAssyDocsByPtNum(ThisApplication.ActiveDocument)).Keys)
-    // send2clipBd txDumpLs(dcAiDocsByCompList(dcAssyDocsByPtNum(ThisApplication.ActiveDocument)).Keys)
 
-    public ADODB.Recordset rsWinUpdHist()
+    return rt;
+}
+// Debug.Print txDumpLs(dcAiDocsByCompList(dcAssyDocsByPtNum(ThisApplication.ActiveDocument)).Keys)
+// send2clipBd txDumpLs(dcAiDocsByCompList(dcAssyDocsByPtNum(ThisApplication.ActiveDocument)).Keys)
+
+public static ADODB.Recordset rsWinUpdHist()
+{
+    // Windows Update History
+    WUApiLib.IUpdateHistoryEntry it;
+
+    ADODB.Recordset rt = rsNewWinUpdHist;
+    dynamic ls = new[] { "ResultCode", "Operation", "Title", "Description", "Date" };
     {
-        /// Windows Update History
-        WUApiLib.IUpdateHistoryEntry it;
-        ADODB.Recordset rt;
-        Variant ls;
-
-        rt = rsNewWinUpdHist;
-        ls = Array("ResultCode", "Operation", "Title", "Description", "Date");
+        var withBlock = new WUApiLib.UpdateSession() // .CreateUpdateSearcher
+            ;
         {
-            var withBlock = new WUApiLib.UpdateSession() // .CreateUpdateSearcher
-       ;
+            var withBlock1 = withBlock.CreateUpdateSearcher;
+            foreach (var it in withBlock1.QueryHistory(0, withBlock1.GetTotalHistoryCount))
             {
-                var withBlock1 = withBlock.CreateUpdateSearcher;
-                foreach (var it in withBlock1.QueryHistory(0, withBlock1.GetTotalHistoryCount))
                 {
+                    var withBlock2 = it;
+                    // Debug.Print .ResultCode, .Operation, .Title, .Description, .Date
+                    rt.AddNew(ls, new[]
                     {
-                        var withBlock2 = it;
-                        // Debug.Print .ResultCode, .Operation, .Title, .Description, .Date
-                        rt.AddNew(ls, Array(withBlock2.ResultCode, withBlock2.Operation, withBlock2.Title, withBlock2.Description, withBlock2.Date));
-                    }
-                }
-                rt.Filter = "";
-            }
-        }
-        rsWinUpdHist = rt;
-    }
-
-    public ADODB.Recordset rsNewWinUpdHist()
-    {
-        ADODB.Recordset rt;
-        rt = new ADODB.Recordset();
-        {
-            var withBlock = rt;
-            {
-                var withBlock1 = withBlock.Fields;
-                // .Append "", adBigInt
-                // .Append "", adVarChar, 1024
-                withBlock1.Append("ResultCode", adBigInt);
-                withBlock1.Append("Operation", adBigInt);
-                withBlock1.Append("Title", adVarChar, 256);
-                withBlock1.Append("Description", adVarChar, 1024);
-                withBlock1.Append("Date", adDBDate);
-            }
-            withBlock.Open();
-        }
-        rsNewWinUpdHist = rt;
-    }
-
-    public ADODB.Recordset rsShtMtlCutPars(Inventor.Document ad, long incTop = 0)
-    {
-        /// Windows Update History
-        ADODB.Recordset rt;
-        Inventor.Document ActiveDoc;
-        Inventor.Document pt;
-        Variant ls;
-        Variant ky;
-
-        rt = rsNewShtMtlCutPars;
-        ls = Array("Item", "Description", "Thickness", "Perimeter");
-
-        {
-            var withBlock = dcAiDocComponents(ad, null/* Conversion error: Set to default value for this argument */, incTop);
-            foreach (var ky in withBlock.Keys)
-            {
-                pt = aiDocument(withBlock.Item(ky));
-                {
-                    var withBlock1 = pt.PropertySets.Item(gnDesign);
-                    rt.AddNew(ls, Array(withBlock1.Item(pnPartNum).Value, withBlock1.Item(pnDesc).Value, aiPropVal(aiPropShtMetalThickness(aiDocPart(pt)), -1), fpPerimeterInch(pt)));
+                        withBlock2.ResultCode, withBlock2.Operation, withBlock2.Title, withBlock2.Description,
+                        withBlock2.Date
+                    });
                 }
             }
+
             rt.Filter = "";
         }
-
-        rsShtMtlCutPars = rt;
     }
-    // send2clipBd rsShtMtlCutPars(ThisApplication.ActiveDocument, 1).GetString(adClipString, , "|")
-    // send2clipBd rsShtMtlCutPars(ThisApplication.ActiveDocument, 1).GetString(adClipString, , vbTab)
+    return rt;
+}
 
-    public ADODB.Recordset rsNewShtMtlCutPars()
+public static ADODB.Recordset rsNewWinUpdHist()
+{
+    var rt = new ADODB.Recordset();
     {
-        ADODB.Recordset rt;
-
-        rt = new ADODB.Recordset();
         {
-            var withBlock = rt;
+            var withBlock1 = rt.Fields;
+            // .Append "", adBigInt
+            // .Append "", adVarChar, 1024
+            withBlock1.Append("ResultCode", adBigInt);
+            withBlock1.Append("Operation", adBigInt);
+            withBlock1.Append("Title", adVarChar, 256);
+            withBlock1.Append("Description", adVarChar, 1024);
+            withBlock1.Append("Date", adDBDate);
+        }
+        rt.Open();
+    }
+    return rt;
+}
+
+public static ADODB.Recordset rsShtMtlCutPars(Document ad, long incTop = 0)
+{
+    // Windows Update History
+    Document ActiveDoc;
+
+    ADODB.Recordset rt = rsNewShtMtlCutPars;
+    dynamic ls = new[]
+    {
+        "Item", "Description", "Thickness", "Perimeter"
+    };
+    {
+        var withBlock = dcAiDocComponents(ad, null,
+            incTop);
+        foreach (var ky in withBlock.Keys)
+        {
+            Document pt = aiDocument(withBlock.get_Item(ky));
             {
-                var withBlock1 = withBlock.Fields;
-                // .Append "", adBigInt
-                // .Append "", adVarChar, 1024
-                // .Append "Date", adDBDate
-                // 
-                withBlock1.Append("Item", adVarChar, 32, adFldKeyColumn);
-                withBlock1.Append("Description", adVarChar, 128);
-                withBlock1.Append("Thickness", adDouble);
-                withBlock1.Append("Perimeter", adDouble);
+                var withBlock1 = pt.PropertySets.get_Item(gnDesign);
+                rt.AddNew(ls, new[]
+                {
+                    withBlock1.get_Item(pnPartNum).Value, withBlock1.get_Item(pnDesc).Value,
+                    aiPropVal(aiPropShtMetalThickness(aiDocPart(pt)), -1), fpPerimeterInch(pt)
+                });
             }
-            withBlock.Open();
         }
 
-        rsNewShtMtlCutPars = rt;
+        rt.Filter = "";
     }
+
+    return rt;
+}
+// send2clipBd rsShtMtlCutPars(ThisApplication.ActiveDocument, 1).GetString(adClipString, , "|")
+// send2clipBd rsShtMtlCutPars(ThisApplication.ActiveDocument, 1).GetString(adClipString, , vbTab)
+
+public static ADODB.Recordset rsNewShtMtlCutPars()
+{
+    var rt = new ADODB.Recordset();
+    {
+        {
+            var withBlock1 = rt.Fields;
+            // .Append "", adBigInt
+            // .Append "", adVarChar, 1024
+            // .Append "Date", adDBDate
+            // 
+            withBlock1.Append("Item", adVarChar, 32, adFldKeyColumn);
+            withBlock1.Append("Description", adVarChar, 128);
+            withBlock1.Append("Thickness", adDouble);
+            withBlock1.Append("Perimeter", adDouble);
+        }
+        rt.Open();
+    }
+
+    return rt;
+}
+
 }

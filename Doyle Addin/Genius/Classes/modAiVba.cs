@@ -1,53 +1,47 @@
-﻿class SurroundingClass
+﻿namespace Doyle_Addin.Genius.Classes;
+
+class modAiVba
 {
     // ' Will be using this one to work on VB Extensibility code
 
     public long m2g0f0()
     {
-        Inventor.InventorVBAProject pj;
-
         {
             var withBlock = ThisApplication;
-            foreach (var pj in withBlock.VBAProjects)
+            foreach (InventorVBAProject pj in withBlock.VBAProjects)
                 Debug.Print(pj.VBProject);
-            m2g0f0 = withBlock.VBAProjects.Count;
+            return withBlock.VBAProjects.Count;
         }
     }
 
-    public Inventor.InventorVBAProject m2g1f0()
+    public InventorVBAProject m2g1f0()
     {
-        m2g1f0 = ThisApplication.VBAProjects.Item(1);
+        return ThisApplication.VBAProjects.get_item(1);
     }
 
     public string fnOfDefaultVBAproject()
     {
-        fnOfDefaultVBAproject = ThisApplication.FileOptions.DefaultVBAProjectFileFullFilename;
+        return ThisApplication.FileOptions.DefaultVBAProjectFileFullFilename;
     }
 
-    public VBIDE.VBProject m2g1f2(Inventor.InventorVBAProject ob)
+    public VBIDE.VBProject m2g1f2(InventorVBAProject ob)
     {
-        m2g1f2 = ob.VBProject;
+        return ob.VBProject;
     }
-    // Debug.Print m2g1f2(dcInVBAprojects(ThisApplication).Item(fnOfDefaultVBAproject)).BuildFileName
+    // Debug.Print m2g1f2(dcInVBAprojects(ThisApplication).get_item(fnOfDefaultVBAproject)).BuildFileName
 
-
-    public Scripting.Dictionary dcInVBAprojects(Inventor.Application ap)
+    public Dictionary dcInVBAprojects(Application ap)
     {
-        Scripting.Dictionary rt;
-        Inventor.InventorVBAProject pj;
-        long mx;
-        long dx;
-
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
             var withBlock = ap.VBAProjects;
-            mx = withBlock.Count;
-            for (dx = 1; dx <= mx; dx++)
+            long mx = withBlock.Count;
+            for (long dx = 1; dx <= mx; dx++)
             {
-                pj = withBlock.Item(dx);
-                rt.Add(m2g1f2(pj).Filename, pj);
+                InventorVBAProject pj = withBlock.get_item(dx);
+                rt.Add(m2g1f2(pj).FileName, pj);
             }
         }
-        dcInVBAprojects = rt;
+        return rt;
     }
 }

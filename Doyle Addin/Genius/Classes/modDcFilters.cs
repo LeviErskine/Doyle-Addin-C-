@@ -1,158 +1,144 @@
-﻿class SurroundingClass
-{
-    public Scripting.Dictionary dcAiDocsVisible()
-    {
-        Scripting.Dictionary rt;
-        Inventor.Document AiDoc;
+﻿using Microsoft.VisualBasic;
 
-        rt = new Scripting.Dictionary();
-        foreach (var AiDoc in ThisApplication.Documents.VisibleDocuments)
+namespace Doyle_Addin.Genius.Classes;
+
+public class modDcFilters
+{
+    public static Dictionary dcAiDocsVisible()
+    {
+        var rt = new Dictionary();
+        foreach (Document AiDoc in ThisApplication.Documents.VisibleDocuments)
             // rt.Add aiDoc.FullDocumentName, aiDoc
             rt.Add(d0g6f0(AiDoc), AiDoc);
-        dcAiDocsVisible = rt;
+        return rt;
     }
 
-    public void lsAiDocsVisible()
+    public static void lsAiDocsVisible()
     {
         Debug.Print(txDumpLs(dcAiDocsVisible().Keys));
     }
 
-    public Scripting.Dictionary dcAiDocsByType(Scripting.Dictionary dc)
+    public static Dictionary dcAiDocsByType(Dictionary dc)
     {
-        /// Split Dictionary of Inventor Documents
-        /// into separate "sub" Dictionaries,
-        /// keyed by Document Type
-        /// 
-        Scripting.Dictionary rt;
-        Scripting.Dictionary gp;
-        Inventor.Document AiDoc;
-        Inventor.DocumentTypeEnum tp;
-        string fn;
-        Variant ky;
+        // Split Dictionary of Inventor Documents
+        // into separate "sub" Dictionaries,
+        // keyed by Document Type
+        // 
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dc.Keys)
             {
-                AiDoc = aiDocument(withBlock.Item(ky));
+                Document AiDoc = aiDocument(dc.get_Item(ky));
+                DocumentTypeEnum tp;
+                string fn;
                 {
-                    var withBlock1 = AiDoc;
-                    tp = withBlock1.DocumentType;
-                    fn = withBlock1.FullFileName;
+                    tp = AiDoc.DocumentType;
+                    fn = AiDoc.FullFileName;
                 }
 
+                Dictionary gp;
                 {
-                    var withBlock1 = rt;
-                    if (withBlock1.Exists(tp))
-                        gp = withBlock1.Item(tp);
+                    if (rt.Exists(tp))
+                        gp = rt.get_Item(tp);
                     else
                     {
-                        gp = new Scripting.Dictionary();
-                        withBlock1.Add(tp, gp);
+                        gp = new Dictionary();
+                        rt.Add(tp, gp);
                     }
                 }
 
                 {
-                    var withBlock1 = gp;
-                    if (withBlock1.Exists(fn))
-                        System.Diagnostics.Debugger.Break();
+                    if (gp.Exists(fn))
+                        Debugger.Break();
                     else
-                        withBlock1.Add(fn, AiDoc);
+                        gp.Add(fn, AiDoc);
                 }
             }
         }
-        dcAiDocsByType = rt;
+        return rt;
     }
     // Debug.Print Join(dcAiDocsByType(dcAssyCompAndSub(aiDocAssy(ThisApplication.ActiveDocument).ComponentDefinition.Occurrences)).Keys, ", ")
 
-    public Scripting.Dictionary dcAiDocsOfType(Inventor.DocumentTypeEnum tp, Scripting.Dictionary dc = )
+    public static Dictionary dcAiDocsOfType(DocumentTypeEnum tp, Dictionary dc = )
     {
-        /// Retrieve subDictionary for
-        /// given Inventor Document type
-        /// 
+        // Retrieve subDictionary for
+        // given Inventor Document type
+        // 
         {
             var withBlock = dcAiDocsByType(dc);
-            if (withBlock.Exists(tp))
-                dcAiDocsOfType = withBlock.Item(tp);
-            else
-                dcAiDocsOfType = new Scripting.Dictionary();
+            return withBlock.Exists(tp) ? (Dictionary)withBlock.get_Item(tp) : new Dictionary();
         }
     }
 
-    public Scripting.Dictionary dcAiPartDocs(Scripting.Dictionary dc)
+    public static Dictionary dcAiPartDocs(Dictionary dc)
     {
-        dcAiPartDocs = dcAiDocsOfType(kPartDocumentObject, dc);
+        return dcAiDocsOfType(kPartDocumentObject, dc);
     }
-    // Debug.Print Join(dcAiPartDocs(dcAiDocsByType(dcAssyCompAndSub(aiDocAssy(ThisApplication.ActiveDocument).ComponentDefinition.Occurrences))).Keys, vbNewLine)
+    // Debug.Print Join(dcAiPartDocs(dcAiDocsByType(dcAssyCompAndSub(aiDocAssy(ThisApplication.ActiveDocument).ComponentDefinition.Occurrences))).Keys, vbCrLf)
 
-    public Scripting.Dictionary dcAiAssyDocs(Scripting.Dictionary dc)
+    public static Dictionary dcAiAssyDocs(Dictionary dc)
     {
-        dcAiAssyDocs = dcAiDocsOfType(kAssemblyDocumentObject, dc);
+        return dcAiDocsOfType(kAssemblyDocumentObject, dc);
     }
 
-    public Scripting.Dictionary dcOf_iPartFactories(Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */)
+    public static Dictionary dcOf_iPartFactories(Dictionary dc = null)
     {
-        Inventor.PartDocument pt;
-        Scripting.Dictionary rt;
-        Variant ky;
+        Dictionary rt;
 
         if (dc == null)
             rt = dcOf_iPartFactories(dcAiDocsVisible());
         else
         {
-            rt = new Scripting.Dictionary();
+            rt = new Dictionary();
 
             {
                 var withBlock = dcAiPartDocs(dc);
                 foreach (var ky in withBlock.Keys)
                 {
-                    pt = aiDocPart(withBlock.Item(ky));
+                    PartDocument pt = aiDocPart(withBlock.get_Item(ky));
                     {
-                        var withBlock1 = pt;
-                        if (withBlock1.ComponentDefinition.IsiPartFactory)
-                            rt.Add.FullFileName(null/* Conversion error: Set to default value for this argument */, pt);
+                        if (pt.ComponentDefinition.IsiPartFactory)
+                            rt.Add.FullFileName(null /* Conversion error: Set to default value for this argument */,
+                                pt);
                     }
                 }
             }
         }
 
-        dcOf_iPartFactories = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcOf_iAssyFactories(Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */)
+    public static Dictionary dcOf_iAssyFactories(Dictionary dc = null)
     {
-        Inventor.AssemblyDocument sm;
-        Scripting.Dictionary rt;
-        Variant ky;
+        Dictionary rt;
 
         if (dc == null)
             rt = dcOf_iAssyFactories(dcAiDocsVisible());
         else
         {
-            rt = new Scripting.Dictionary();
+            rt = new Dictionary();
 
             {
                 var withBlock = dcAiAssyDocs(dc);
                 foreach (var ky in withBlock.Keys)
                 {
-                    sm = aiDocAssy(withBlock.Item(ky));
+                    AssemblyDocument sm = aiDocAssy(withBlock.get_Item(ky));
                     {
-                        var withBlock1 = sm;
-                        if (withBlock1.ComponentDefinition.IsiAssemblyFactory)
-                            rt.Add.FullFileName(null/* Conversion error: Set to default value for this argument */, sm);
+                        if (sm.ComponentDefinition.IsiAssemblyFactory)
+                            rt.Add.FullFileName(null /* Conversion error: Set to default value for this argument */,
+                                sm);
                     }
                 }
             }
         }
 
-        dcOf_iAssyFactories = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcOf_iAll_Factories(Scripting.Dictionary dc = null/* TODO Change to default(_) if this is not a reference type */)
+    public static Dictionary dcOf_iAll_Factories(Dictionary dc = null)
     {
-        Scripting.Dictionary rt;
-        Variant ky;
+        Dictionary rt;
 
         if (dc == null)
             rt = dcOf_iAll_Factories(dcAiDocsVisible());
@@ -163,132 +149,122 @@
             {
                 var withBlock = dcOf_iAssyFactories(dc);
                 foreach (var ky in withBlock.Keys)
-                    rt.Add(ky, withBlock.Item(ky));
+                    rt.Add(ky, withBlock.get_Item(ky));
             }
         }
 
-        dcOf_iAll_Factories = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcAiSheetMetal(Scripting.Dictionary dc)
+    public static Dictionary dcAiSheetMetal(Dictionary dc)
     {
-        Variant ky;
-        Inventor.PartDocument pt;
-        Scripting.Dictionary rt;
+        PartDocument pt;
 
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
             var withBlock = dcAiPartDocs(dc);
             foreach (var ky in withBlock.Keys)
             {
                 {
-                    var withBlock1 = aiDocPart(withBlock.Item(ky));
+                    var withBlock1 = aiDocPart(withBlock.get_Item(ky));
                     if (withBlock1.DocumentSubType.DocumentSubTypeID == guidSheetMetal)
-                        rt.Add.FullFileName(null/* Conversion error: Set to default value for this argument */, withBlock1.ComponentDefinition.Document);
+                        rt.Add.FullFileName(null /* Conversion error: Set to default value for this argument */,
+                            withBlock1.ComponentDefinition.Document);
                 }
             }
         }
-        dcAiSheetMetal = rt;
+        return rt;
     }
-    // Debug.Print Join(dcAiSheetMetal(dcAiDocsByType(dcAssyCompAndSub(aiDocAssy(ThisApplication.ActiveDocument).ComponentDefinition.Occurrences))).Keys, vbNewLine)
+    // Debug.Print Join(dcAiSheetMetal(dcAiDocsByType(dcAssyCompAndSub(aiDocAssy(ThisApplication.ActiveDocument).ComponentDefinition.Occurrences))).Keys, vbCrLf)
     // 
     // Debug.Print 'dcAiPartDocs(dcAiDocsByType(dcAssyDocComponents(ThisApplication.ActiveDocument))).Count
     // Debug.Print 'dcAiSheetMetal(dcAiDocsByType(dcAssyDocComponents(ThisApplication.ActiveDocument))).Count
 
-    public Scripting.Dictionary dcAssyPartsPrimary(Inventor.AssemblyDocument aiAssy)
+    public static Dictionary dcAssyPartsPrimary(AssemblyDocument aiAssy)
     {
-        Scripting.Dictionary rt;
-        Inventor.ComponentOccurrence oc;
-
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
             var withBlock = aiAssy.ComponentDefinition;
-            foreach (var oc in withBlock.Occurrences)
+            foreach (ComponentOccurrence oc in withBlock.Occurrences)
             {
                 {
                     var withBlock1 = aiDocument(oc.Definition.Document);
                     if (!rt.Exists(withBlock1.FullDocumentName))
-                        rt.Add.FullDocumentName(null/* Conversion error: Set to default value for this argument */, withBlock1.PropertySets.Parent);
+                        rt.Add.FullDocumentName(null /* Conversion error: Set to default value for this argument */,
+                            withBlock1.PropertySets.Parent);
                 }
             }
         }
-        dcAssyPartsPrimary = rt;
+        return rt;
     }
 
-    public Scripting.Dictionary dcAiDocsByPtNum(Scripting.Dictionary dcIn)
+    public static Dictionary dcAiDocsByPtNum(Dictionary dcIn)
     {
-        Scripting.Dictionary rt;
-        Variant ky;
-        string pn;
         // Dim oc As Inventor.ComponentOccurrence
-
-        rt = new Scripting.Dictionary();
+        var rt = new Dictionary();
         {
-            var withBlock = dcIn // aiAssy.ComponentDefinition
-       ;
-            foreach (var ky in withBlock.Keys)
+            foreach (var ky in dcIn.Keys)
             {
                 {
-                    var withBlock1 = aiDocument(withBlock.Item(ky)).PropertySets.Item(gnDesign);
-                    pn = withBlock1.Item(pnPartNum).Value;
+                    var withBlock1 = aiDocument(dcIn.get_Item(ky)).PropertySets.get_Item(gnDesign);
+                    string pn = withBlock1.get_Item(pnPartNum).Value;
                     if (rt.Exists(pn))
-                        System.Diagnostics.Debugger.Break();
+                        Debugger.Break();
                     else
                         rt.Add(pn, withBlock1.Parent.Parent);
                 }
             }
         }
-        dcAiDocsByPtNum = rt;
+        return rt;
     }
-    // dc = dcAiDocsByPtNum(dcAssyPartsPrimary(ThisApplication.ActiveDocument)): For Each ky In dc: Debug.Print txDumpLs(dcAiDocsByPtNum(dcAssyPartsPrimary(aiDocument(dc.Item(ky)))).Keys, vbNewLine & vbTab): Next
-    // tx = "":  dc = dcAiDocsByPtNum(dcAssyPartsPrimary(ThisApplication.ActiveDocument)): For Each 'ky In dc: tx = tx & vbNewLine & ky & vbNewLine & vbTab & 'txDumpLs(dcAiDocsByPtNum(dcAssyPartsPrimary(aiDocument(dc.Item(ky)))).Keys, vbNewLine & 'vbTab): Next: send2clipBd tx:  dc = Nothing
+    // dc = dcAiDocsByPtNum(dcAssyPartsPrimary(ThisApplication.ActiveDocument)): For Each ky In dc: Debug.Print txDumpLs(dcAiDocsByPtNum(dcAssyPartsPrimary(aiDocument(dc.get_Item(ky)))).Keys, vbCrLf & vbTab): Next
+    // tx = "": dc = dcAiDocsByPtNum(dcAssyPartsPrimary(ThisApplication.ActiveDocument)): For Each 'ky In dc: tx = tx & vbCrLf & ky & vbCrLf & vbTab & 'txDumpLs(dcAiDocsByPtNum(dcAssyPartsPrimary(aiDocument(dc.get_Item(ky)))).Keys, vbCrLf & 'vbTab): Next: send2clipBd tx: dc = Nothing
 
-    public Scripting.Dictionary dcItemsNotInGenius(Scripting.Dictionary dcPts)
+    public static Dictionary dcItemsNotInGenius(Dictionary dcPts)
     {
-        /// dcItemsNotInGenius --
-        /// takes a Dictionary of Items
-        /// (keyed by Item/Part Number)
-        /// and returns a Dictionary of
-        /// Items not yet found in Genius
-        /// 
-        /// NOTE: originally designed to take
-        /// a Dictionary of Inventor
-        /// Documents, it SHOULD be able
-        /// to process a Dictionary of
-        /// ANY sort of Items keyed
-        /// to Item/Part Number
-        /// 
+        // dcItemsNotInGenius --
+        // takes a Dictionary of Items
+        // (keyed by Item/Part Number)
+        // and returns a Dictionary of
+        // Items not yet found in Genius
+        // 
+        // NOTE: originally designed to take
+        // a Dictionary of Inventor
+        // Documents, it SHOULD be able
+        // to process a Dictionary of
+        // ANY sort of Items keyed
+        // to Item/Part Number
+        // 
         // dcPts = dcRemapByPtNum(dcAiDocComponents(aiDoc))
 
-        dcItemsNotInGenius = dcKeysMissing(dcPts, dcOb(dcDxFromRecSetDc(dcFromAdoRS(cnGnsDoyle().Execute(q1g1x2v2(dcPts)))).Item("Item")));
+        return dcKeysMissing(dcPts,
+            dcOb(dcDxFromRecSetDc(dcFromAdoRS(cnGnsDoyle().Execute(q1g1x2v2(dcPts)))).get_Item("Item")));
     }
 
-    public Scripting.Dictionary dcAiPartsNotInGenius(Inventor.Document AiDoc)
+    public static Dictionary dcAiPartsNotInGenius(Document AiDoc)
     {
-        /// dcAiPartsNotInGenius --
-        /// calls dcItemsNotInGenius
-        /// against a Dictionary of Items
-        /// from supplied Inventor Document
-        /// to return a subset of Items
-        /// not yet added to Genius
-        /// 
+        // dcAiPartsNotInGenius --
+        // calls dcItemsNotInGenius
+        // against a Dictionary of Items
+        // from supplied Inventor Document
+        // to return a subset of Items
+        // not yet added to Genius
+        // 
 
-        dcAiPartsNotInGenius = dcItemsNotInGenius(dcRemapByPtNum(dcAiDocComponents(AiDoc)));
+        return dcItemsNotInGenius(dcRemapByPtNum(dcAiDocComponents(AiDoc)));
     }
 
-    public Scripting.Dictionary mdf0g0f0(Inventor.Document AiDoc)
+    public static Dictionary mdf0g0f0(Document AiDoc)
     {
-        Scripting.Dictionary rt;
-        Variant ky;
-        string bk;
-
-        bk = Constants.vbNewLine + Constants.vbTab;
-        rt = new Scripting.Dictionary();
+        const string bk = Constants.vbCrLf + Constants.vbTab;
+        var rt = new Dictionary();
         {
             var withBlock = dcAiDocsByPtNum(dcAssyPartsPrimary(AiDoc));
             foreach (var ky in withBlock.Keys)
-                rt.Add(ky + bk + txDumpLs(dcAiDocsByPtNum(dcAssyPartsPrimary(aiDocument(withBlock.Item(ky)))).Keys, bk), withBlock.Item(ky));
+                rt.Add(
+                    ky + bk + txDumpLs(dcAiDocsByPtNum(dcAssyPartsPrimary(aiDocument(withBlock.get_Item(ky)))).Keys,
+                        bk), withBlock.get_Item(ky));
         }
-        mdf0g0f0 = rt;
+        return rt;
     }
 }
