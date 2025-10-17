@@ -1,0 +1,23 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Dark theme brushes -->
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#3b4453" />
+    <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#222933" />
+    <SolidColorBrush x:Key="ControlForegroundBrush" Color="#F3F3F4" />
+    <SolidColorBrush x:Key="BorderBrush" Color="#222933" />
+
+    <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="#3b4453" />
+    <SolidColorBrush x:Key="ButtonHoverBrush" Color="#2c3440" />
+    <SolidColorBrush x:Key="ButtonPressedBrush" Color="#222B33" />
+    <SolidColorBrush x:Key="ButtonBorderBrush" Color="#8691a1" />
+
+    <SolidColorBrush x:Key="TextBoxBackgroundBrush" Color="#2c3340" />
+    <SolidColorBrush x:Key="TextBoxBorderBrush" Color="#495563" />
+    <SolidColorBrush x:Key="TextBoxHoverBorderBrush" Color="#9cafc7" />
+    <SolidColorBrush x:Key="TextBoxFocusBrush" Color="#0696d7" />
+
+    <!-- Info / helper text color for Dark theme -->
+    <SolidColorBrush x:Key="InfoForegroundBrush" Color="#868C98" />
+
+</ResourceDictionary>

@@ -20,7 +20,6 @@ namespace Doyle_Addin;
 [Guid("513b9d7e-103e-4569-8eb5-ab3929cd33ad")]
 public class StandardAddInServer : ApplicationAddInServer
 {
-
     private UserInterfaceEvents uiEvents;
 
     private UserInterfaceEvents UiEvents
@@ -40,6 +39,7 @@ public class StandardAddInServer : ApplicationAddInServer
             }
         }
     }
+
     private ButtonDefinition dxfUpdate;
 
     private ButtonDefinition DxfUpdate
@@ -62,6 +62,7 @@ public class StandardAddInServer : ApplicationAddInServer
             }
         }
     }
+
     private ButtonDefinition printUpdate;
 
     private ButtonDefinition PrintUpdate
@@ -84,6 +85,7 @@ public class StandardAddInServer : ApplicationAddInServer
             }
         }
     }
+
     private ButtonDefinition optionsButton;
 
     private ButtonDefinition OptionsButton
@@ -106,6 +108,7 @@ public class StandardAddInServer : ApplicationAddInServer
             }
         }
     }
+
     private ButtonDefinition obsoleteButton;
 
     private ButtonDefinition ObsoleteButton
@@ -338,7 +341,6 @@ public class StandardAddInServer : ApplicationAddInServer
     /// <inheritdoc />
     public void Deactivate()
     {
-
         // Clean up button definitions
         try
         {
@@ -447,6 +449,7 @@ public class StandardAddInServer : ApplicationAddInServer
     #endregion
 
     #region User interface definition
+
     // Sub where the user-interface creation is done.  This is called when
     // the add-in is loaded and also if the user interface is reset.
     private void AddToUserInterface()
@@ -612,18 +615,17 @@ public class StandardAddInServer : ApplicationAddInServer
 
     private void OptionsButton_OnExecute(NameValueMap context)
     {
-        var optionsForm = new UserOptionsForm();
-        var result =
-            optionsForm.ShowDialog(new Globals.WindowWrapper(GlobalsHelpers.ThisApplication.MainFrameHWND));
+        var optionsForm = new UserOptionsWindow();
+        var result = optionsForm.ShowDialog();
 
         // Refresh the ribbon after options are saved
-        if (result == DialogResult.OK)
+        if (result is true)
         {
             RefreshRibbon();
         }
     }
 
-    private void ObsoleteButton_OnExecute(NameValueMap context)
+    private static void ObsoleteButton_OnExecute(NameValueMap context)
     {
         new Action(() => ObsoletePrint.ApplyObsoletePrint(GlobalsHelpers.ThisApplication))();
     }
@@ -714,7 +716,6 @@ public class StandardAddInServer : ApplicationAddInServer
 
     #endregion
 }
-
 
 /// <summary>
 /// 

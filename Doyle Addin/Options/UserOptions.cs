@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Xml.Serialization;
 
@@ -9,20 +10,59 @@ namespace Doyle_Addin.Options;
 /// the Doyle Add-in. This class provides methods to save and load these options
 /// as an XML file in the user's application data directory.
 /// </summary>
-public class UserOptions
+public class UserOptions : INotifyPropertyChanged
 {
+    /// <summary>
+    /// Raised when a property value changes; used by WPF data binding (INotifyPropertyChanged).
+    /// </summary>
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    private void OnPropertyChanged(string propertyName) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+    private readonly string printExportLocation = "";
+    private readonly string dxfExportLocation = "";
+    private bool enableObsoletePrint = true;
+
     /// <summary>
     /// Specifies the directory path where PDF files will be exported during the print update process.
     /// </summary>
-    public string PrintExportLocation { get; set; } = "";
+    public string PrintExportLocation
+    {
+        get => printExportLocation;
+        init
+        {
+            if (value == printExportLocation) return;
+            printExportLocation = value;
+            OnPropertyChanged(nameof(PrintExportLocation));
+        }
+    }
     /// <summary>
     /// Specifies the file system path where generated DXF files will be exported.
     /// </summary>
-    public string DxfExportLocation { get; set; } = "";
+    public string DxfExportLocation
+    {
+        get => dxfExportLocation;
+        init
+        {
+            if (value == dxfExportLocation) return;
+            dxfExportLocation = value;
+            OnPropertyChanged(nameof(DxfExportLocation));
+        }
+    }
     /// <summary>
     /// Feature toggles
     /// </summary>
-    public bool EnableObsoletePrint { get; set; } = true;
+    public bool EnableObsoletePrint
+    {
+        get => enableObsoletePrint;
+        set
+        {
+            if (value == enableObsoletePrint) return;
+            enableObsoletePrint = value;
+            OnPropertyChanged(nameof(EnableObsoletePrint));
+        }
+    }
 
     /// <summary>
     /// The file path where the user options data is stored.
@@ -39,26 +79,38 @@ public class UserOptions
     /// </summary>
     public void Save()
     {
-        var serializer = new XmlSerializer(typeof(UserOptions));
-        using var writer = new StreamWriter(OptionsFilePath);
-        serializer.Serialize(writer, this);
+        try
+        {
+            var serializer = new XmlSerializer(typeof(UserOptions));
+            using var writer = new StreamWriter(OptionsFilePath);
+            serializer.Serialize(writer, this);
+        }
+        catch (Exception)
+        {
+            // Intentionally swallow exceptions to avoid crashing the host application.
+            // In a future change we could log this to a telemetry sink or show a user-facing message.
+        }
     }
     /// <summary>
     /// Loads the user options settings from a file if it exists. If the file is not found,
     /// a new instance of the UserOptions class is returned with default values.
     /// </summary>
-    /// <returns>A <see cref="UserOptions"/> instance containing the loaded settings or default values if no file exists.</returns>
+    /// <returns>A <see cref="UserOptions"/> instance containing the loaded settings or default values if no file exists or on error.</returns>
     public static UserOptions Load()
     {
-        if (File.Exists(OptionsFilePath))
+        try
         {
+            if (!File.Exists(OptionsFilePath)) return new UserOptions();
             var serializer = new XmlSerializer(typeof(UserOptions));
             using var reader = new StreamReader(OptionsFilePath);
             return (UserOptions)serializer.Deserialize(reader);
         }
-        else
+        catch (Exception)
         {
+            // If loading fails for any reason (corrupt file, permission issue, etc.)
+            // return default options to keep the application usable.
             return new UserOptions();
         }
+
     }
 }
