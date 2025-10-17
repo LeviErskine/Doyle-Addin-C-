@@ -3,7 +3,6 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <OutputType>Library</OutputType>
-    <StartupObject></StartupObject>
     <MyType>Windows</MyType>
     <PublishUrl>http://localhost/InventorAddIn/</PublishUrl>
     <Install>true</Install>
@@ -20,7 +19,7 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <UseWindowsForms>true</UseWindowsForms>
+	<UseWPF>true</UseWPF>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
     <Title>Doyle Addin</Title>
     <Version>$(GitVersion_FullSemVer)</Version>
@@ -78,14 +77,13 @@
     <Compile Include="My Project\AssemblyInfo.cs" />
     <Compile Include="My Project\GlobalsHelpers.cs" />
     <Compile Include="My Project\SVGconvert.cs" />
+    <Compile Include="Options\UserControl.xaml.cs" />
     <Compile Include="Prints\PDFToJPG.cs" />
     <Compile Include="Prints\printUpdate.cs" />
     <Compile Include="StandardAddInServer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Options\UserOptions.cs" />
-    <Compile Include="Options\UserOptionsForm.Designer.cs" />
-    <Compile Include="Options\UserOptionsForm.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="My Project\Application.myapp" />
@@ -97,7 +95,6 @@
     <EmbeddedResource Include="Resources\ObsoletePrint.svg" />
     <EmbeddedResource Include="Resources\PrintUpdateIcon.svg" />
     <EmbeddedResource Include="Resources\DXFUpdateIcon.svg" />
-    <EmbeddedResource Include="Options\UserOptionsForm.resx" />
     <EmbeddedResource Include="Resources\SettingsIcon.svg" />
     <None Include="My Project\DoylePlugin.manifest" />
     <None Include="Resources\ObsoleteLibrary.idw">
@@ -144,7 +141,9 @@
     <PackageReference Include="GitVersion.MsBuild" Version="6.4.0">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
     <PackageReference Include="Svg" Version="3.4.7" />
+    <PackageReference Include="WPF-UI" Version="4.0.3" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Autodesk.Inventor.Interop">
@@ -155,5 +154,10 @@
   </ItemGroup>
   <ItemGroup>
     <Import Include="Docnet.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Options\Themes\DarkTheme.xaml" />
+    <Page Include="Options\Themes\LightTheme.xaml" />
+    <Page Include="Options\UserControl.xaml" />
   </ItemGroup>
 </Project>
