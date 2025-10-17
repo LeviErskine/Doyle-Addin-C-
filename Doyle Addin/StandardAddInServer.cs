@@ -1,8 +1,17 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using File = System.IO.File;
+using System.Net.Http;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Doyle_Addin.My_Project;
 using Doyle_Addin.Options;
+using Inventor;
 
 namespace Doyle_Addin;
 
@@ -11,7 +20,6 @@ namespace Doyle_Addin;
 [Guid("513b9d7e-103e-4569-8eb5-ab3929cd33ad")]
 public class StandardAddInServer : ApplicationAddInServer
 {
-
     private UserInterfaceEvents uiEvents;
 
     private UserInterfaceEvents UiEvents
@@ -31,6 +39,7 @@ public class StandardAddInServer : ApplicationAddInServer
             }
         }
     }
+
     private ButtonDefinition dxfUpdate;
 
     private ButtonDefinition DxfUpdate
@@ -53,6 +62,7 @@ public class StandardAddInServer : ApplicationAddInServer
             }
         }
     }
+
     private ButtonDefinition printUpdate;
 
     private ButtonDefinition PrintUpdate
@@ -75,6 +85,7 @@ public class StandardAddInServer : ApplicationAddInServer
             }
         }
     }
+
     private ButtonDefinition optionsButton;
 
     private ButtonDefinition OptionsButton
@@ -97,6 +108,7 @@ public class StandardAddInServer : ApplicationAddInServer
             }
         }
     }
+
     private ButtonDefinition obsoleteButton;
 
     private ButtonDefinition ObsoleteButton
@@ -133,11 +145,11 @@ public class StandardAddInServer : ApplicationAddInServer
             CheckForUpdateAndDownloadAsync();
 
             // Initialize AddIn members.
-            ThisApplication = addInSiteObject.Application;
+            GlobalsHelpers.ThisApplication = addInSiteObject.Application;
 
             // Get a reference to the ControlDefinitions object. 
-            var controlDefs = ThisApplication.CommandManager.ControlDefinitions;
-            var oThemeManager = ThisApplication.ThemeManager;
+            var controlDefs = GlobalsHelpers.ThisApplication.CommandManager.ControlDefinitions;
+            var oThemeManager = GlobalsHelpers.ThisApplication.ThemeManager;
 
             var oTheme = oThemeManager.ActiveTheme;
 
@@ -234,7 +246,7 @@ public class StandardAddInServer : ApplicationAddInServer
             AddToUserInterface();
 
             // Connect to the user-interface events to handle a ribbon reset.
-            UiEvents = ThisApplication.UserInterfaceManager.UserInterfaceEvents;
+            UiEvents = GlobalsHelpers.ThisApplication.UserInterfaceManager.UserInterfaceEvents;
 
             // Ensure the option file exists with default values if it doesn't exist
             if (File.Exists(UserOptions.OptionsFilePath)) return;
@@ -284,7 +296,7 @@ public class StandardAddInServer : ApplicationAddInServer
                 {
                     await File.WriteAllTextAsync(
                         @"C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt", "update");
-                    ThisApplication.Quit();
+                    GlobalsHelpers.ThisApplication.Quit();
                 }
                 else
                 {
@@ -329,7 +341,6 @@ public class StandardAddInServer : ApplicationAddInServer
     /// <inheritdoc />
     public void Deactivate()
     {
-
         // Clean up button definitions
         try
         {
@@ -385,7 +396,7 @@ public class StandardAddInServer : ApplicationAddInServer
 
         // Release objects.
         UiEvents = null;
-        ThisApplication = null;
+        GlobalsHelpers.ThisApplication = null;
 
         // Check for pending update marker
         const string updateMarker = @"C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt";
@@ -438,6 +449,7 @@ public class StandardAddInServer : ApplicationAddInServer
     #endregion
 
     #region User interface definition
+
     // Sub where the user-interface creation is done.  This is called when
     // the add-in is loaded and also if the user interface is reset.
     private void AddToUserInterface()
@@ -446,7 +458,7 @@ public class StandardAddInServer : ApplicationAddInServer
         var options = UserOptions.Load();
 
         // Cache frequently used objects
-        var uiManager = ThisApplication.UserInterfaceManager;
+        var uiManager = GlobalsHelpers.ThisApplication.UserInterfaceManager;
 
         // Define ribbon mappings for each document type
         var ribbonMappings = new Dictionary<string, Ribbon>()
@@ -593,30 +605,29 @@ public class StandardAddInServer : ApplicationAddInServer
 
     private static void DXFUpdate_OnExecute(NameValueMap context)
     {
-        new Action(() => DXFs.DxfUpdate.RunDxfUpdate(ThisApplication))();
+        new Action(() => DXFs.DxfUpdate.RunDxfUpdate(GlobalsHelpers.ThisApplication))();
     }
 
     private static void PrintUpdate_OnExecute(NameValueMap context)
     {
-        Prints.PrintUpdate.RunPrintUpdate();
+        new Action(() => Prints.PrintUpdate.RunPrintUpdate(GlobalsHelpers.ThisApplication))();
     }
 
     private void OptionsButton_OnExecute(NameValueMap context)
     {
-        var optionsForm = new UserOptionsForm();
-        var result =
-            optionsForm.ShowDialog(new Globals.WindowWrapper(ThisApplication.MainFrameHWND));
+        var optionsForm = new UserOptionsWindow();
+        var result = optionsForm.ShowDialog();
 
         // Refresh the ribbon after options are saved
-        if (result == DialogResult.OK)
+        if (result is true)
         {
             RefreshRibbon();
         }
     }
 
-    private void ObsoleteButton_OnExecute(NameValueMap context)
+    private static void ObsoleteButton_OnExecute(NameValueMap context)
     {
-        new Action(() => ObsoletePrint.ApplyObsoletePrint(ThisApplication))();
+        new Action(() => ObsoletePrint.ApplyObsoletePrint(GlobalsHelpers.ThisApplication))();
     }
 
     // Helper method to refresh the ribbon UI
@@ -647,7 +658,7 @@ public class StandardAddInServer : ApplicationAddInServer
     {
         try
         {
-            var uiManager = ThisApplication.UserInterfaceManager;
+            var uiManager = GlobalsHelpers.ThisApplication.UserInterfaceManager;
             var ribbon = uiManager.Ribbons["Drawing"];
 
             if (ribbon is null) return;
@@ -705,7 +716,6 @@ public class StandardAddInServer : ApplicationAddInServer
 
     #endregion
 }
-
 
 /// <summary>
 /// 
