@@ -1,127 +1,75 @@
-﻿using Microsoft.VisualBasic;
-
-namespace Doyle_Addin.Genius.Forms;
-
-class fmGetList : Form
+Class fmGetList
 {
+    /* TODO ERROR: Skipped SkippedTokensTrivia */
+    Private var VB_Name = "fmGetList";
+    /* TODO ERROR: Skipped SkippedTokensTrivia */
+    Private var VB_GlobalNameSpace = False;
+    /* TODO ERROR: Skipped SkippedTokensTrivia */
+    Private var VB_Creatable = False;
+    /* TODO ERROR: Skipped SkippedTokensTrivia */
+    Private var VB_PredeclaredId = True;
+    /* TODO ERROR: Skipped SkippedTokensTrivia */
+    Private var VB_Exposed = False;
+
+
+
     // Event CheckOut(Cancel As Long)
 
-    /// <summary>
-    /// Required method for Designer support - do not modify
-    /// the contents of this method with the code editor.
-    /// </summary>
-    private void InitializeComponent()
+    Private String bg;
+    Private String rt;
+
+    Public String AskUser(String Using = ""
+    )
     {
-        lbTxIn = new System.Windows.Forms.Label();
-        txIn = new System.Windows.Forms.TextBox();
-        cmdCancel = new System.Windows.Forms.Button();
-        cmdOk = new System.Windows.Forms.Button();
-        SuspendLayout();
-        // 
-        // lbTxIn
-        // 
-        lbTxIn.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)0));
-        lbTxIn.Location = new System.Drawing.Point(12, 12);
-        lbTxIn.Name = "lbTxIn";
-        lbTxIn.Size = new System.Drawing.Size(121, 15);
-        lbTxIn.TabIndex = 0;
-        lbTxIn.Text = "Paste or Type List Here";
-        lbTxIn.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-        // 
-        // txIn
-        // 
-        txIn.Location = new System.Drawing.Point(12, 30);
-        txIn.Multiline = true;
-        txIn.Name = "txIn";
-        txIn.Size = new System.Drawing.Size(150, 300);
-        txIn.TabIndex = 1;
-        // 
-        // cmdCancel
-        // 
-        cmdCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-        cmdCancel.Location = new System.Drawing.Point(12, 336);
-        cmdCancel.Name = "cmdCancel";
-        cmdCancel.Size = new System.Drawing.Size(75, 23);
-        cmdCancel.TabIndex = 2;
-        cmdCancel.Text = "Cancel";
-        cmdCancel.UseVisualStyleBackColor = true;
-        cmdCancel.Click += cmdCancel_Click;
-        // 
-        // cmdOk
-        // 
-        cmdOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-        cmdOk.Location = new System.Drawing.Point(85, 336);
-        cmdOk.Name = "cmdOk";
-        cmdOk.Size = new System.Drawing.Size(77, 23);
-        cmdOk.TabIndex = 3;
-        cmdOk.Text = "OK";
-        cmdOk.UseVisualStyleBackColor = true;
-        cmdOk.Click += cmdOk_Click;
-        // 
-        // fmGetList
-        // 
-        AcceptButton = cmdOk;
-        CancelButton = cmdCancel;
-        ClientSize = new System.Drawing.Size(172, 366);
-        Controls.Add(cmdOk);
-        Controls.Add(cmdCancel);
-        Controls.Add(txIn);
-        Controls.Add(lbTxIn);
-        MaximizeBox = false;
-        MinimizeBox = false;
-        ShowIcon = false;
-        Text = "List Entry";
-        FormClosed += fmGetList_FormClosed;
-        ResumeLayout(false);
-        PerformLayout();
+        bg = ; txIn.Value = bg;     // initialize text box
+        Show(vbModal); AskUser = rt;        // return final result
     }
 
-    private System.Windows.Forms.Button cmdCancel;
-    private System.Windows.Forms.Button cmdOk;
-    private System.Windows.Forms.TextBox txIn;
-    private System.Windows.Forms.Label lbTxIn;
-    private string bg;
-    private string rt;
-
-    public string AskUser(string Using = "")
+    Private void CheckOut(Long NoChg)
     {
-        bg = txIn.Text = bg; // initialize text box
-        Show(Modal);
-        return rt; // return final result
-    }
+        VbMsgBoxResult ck;
 
-    private void CheckOut(bool NoChg)
-    {
-        if (NoChg) return;
-        var ck = MessageBox.Show(@"Use this List?", @"Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-        if (ck == (DialogResult)Constants.vbYes)
+        If (NoChg == 0)
         {
-            rt = txIn.Text;
+            ck = MsgBox("Use this List?", Constants.vbYesNo + Constants.vbQuestion, "Confirm"
+);
+            If (ck == Constants.vbYes)
+                rt = txIn.Value;
         }
-        else
-            ck = MessageBox.Show(@"Cancel this Entry?", @"Cancel", MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
+        Else
+        {
+            ck = MsgBox("Cancel this Entry?", Constants.vbYesNo + Constants.vbQuestion, "Cancel"
+      );
+            If (ck == Constants.vbYes)
+                rt = bg;
+        }
 
-        if (ck != (DialogResult)Constants.vbYes) return;
-        rt = bg;
-        Hide();
+        If (ck == Constants.vbYes)
+            this.Hide();
     }
 
-    private void cmdCancel_Click()
+    Private void cmdCancel_Click()
     {
-        CheckOut(true);
+        CheckOut(1);
     }
 
-    private void cmdOk_Click()
+    Private void cmdOk_Click()
     {
-        CheckOut(false);
+        CheckOut(0);
     }
 
-    private void fmGetList_FormClosed(object sender, FormClosedEventArgs e, int Cancel, int CloseMode
+    Private void UserForm_QueryClose(int Cancel, int CloseMode
     )
     {
         Cancel = 1;
-        CheckOut(true);
+        CheckOut(1);
+    }
+
+    Private void UserForm_Initialize()
+    {
+    }
+
+    Private void UserForm_Terminate()
+    {
     }
 }

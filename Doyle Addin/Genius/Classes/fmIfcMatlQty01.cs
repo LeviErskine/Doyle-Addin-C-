@@ -1,513 +1,592 @@
-﻿using Doyle_Addin.Genius.Forms;
-using Microsoft.VisualBasic;
 
-namespace Doyle_Addin.Genius.Classes;
 
-class fmIfcMatlQty01 : Form
-{
-    private void Class_Initialize()
-    {
-        // Dim ctl As MSForms.Control
-
-        dcResult = new Dictionary();
-        {
-            var withBlock = dcResult;
-            withBlock.Add(pnRmQty, 0);
-            withBlock.Add(pnRmUnit, "");
-        }
-
-        fm = new fmMatlQty();
-        {
-            var withBlock = fm;
-            // For Each ctl In .Controls
-            // Debug.Print ctl.Name
-            // Next
-
-            cbxUnitQty = withBlock.cbxUnitQty;
-            cbxUnitQty.List = Split("IN FT FT2 IN2 EA");
-
-            lbxMatlQty = withBlock.lbxMatlQty;
-            txbMatlQty = withBlock.txbMatlQty;
-
-            imgThmNail = withBlock.imThmNail;
-            lblPartNumber = withBlock.lblPartNumber;
-            lblPartInfo = withBlock.lblPartInfo;
-            lblMatlNumber = withBlock.lblMatlNumber;
-            lblMatlInfo = withBlock.lblMatlInfo;
-        }
-    }
-
-    public Dictionary Result()
-    {
-        return dcCopy(dcResult);
-    }
-
-    private Dictionary Changes(Dictionary wkg)
-    {
-
-        var rt = new Dictionary();
-        {
-            foreach (var ky in dcResult.Keys)
-            {
-                if (!wkg.Exists(ky)) continue;
-                if (wkg.get_Item(ky) == dcResult.get_Item(ky))
-                {
-                }
-                else
-                    rt.Add(ky, wkg.get_Item(ky));
-            }
-        }
-
-        return dcCopy(dcResult);
-    }
-
-    private Dictionary Commit(Dictionary src)
-    {
-
-        {
-            var withBlock = dcResult;
-            foreach (var ky in withBlock.Keys)
-            {
-                if (src.Exists(ky))
-                    withBlock.get_Item(ky) = src.get_Item(ky);
-            }
-        }
-
-        return dcCopy(dcResult);
-    }
-
-    public Dictionary SeeUser(dynamic About = null) // fmIfcMatlQty01
-    {
-        while (true)
-        {
-            string ky;
-            string ck;
-
-            if (About != null)
-                return About switch
-                {
-                    Dictionary => SeeUserWithDict(About),
-                    PartDocument => SeeUserWithPart(About),
-                    Property => SeeUserWithQtyProp(About),
-                    _ => SeeUser()
-                };
-            About = nuDcPopulator()
-                .Setting(pnRmQty + "()", nuDcPopulator().Setting(4, 1).Setting(2, 1).Setting(24, 1).Dictionary())
-                .Setting(pnRmQty, 24)
-                .Setting(pnRmUnit, "IN")
-                .Setting(pnPartNum, "NO-ITM-GIVEN")
-                .Setting(pnRawMaterial, "NO-MTL-GIVEN")
-                .Dictionary();
-            continue;
-
-            break;
-        }
-    }
-
-    // make this one Public later
-
-    // once Part version is working
-    private fmIfcMatlQty01 SeeUserWithModel(Property About)
-    {
-    }
-
-    public Dictionary SeeUserWithPart(PartDocument About) // fmIfcMatlQty01
-    {
-        if (About == null)
-            return SeeUser(About);
-
-        var dcPr = new Dictionary();
-        {
-            var withBlock = About.PropertySets;
-            {
-                var withBlock1 = withBlock.get_Item(gnDesign);
-                dcPr.Add(pnPartNum, withBlock1.get_Item(pnPartNum).Value);
-                dcPr.Add(pnDesc, withBlock1.get_Item(pnDesc).Value);
-            }
-
-            {
-                var withBlock1 = withBlock.get_Item(gnCustom);
-                foreach (var kyPr in new[]
-                         {
-                             pnRawMaterial, pnRmQty, pnRmUnit
-                         })
-                {
-                    Information.Err().Clear();
-                    var obPr = withBlock1.get_Item(Convert.ToHexString(kyPr));
-                    if (Information.Err().Number == 0)
-                        dcPr.Add(kyPr, obPr.Value);
-                    else
-                    {
-                        Debug.Print(Information.Err().Description);
-                        Debugger.Break();
-                        Information.Err().Clear();
-                    }
-                }
-            }
-        }
-
-        // prepare Dictionary of Dimensions
-        // with Count of Each
-        // 
-
-        var dcDm = new Dictionary();
-
-        {
-            var withBlock = nuAiBoxData().UsingInches(1);
-            for (long op = 0; op <= 1; op++)
-            {
-                {
-                    var withBlock1 = withBlock.UsingModel(About, op);
-                    foreach (var vlDm in new[]
-                             {
-                                 Round(withBlock1.SpanX, 4), Round(withBlock1.SpanY, 4),
-                                 Round(withBlock1.SpanZ, 4), 0
-                             })
-                    {
-                        {
-                            var withBlock2 = dcDm;
-                            if (vlDm <= 0) continue;
-                            long ctDm;
-                            if (withBlock2.Exists(vlDm))
-                            {
-                                ctDm = withBlock2.get_Item(vlDm) + 1;
-                                withBlock2.get_Item(vlDm) = ctDm;
-                            }
-                            else
-                                withBlock2.Add(vlDm, ctDm);
-                        }
-                    }
-                }
-            }
-        }
-
-        {
-            dcPr.Add(pnRmQty + "()", dcDm);
-            dcPr.Add("img", About.Thumbnail);
-        }
-
-        return SeeUserWithDict(dcPr);
-    }
-
-            private Dictionary SeeUserWithQtyProp(Property About) // fmIfcMatlQty01
-            {
-                // this one will have to be heavily modified
-                // likely dumping a bunch of code now implemented
-                // in SeeUserWithPart, which can simply be
-                // called with the Document containing
-                // the supplied Property
-                // 
-
-                if (About == null)
-                    Debugger.Break();
-                else
-                {
-                    // these variables are for use
-                    // in separating quantity from
-                    // unit of measure in Value of
-                    // supplied Property
-                    string unIn;
-                    // split incoming Property Value into
-                    // Quantity and Unit of Measurement
-                    var vlIn = Convert.ToHexString(About.Value) + " ";
-                    // note: concatenated space at end
-                    // of Value text should ensure two
-                    // members of arIn, as follows
-                    dynamic arIn = Split(vlIn, " ", 2);
-
-                    double qtIn = Round(Val(arIn(0)), 4);
-                    if (UBound(arIn) > 0)
-                        unIn = Trim(arIn(1));
-                    // this section and its associated variables
-                    // will likely be exported to a separate function
-
-                    // force blank Unit of
-                    // Measure to default inches
-                    if (Strings.Len(unIn) == 0)
-                        unIn = "IN";
-
-                    // the following section SHOULD be
-                    // implemented now in SeeUserWithPart
-                    // it should be possible to simply
-                    // call that function, completely
-                    // ignoring the supplied Property
-                    // 
-                    // prepare Dictionary of Dimensions
-                    // with Count of Each
-                    // 
-                    long ctDm;
-
-                    var dcDm = new Dictionary();
-                    if (qtIn > 0)
-                        dcDm.Add(qtIn, 1);
-
-                    // get all necessary information
-                    // from Inventor Model
-                    // 
-                    Property mdPt;
-                    Property mdMt;
-
-                    var md = aiDocument(About.Parent.Parent.Parent);
-                    {
-                        var withBlock = md.PropertySets;
-                        mdPt = withBlock.get_Item(gnDesign).get_Item(pnPartNum);
-
-                        Information.Err().Clear();
-                        mdMt = withBlock.get_Item(gnCustom).get_Item(pnRawMaterial);
-                        if (Information.Err().Number == 0)
-                        {
-                        }
-                        else
-                            Debugger.Break();
-                    }
-
-                    {
-                        var withBlock = nuAiBoxData().UsingInches(1).UsingModel(About);
-                        foreach (var vlDm in new[]
-                                 {
-                                     Round(withBlock.SpanX, 4), Round(withBlock.SpanY, 4), Round(withBlock.SpanZ, 4),
-                                     0
-                                 })
-                        {
-                            {
-                                if (vlDm <= 0) continue;
-                                if (dcDm.Exists(vlDm))
-                                {
-                                    ctDm = dcDm.get_Item(vlDm) + 1;
-                                    dcDm.get_Item(vlDm) = ctDm;
-                                }
-                                else
-                                    dcDm.Add(vlDm, ctDm);
-                            }
-                        }
-                    }
-
-                    {
-                        var withBlock = nuDcPopulator().Setting(pnRmQty + "()", dcDm).Setting(pnRmQty, qtIn)
-                            .Setting(pnRmUnit, unIn).Setting(pnPartNum, mdPt.Value)
-                            .Setting(pnRawMaterial, mdMt.Value);
-                        return SeeUserWithDict(withBlock.Dictionary());
-                    }
-                }
-            }
-
-            public Dictionary SeeUserWithDict(Dictionary About) // fmIfcMatlQty01
-            {
-                while (true)
-                {
-                    string ck;
-
-                    if (About == null)
-                    {
-                        About = nuDcPopulator()
-                            .Setting(pnRmQty + "()", nuDcPopulator().Setting(4, 1).Setting(2, 1).Setting(24, 1).Dictionary())
-                            .Setting(pnRmQty, 24)
-                            .Setting(pnRmUnit, "IN")
-                            .Setting(pnPartNum, "NO-ITM-GIVEN")
-                            .Setting(pnRawMaterial, "NO-MTL-GIVEN")
-                            .Dictionary();
-                        continue;
-                    }
-
-                    {
-                        // .Add "img", About.Thumbnail
-                        if (About.Exists("img")) imgThmNail.Picture = About.get_Item("img");
-
-                        if (About.Exists(pnDesc))
-                            txbMatlQty.Value = Val(Convert.ToHexString(About.get_Item(pnDesc)));
-
-                        var ky = pnRmQty + "()";
-                        if (About.Exists(ky)) lbxMatlQty.List = dcOb(About.get_Item(ky)).Keys;
-
-                        if (About.Exists(pnRmQty))
-                            txbMatlQty.Value = Val(Convert.ToHexString(About.get_Item(pnRmQty)));
-
-                        if (About.Exists(pnRmUnit))
-                        {
-                            Information.Err().Clear();
-                            cbxUnitQty.Value = About.get_Item(pnRmUnit);
-                            if (Information.Err().Number)
-                            {
-                                Debug.Print(""); // Breakpoint Landing
-                                cbxUnitQty.Value = "IN";
-                            }
-                        }
-
-                        // Following are "boilerplate" elements
-                        // for Part/Item and Raw Material numbers,
-                        // along with their descriptions.
-                        // 
-                        // A thumbnail image of the Part is also
-                        // expected to be supplied at some point,
-                        // but will be held off for now, pending
-                        // successful testing of the form's main
-                        // functions.
-                        // 
-                        // Part/Item Number
-                        if (About.Exists(pnPartNum))
-                            lblPartNumber.Caption = Convert.ToHexString(About.get_Item(pnPartNum));
-
-                        // Material Number
-                        if (About.Exists(pnRawMaterial))
-                            lblMatlNumber.Caption = Convert.ToHexString(About.get_Item(pnRawMaterial));
-
-                        // Item Description
-                        if (About.Exists(pnDesc)) lblPartInfo.Caption = Convert.ToHexString(About.get_Item(pnDesc));
-
-                        // Material Description
-                        // (not expected at this time)
-                        ky = pnRawMaterial + ":";
-                        if (About.Exists(ky)) lblMatlInfo.Caption = Convert.ToHexString(About.get_Item(ky));
-                    }
-
-                    {
-                        var withBlock = Commit(About);
-                    }
-
-                    fm.Show(1);
-                    // Stop
-
-                    {
-                        var withBlock = nuDcPopulator()
-                                .Setting(pnRmQty, Round(Val(txbMatlQty.Value), 4))
-                                .Setting(pnRmUnit, cbxUnitQty.Value) // Mapping...
-                            ;
-                        // txbMatlQty -> pnRmQty
-                        // cbxUnitQty -> pnRmUnit
-
-                        return Commit(withBlock.Dictionary);
-                    }
-
-                    break;
-                }
-            }
-
-            public void Version()
-            {
-                return fmVersion;
-            }
-
-            private void Class_Terminate()
-            {
-                // dcWorkg = Nothing
-                // dcGiven = Nothing
-
-                imgThmNail.Picture = null;
-                imgThmNail = null;
-
-                cbxUnitQty = null;
-
-                lbxMatlQty = null;
-                txbMatlQty = null;
-
-                lblPartNumber = null;
-                lblPartInfo = null;
-                lblMatlNumber = null;
-                lblMatlInfo = null;
-
-                fm = null;
-            }
-
-            private void fm_Sent(VbMsgBoxResult Signal)
-            {
-                if (Signal == Constants.vbCancel)
-                {
-                    VbMsgBoxResult ck = MessageBox.Show(Join(new[]
-                        {
-                            "Material Quantity", "and Units will", "remain unchanged."
-                        }, Constants.vbCrLf),
-                        Constants.vbYesNo, "Cancel Update?");
-                    // Stop
-                    if (ck == Constants.vbYes)
-                    {
-                        {
-                            var withBlock = dcResult;
-                            txbMatlQty.Value = Convert.ToHexString(withBlock.get_Item(pnRmQty));
-                            cbxUnitQty.Value = withBlock.get_Item(pnRmUnit);
-                        }
-                        fm.Hide();
-                    }
-                    else if (ck == Constants.vbCancel)
-                        Debugger.Break(); // drop and debug
-
-                    Debug.Print(""); // Breakpoint Landing
-                }
-
-                else if (Signal == Constants.vbOK)
-                {
-                    ck = MessageBox.Show(Join(new[]
-                    {
-                        "Update Material",
-                        "Quantity to " + Convert.ToHexString(Round(Val(txbMatlQty.Value), 4)) +
-                        cbxUnitQty.Value + "?"
-                    }, Constants.vbCrLf), Constants.vbYesNo, "Update Quantity?");
-                    // Stop
-                    if (ck == Constants.vbYes)
-                    {
-                        fm.Hide();
-                        Debug.Print(""); // Breakpoint Landing
-                    }
-                    else if (ck == Constants.vbCancel)
-                        Debugger.Break(); // drop and debug
-
-                    Debug.Print(""); // Breakpoint Landing
-                }
-                else
-                    Debugger.Break();
-            }
-
-            private void lbxMatlQty_DblClick(MSForms.ReturnBoolean Cancel)
-            {
-                txbMatlQty.Value = lbxMatlQty.Value;
-            }
-
-            private void lbxMatlQty_MouseMove(int Button, int Shift, float X, float Y)
-            {
-                if (Button != 1) return;
-                var dt = new DataObject();
-                dt.SetText(lbxMatlQty.Value);
-                int ef = dt.StartDrag();
-            }
-
-            private void txbMatlQty_Change()
-            {
-                {
-                    var withBlock = txbMatlQty;
-                    string tx = withBlock.Value;
-                    dynamic gp = Split(tx, ".");
-                    long mx = UBound(gp);
-
-                    for (long dx = LBound(gp); dx <= mx; dx++)
-                    {
-                        double ck = Val(gp(dx));
-
-                        if (ck > 0)
-                            gp(dx) = Convert.ToHexString(ck);
-                        else if (dx > 0)
-                            gp(dx) = "";
-                        else
-                            gp(dx) = "0";
-                    }
-
-                    tx = Join(gp, ".");
-
-                    if (tx == withBlock.Value) return;
-                    DoEvents();
-                    withBlock.Value = tx;
-                }
-            }
-
-            /// <summary>
-            /// Required method for Designer support - do not modify
-            /// the contents of this method with the code editor.
-            /// </summary>
-            private void InitializeComponent()
-            {
-                SuspendLayout();
-                // 
-                // fmIfcMatlQty01
-                // 
-                ClientSize = new System.Drawing.Size(284, 261);
-                ResumeLayout(false);
-            }
-}
+Private WithEvents fm As fmMatlQty
+Attribute fm.VB_VarHelpID = -1
+Private WithEvents lbxMatlQty   As MSForms.ListBox
+Attribute lbxMatlQty.VB_VarHelpID = -1
+Private WithEvents txbMatlQty   As MSForms.TextBox
+Attribute txbMatlQty.VB_VarHelpID = -1
+Private WithEvents cbxUnitQty   As MSForms.ComboBox
+Attribute cbxUnitQty.VB_VarHelpID = -1
+Private WithEvents imgThmNail   As MSForms.Image
+Attribute imgThmNail.VB_VarHelpID = -1
+
+'Private WithEvents cmdOK        As MSForms.CommandButton
+'Private WithEvents cmdCancel    As MSForms.CommandButton
+'Private WithEvents cmdOK        As MSForms.CommandButton
+
+Private lblPartNumber           As MSForms.Label
+Private lblPartInfo             As MSForms.Label
+Private lblMatlNumber           As MSForms.Label
+Private lblMatlInfo             As MSForms.Label
+'lblMatlQty
+'lblNoImg
+
+'imThmNail
+
+Private dcResult As Scripting.Dictionary
+
+'Private dcGiven As Scripting.Dictionary
+'Private dcWorkg As Scripting.Dictionary
+'Private fmStatus As VbMsgBoxResult
+
+Private Const fmVersion As String = "Material Quantity Form Interface 0.0.0.0 [2022.03.04]"
+'''
+'''
+'''
+
+Private Sub Class_Initialize()
+    'Dim ctl As MSForms.Control
+    
+    Set dcResult = New Scripting.Dictionary
+    With dcResult
+        .Add pnRmQty, 0
+        .Add pnRmUnit, ""
+    End With
+    
+    Set fm = New fmMatlQty
+    With fm
+        'For Each ctl In .Controls
+        '    Debug.Print ctl.Name
+        'Next
+        
+        Set cbxUnitQty = .cbxUnitQty
+        cbxUnitQty.List = Split("IN FT FT2 IN2 EA")
+        
+        Set lbxMatlQty = .lbxMatlQty
+        Set txbMatlQty = .txbMatlQty
+        
+        Set imgThmNail = .imThmNail
+        Set lblPartNumber = .lblPartNumber
+        Set lblPartInfo = .lblPartInfo
+        Set lblMatlNumber = .lblMatlNumber
+        Set lblMatlInfo = .lblMatlInfo
+    End With
+End Sub
+
+Public Function Result() As Scripting.Dictionary
+    Set Result = dcCopy(dcResult)
+End Function
+
+Private Function Changes( _
+    wkg As Scripting.Dictionary _
+) As Scripting.Dictionary
+    Dim rt As Scripting.Dictionary
+    Dim ky As Variant
+    
+    Set rt = New Scripting.Dictionary
+    With wkg: For Each ky In dcResult.Keys
+        If .Exists(ky) Then
+            If .Item(ky) = dcResult.Item(ky) Then
+                'no difference; skip it
+            Else
+                rt.Add ky, .Item(ky)
+            End If
+        Else 'not set; not sure what to do here
+            'rt.Add ky, Empty
+            'don't really like this option
+            'so leaving it disabled for now
+        End If
+    Next: End With
+    
+    Set Changes = dcCopy(dcResult)
+End Function
+
+Private Function Commit( _
+    src As Scripting.Dictionary _
+) As Scripting.Dictionary
+    Dim ky As Variant
+    
+    With dcResult
+    For Each ky In .Keys
+        If src.Exists(ky) Then
+            .Item(ky) = src.Item(ky)
+        End If
+    Next: End With
+    
+    Set Commit = dcCopy(dcResult)
+End Function
+
+Public Function SeeUser( _
+    Optional About As Object = Nothing _
+) As Scripting.Dictionary 'fmIfcMatlQty01
+    Dim ky As String
+    Dim ck As String
+    
+    If About Is Nothing Then
+        Set SeeUser = SeeUser(nuDcPopulator( _
+            ).Setting(pnRmQty & "()", _
+                nuDcPopulator( _
+                    ).Setting(4, 1 _
+                    ).Setting(2, 1 _
+                    ).Setting(24, 1 _
+                ).Dictionary() _
+            ).Setting(pnRmQty, 24 _
+            ).Setting(pnRmUnit, "IN" _
+            ).Setting(pnPartNum, "NO-ITM-GIVEN" _
+            ).Setting(pnRawMaterial, "NO-MTL-GIVEN" _
+        ).Dictionary())
+    ElseIf TypeOf About Is Scripting.Dictionary Then
+        Set SeeUser = SeeUserWithDict(About)
+    ElseIf TypeOf About Is Inventor.PartDocument Then
+        Set SeeUser = SeeUserWithPart(About)
+    ElseIf TypeOf About Is Inventor.Property Then
+        Set SeeUser = SeeUserWithQtyProp(About)
+    Else
+        Set SeeUser = SeeUser()
+    End If
+End Function
+
+''' make this one Public later
+''' once Part version is working
+Private Function SeeUserWithModel( _
+    About As Inventor.Property _
+) As fmIfcMatlQty01
+End Function
+
+Public Function SeeUserWithPart( _
+    About As Inventor.PartDocument _
+) As Scripting.Dictionary 'fmIfcMatlQty01
+    If About Is Nothing Then
+        Set SeeUserWithPart = SeeUser(About)
+    Else
+        Dim dcPr As Scripting.Dictionary
+        Dim obPr As Inventor.Property
+        Dim kyPr As Variant
+        Dim op As Long
+        
+        Set dcPr = New Scripting.Dictionary
+        With About.PropertySets
+            With .Item(gnDesign)
+                dcPr.Add pnPartNum, .Item(pnPartNum).Value
+                dcPr.Add pnDesc, .Item(pnDesc).Value
+            End With
+            
+            On Error Resume Next
+            With .Item(gnCustom)
+                For Each kyPr In Array( _
+                    pnRawMaterial, pnRmQty, pnRmUnit _
+                )
+                    Err.Clear
+                    Set obPr = .Item(CStr(kyPr))
+                    If Err.Number = 0 Then
+                        dcPr.Add kyPr, obPr.Value
+                    Else
+                        Debug.Print Err.Description
+                        Stop
+                        Err.Clear
+                    End If
+                Next
+            End With
+            On Error GoTo 0
+        End With
+        
+        '''
+        ''' prepare Dictionary of Dimensions
+        ''' with Count of Each
+        '''
+        Dim dcDm As Scripting.Dictionary
+        Dim vlDm As Variant
+        Dim ctDm As Long
+        
+        Set dcDm = New Scripting.Dictionary
+        
+        With nuAiBoxData().UsingInches(1)
+            For op = 0 To 1
+            With .UsingModel(About, op)
+                For Each vlDm In Array( _
+                    Round(.SpanX, 4), _
+                    Round(.SpanY, 4), _
+                    Round(.SpanZ, 4), _
+                0)
+                With dcDm
+                If vlDm > 0 Then
+                    If .Exists(vlDm) Then
+                        ctDm = .Item(vlDm) + 1
+                        .Item(vlDm) = ctDm
+                    Else
+                        .Add vlDm, ctDm
+                    End If
+                End If: End With: Next
+            End With: Next
+        End With
+        
+        With dcPr
+            .Add pnRmQty & "()", dcDm
+            .Add "img", About.Thumbnail
+        End With
+        
+        Set SeeUserWithPart _
+        = SeeUserWithDict(dcPr)
+    End If
+End Function
+
+Private Function SeeUserWithQtyProp( _
+    About As Inventor.Property _
+) As Scripting.Dictionary 'fmIfcMatlQty01
+    '''
+    ''' this one will have to be heavily modified
+    ''' likely dumping a bunch of code now implemented
+    ''' in SeeUserWithPart, which can simply be
+    ''' called with the Document containing
+    ''' the supplied Property
+    '''
+    
+    If About Is Nothing Then
+        Stop
+    Else
+        ''' these variables are for use
+        ''' in separating quantity from
+        ''' unit of measure in Value of
+        ''' supplied Property
+        Dim vlIn As String
+        Dim arIn As Variant
+        Dim qtIn As Double
+        Dim unIn As String
+        ''' split incoming Property Value into
+        ''' Quantity and Unit of Measurement
+        vlIn = CStr(About.Value) & " "
+        ''' note: concatenated space at end
+        ''' of Value text should ensure two
+        ''' members of arIn, as follows
+        arIn = Split(vlIn, " ", 2)
+        
+        qtIn = Round(Val(arIn(0)), 4)
+        If UBound(arIn) > 0 Then
+            unIn = Trim$(arIn(1))
+        End If
+        ''' this section and its associated variables
+        ''' will likely be exported to a separate function
+        
+        ''' force blank Unit of
+        ''' Measure to default inches
+        If Len(unIn) = 0 Then unIn = "IN"
+        
+        ''' the following section SHOULD be
+        ''' implemented now in SeeUserWithPart
+        ''' it should be possible to simply
+        ''' call that function, completely
+        ''' ignoring the supplied Property
+        '''
+        ''' prepare Dictionary of Dimensions
+        ''' with Count of Each
+        '''
+        Dim dcDm As Scripting.Dictionary
+        Dim vlDm As Variant
+        Dim ctDm As Long
+        
+        Set dcDm = New Scripting.Dictionary
+        If qtIn > 0 Then dcDm.Add qtIn, 1
+        
+        '''
+        ''' get all necessary information
+        ''' from Inventor Model
+        '''
+        Dim md As Inventor.Document
+        Dim mdPt As Inventor.Property
+        Dim mdMt As Inventor.Property
+        
+        Set md = aiDocument(About.Parent.Parent.Parent)
+        With md.PropertySets
+            Set mdPt = .Item(gnDesign).Item(pnPartNum)
+            On Error Resume Next
+            Err.Clear
+            Set mdMt = .Item(gnCustom).Item(pnRawMaterial)
+            If Err.Number = 0 Then
+            Else
+                Stop
+            End If
+            On Error GoTo 0
+        End With
+        
+        With nuAiBoxData( _
+        ).UsingInches(1 _
+        ).UsingModel(About)
+            For Each vlDm In Array( _
+                Round(.SpanX, 4), _
+                Round(.SpanY, 4), _
+                Round(.SpanZ, 4), _
+            0)
+            With dcDm
+            If vlDm > 0 Then
+                If .Exists(vlDm) Then
+                    ctDm = .Item(vlDm) + 1
+                    .Item(vlDm) = ctDm
+                Else
+                    .Add vlDm, ctDm
+                End If
+            End If: End With: Next
+        End With
+        
+        With nuDcPopulator( _
+            ).Setting(pnRmQty & "()", dcDm _
+            ).Setting(pnRmQty, qtIn _
+            ).Setting(pnRmUnit, unIn _
+            ).Setting(pnPartNum, mdPt.Value _
+            ).Setting(pnRawMaterial, mdMt.Value _
+        )
+        Set SeeUserWithQtyProp _
+            = SeeUserWithDict( _
+            .Dictionary() _
+        )
+        End With
+    End If
+End Function
+
+Public Function SeeUserWithDict( _
+    About As Scripting.Dictionary _
+) As Scripting.Dictionary 'fmIfcMatlQty01
+    Dim ky As String
+    Dim ck As String
+    
+    If About Is Nothing Then
+        Set SeeUserWithDict = SeeUserWithDict(nuDcPopulator( _
+            ).Setting(pnRmQty & "()", _
+                nuDcPopulator( _
+                    ).Setting(4, 1 _
+                    ).Setting(2, 1 _
+                    ).Setting(24, 1 _
+                ).Dictionary() _
+            ).Setting(pnRmQty, 24 _
+            ).Setting(pnRmUnit, "IN" _
+            ).Setting(pnPartNum, "NO-ITM-GIVEN" _
+            ).Setting(pnRawMaterial, "NO-MTL-GIVEN" _
+        ).Dictionary())
+    Else
+        With About
+            '.Add "img", About.Thumbnail
+            If .Exists("img") Then
+                Set imgThmNail.Picture _
+                = .Item("img")
+            End If
+            
+            If .Exists(pnDesc) Then
+                txbMatlQty.Value = Val( _
+                CStr(.Item(pnDesc)))
+            End If
+            
+            ky = pnRmQty & "()"
+            If .Exists(ky) Then
+                lbxMatlQty.List = _
+                dcOb(.Item(ky)).Keys
+            End If
+            
+            If .Exists(pnRmQty) Then
+                txbMatlQty.Value = Val( _
+                CStr(.Item(pnRmQty)))
+            End If
+            
+            If .Exists(pnRmUnit) Then
+                On Error Resume Next
+                
+                Err.Clear
+                cbxUnitQty.Value = .Item(pnRmUnit)
+                If Err.Number Then
+                    Debug.Print ; 'Breakpoint Landing
+                    cbxUnitQty.Value = "IN"
+                End If
+                On Error GoTo 0
+            End If
+            
+            '''
+            ''' Following are "boilerplate" elements
+            ''' for Part/Item and Raw Material numbers,
+            ''' along with their descriptions.
+            '''
+            ''' A thumbnail image of the Part is also
+            ''' expected to be supplied at some point,
+            ''' but will be held off for now, pending
+            ''' successful testing of the form's main
+            ''' functions.
+            '''
+            ''' Part/Item Number
+            If .Exists(pnPartNum) Then
+                lblPartNumber.Caption _
+                = CStr(.Item(pnPartNum))
+            End If
+            
+            ''' Material Number
+            If .Exists(pnRawMaterial) Then
+                lblMatlNumber.Caption _
+                = CStr(.Item(pnRawMaterial))
+            End If
+            
+            ''' Item Description
+            If .Exists(pnDesc) Then
+                lblPartInfo.Caption _
+                = CStr(.Item(pnDesc))
+            End If
+            
+            ''' Material Description
+            ''' (not expected at this time)
+            ky = pnRawMaterial & ":"
+            If .Exists(ky) Then
+                lblMatlInfo.Caption _
+                = CStr(.Item(ky))
+            End If
+            
+            'imThmNail
+        End With
+        
+        With Commit(About)
+        End With
+        
+        fm.Show 1
+        'Stop
+        
+        With nuDcPopulator( _
+        ).Setting(pnRmQty, _
+            Round(Val( _
+            txbMatlQty.Value _
+            ), 4) _
+        ).Setting(pnRmUnit, _
+            cbxUnitQty.Value _
+        ) 'Mapping...
+        ' txbMatlQty -> pnRmQty
+        ' cbxUnitQty -> pnRmUnit
+        
+            Set SeeUserWithDict = Commit(.Dictionary)
+        End With
+    End If
+End Function
+
+Public Function Version()
+    Version = fmVersion
+    'fmStatus=vbRetry
+End Function
+
+Private Sub Class_Terminate()
+    'Set dcWorkg = Nothing
+    'Set dcGiven = Nothing
+    
+    Set imgThmNail.Picture = Nothing
+    Set imgThmNail = Nothing
+    
+    Set cbxUnitQty = Nothing
+    
+    Set lbxMatlQty = Nothing
+    Set txbMatlQty = Nothing
+    
+    Set lblPartNumber = Nothing
+    Set lblPartInfo = Nothing
+    Set lblMatlNumber = Nothing
+    Set lblMatlInfo = Nothing
+    
+    Set fm = Nothing
+End Sub
+
+Private Sub fm_Sent(Signal As VbMsgBoxResult)
+    Dim ck As VbMsgBoxResult
+    
+    If Signal = vbCancel Then
+        ck = MsgBox(Join(Array( _
+            "Material Quantity", _
+            "and Units will", _
+            "remain unchanged." _
+        ), vbNewLine), vbYesNo, _
+            "Cancel Update?" _
+        )
+        'Stop
+        
+        If ck = vbYes Then
+            With dcResult
+                txbMatlQty.Value = CStr(.Item(pnRmQty))
+                cbxUnitQty.Value = .Item(pnRmUnit)
+            End With
+            fm.Hide
+        ElseIf ck = vbCancel Then
+            Stop 'drop and debug
+            'NOTE: Without Cancel Button
+            'available on MsgBox, this
+            'option won't be accessible.
+            
+            'a proposed "debug" mode that
+            'would add the Cancel Button to
+            'the MsgBox has not yet been
+            'implemented, but might in future.
+        End If
+        Debug.Print ; 'Breakpoint Landing
+    ElseIf Signal = vbOK Then
+        ck = MsgBox(Join(Array( _
+            "Update Material", _
+            "Quantity to " _
+            & CStr(Round(Val( _
+                txbMatlQty.Value _
+            ), 4)) _
+            & cbxUnitQty.Value & "?" _
+        ), vbNewLine), vbYesNo, _
+            "Update Quantity?" _
+        )
+        'Stop
+        
+        If ck = vbYes Then
+            fm.Hide
+            Debug.Print ; 'Breakpoint Landing
+        ElseIf ck = vbCancel Then
+            Stop 'drop and debug
+            'NOTE: Without Cancel Button
+            'available on MsgBox, this
+            'option won't be accessible.
+            
+            'a proposed "debug" mode that
+            'would add the Cancel Button to
+            'the MsgBox has not yet been
+            'implemented, but might in future.
+        End If
+        Debug.Print ; 'Breakpoint Landing
+    Else
+        Stop
+    End If
+End Sub
+
+Private Sub lbxMatlQty_DblClick( _
+    ByVal Cancel As MSForms.ReturnBoolean _
+)
+    txbMatlQty.Value = lbxMatlQty.Value
+End Sub
+
+Private Sub lbxMatlQty_MouseMove( _
+    ByVal Button As Integer, ByVal Shift As Integer, _
+    ByVal X As Single, ByVal Y As Single _
+)
+    Dim dt As MSForms.DataObject
+    Dim ef As Integer
+    
+    If Button = 1 Then
+        Set dt = New MSForms.DataObject
+        dt.SetText lbxMatlQty.Value
+        ef = dt.StartDrag()
+    End If
+End Sub
+
+Private Sub txbMatlQty_Change()
+    Dim ck As Double
+    Dim tx As String
+    Dim gp As Variant
+    Dim mx As Long
+    Dim dx As Long
+    
+    With txbMatlQty
+        tx = .Value
+        gp = Split(tx, ".")
+        mx = UBound(gp)
+        
+        For dx = LBound(gp) To mx
+            ck = Val(gp(dx))
+            
+            If ck > 0 Then
+                gp(dx) = CStr(ck)
+            ElseIf dx > 0 Then
+                gp(dx) = ""
+            Else
+                gp(dx) = "0"
+            End If
+        Next
+        tx = Join(gp, ".")
+        
+        If tx <> .Value Then
+            DoEvents
+            .Value = tx
+        End If
+    End With
+End Sub

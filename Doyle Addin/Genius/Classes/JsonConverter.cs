@@ -1,1213 +1,1259 @@
-﻿using Microsoft.VisualBasic;
-
-namespace Doyle_Addin.Genius.Classes;
-
-public class jsonConverter
-{
-    // ============================================= '
-    // Public Methods
-    // ============================================= '
-
-    // '
-    // Convert JSON string to dynamic (Dictionary/Collection)
-    // 
-    // @method ParseJson
-    // @param {String} json_String
-    // @return {dynamic} (Dictionary or Collection)
-    // @throws 10001 - JSON parse error
-    // '
-    public dynamic ParseJson(string JsonString)
-    {
-        long json_Index = 1;
-
-        // Remove Cr, Lf, and Tab from json_String
-        JsonString = Replace(Replace(Replace(JsonString, Cr, ""), Lf, ""), Tab, "");
-
-        json_SkipSpaces(JsonString, ref json_Index);
-        switch (Mid(JsonString, json_Index, 1))
-        {
-            case "{":
-            {
-                return json_ParseObject(JsonString, ref json_Index);
-                break;
-            }
-
-            case "[":
-            {
-                return json_ParseArray(JsonString, ref json_Index);
-                break;
-            }
-
-            default:
-            {
-                // Error: Invalid JSON string
-                Information.Err().Raise(10001, "JSONConverter",
-                    json_ParseErrorMessage(JsonString, ref json_Index, "Expecting '{' or '['"));
-                break;
-            }
-        }
-    }
-
-    // '
-    // Convert dynamic (Dictionary/Collection/Array) to JSON
-    // 
-    // @method ConvertToJson
-    // @param {dynamic} JsonValue (Dictionary, Collection, or Array)
-    // @param {Integer|String} Whitespace "Pretty" print json with given number of spaces per indentation (Integer) or given string
-    // @return {String}
-    // '
-    public static string ConvertToJson(dynamic JsonValue, dynamic Whitespace = , long json_CurrentIndentation = 0)
-    {
-        string json_buffer;
-        long json_BufferPosition;
-        long json_BufferLength;
-
-        dynamic json_Value;
-        string json_Converted;
-        bool json_SkipItem;
-        string json_Indentation;
-        string json_InnerIndentation;
-
-        var json_IsFirstItem = true;
-        var json_IsFirstItem2D = true;
-        bool json_PrettyPrint = !IsMissing(Whitespace);
-
-        switch (VarType(JsonValue))
-        {
-            case dynamic _ when Null:
-            {
-                return "null";
-                break;
-            }
-
-            case dynamic _ when Date:
-            {
-                // Date
-                var json_DateStr = ConvertToIso(CDate(JsonValue));
-
-                return "\"" + json_DateStr + "\"";
-                break;
-            }
-
-            case dynamic _ when String:
-            {
-                // String (or large number encoded as string)
-
-                // NOTE[2021.08.04] -- Prep for modification to this section
-                // 
-                // This comment block, and whitespace immediately above and below,
-                // are added TEMPORARILY to note ongoing work on String data handling.
-                // They should be removed once modified code is verified correct.
-                // 
-                // This segment is presumed to handle conversion of A Strings
-                // to JSON compatible form. However, strings containing double quotes
-                // do NOT appear to be properly converted.
-                // 
-                // In order to prevent premature termination by double-quote characters,
-                // it is necessary to "escape" these characters, using a preceding
-                // backslash (\) character. This does not appear to happen, resulting
-                // in the output of invalid JSON text when such Strings are encountered.
-                // 
-                // To address this issue, new code will be added in this Case section
-                // to attempt to capture and modify strings containing double quotes.
-                // That might take place here, or possibly in the json_Encode function,
-                // called in the Else clause just below. Note that this revision will
-                // almost certainly require processing existing backslashes, as well.
-                // 
-                // Any new code interposed in the following section is to be demarcated
-                // with comments preceded with the tripled single quotes seen in this
-                // comment section, and removed along with said comments when no longer
-                // needed. All modifications retained for the final revision should,
-                // however, retain accompanying comments documenting earch modification
-                // and its purpose.
-                // 
-
-                if (!JsonOptions.UseDoubleForLargeNumbers & json_StringIsLargeNumber(JsonValue))
-                    return JsonValue;
-                // watch and stop for any string
-                // containing one or more double quotes
-                if (InStr(1, JsonValue, "\"") > 0)
-                    // Stop
-                    Debug.Print(""); // Breakpoint Landing
-                // end of watch section
-                return "\"" + json_Encode(JsonValue) + "\"";
-
-                break;
-            }
-
-            case dynamic _ when Boolean:
-            {
-                return JsonValue ? "true" : "false";
-                break;
-            }
-
-            case dynamic _ when Array <= VarType(JsonValue) &&
-                                VarType(JsonValue) <= Array + Byte:
-            {
-                if (json_PrettyPrint)
-                {
-                    if (VarType(Whitespace) == String)
-                    {
-                        json_Indentation = String(json_CurrentIndentation + 1, Whitespace);
-                        json_InnerIndentation = String(json_CurrentIndentation + 2, Whitespace);
-                    }
-                    else
-                    {
-                        json_Indentation = Space((json_CurrentIndentation + 1) * Whitespace);
-                        json_InnerIndentation = Space((json_CurrentIndentation + 2) * Whitespace);
-                    }
-                }
-
-                // Array
-                json_BufferAppend(ref json_buffer, ref "[", ref json_BufferPosition, ref json_BufferLength);
-                long json_LBound = LBound(JsonValue, 1);
-                long json_UBound = UBound(JsonValue, 1);
-                long json_LBound2D = LBound(JsonValue, 2);
-                long json_UBound2D = UBound(JsonValue, 2);
-
-                if (json_LBound >= 0 & json_UBound >= 0)
-                {
-                    for (var json_Index = json_LBound; json_Index <= json_UBound; json_Index++)
-                    {
-                        if (json_IsFirstItem)
-                            json_IsFirstItem = false;
-                        else
-                            // Append comma to previous line
-                            json_BufferAppend(ref json_buffer, ref ",", ref json_BufferPosition, ref json_BufferLength);
-
-                        if (json_LBound2D >= 0 & json_UBound2D >= 0)
-                        {
-                            // 2D Array
-                            if (json_PrettyPrint)
-                                json_BufferAppend(ref json_buffer, ref Constants.CrLf, ref json_BufferPosition,
-                                    ref json_BufferLength);
-                            json_BufferAppend(ref json_buffer, ref json_Indentation + "[", ref json_BufferPosition,
-                                ref json_BufferLength);
-                            for (var json_Index2D = json_LBound2D; json_Index2D <= json_UBound2D; json_Index2D++)
-                            {
-                                if (json_IsFirstItem2D)
-                                    json_IsFirstItem2D = false;
-                                else
-                                    json_BufferAppend(ref json_buffer, ref ",", ref json_BufferPosition,
-                                        ref json_BufferLength);
-
-                                json_Converted = ConvertToJson(JsonValue(json_Index, json_Index2D), Whitespace,
-                                    json_CurrentIndentation + 2);
-
-                                // For Arrays/Collections, undefined (null/Nothing) is treated as null
-                                if (json_Converted == "")
-                                {
-                                    // (nest to only check if converted = "")
-                                    if (json_IsUndefined(JsonValue(json_Index, json_Index2D)))
-                                        json_Converted = "null";
-                                }
-
-                                if (json_PrettyPrint)
-                                    json_Converted = Constants.CrLf + json_InnerIndentation + json_Converted;
-
-                                json_BufferAppend(ref json_buffer, ref json_Converted, ref json_BufferPosition,
-                                    ref json_BufferLength);
-                            }
-
-                            if (json_PrettyPrint)
-                                json_BufferAppend(ref json_buffer, ref Constants.CrLf, ref json_BufferPosition,
-                                    ref json_BufferLength);
-
-                            json_BufferAppend(ref json_buffer, ref json_Indentation + "]", ref json_BufferPosition,
-                                ref json_BufferLength);
-                            json_IsFirstItem2D = true;
-                        }
-                        else
-                        {
-                            // 1D Array
-                            json_Converted = ConvertToJson(JsonValue(json_Index), Whitespace,
-                                json_CurrentIndentation + 1);
-
-                            // For Arrays/Collections, undefined (null/Nothing) is treated as null
-                            if (json_Converted == "")
-                            {
-                                // (nest to only check if converted = "")
-                                if (json_IsUndefined(JsonValue(json_Index)))
-                                    json_Converted = "null";
-                            }
-
-                            if (json_PrettyPrint)
-                                json_Converted = Constants.CrLf + json_Indentation + json_Converted;
-
-                            json_BufferAppend(ref json_buffer, ref json_Converted, ref json_BufferPosition,
-                                ref json_BufferLength);
-                        }
-                    }
-                }
-
-                if (json_PrettyPrint)
-                {
-                    json_BufferAppend(ref json_buffer, ref Constants.CrLf, ref json_BufferPosition,
-                        ref json_BufferLength);
-                    if (VarType(Whitespace) == String)
-                        json_Indentation = String(json_CurrentIndentation, Whitespace);
-                    else
-                        json_Indentation = Space(json_CurrentIndentation * Whitespace);
-                }
-
-                json_BufferAppend(ref json_buffer, ref json_Indentation + "]", ref json_BufferPosition,
-                    ref json_BufferLength);
-                return json_BufferToString(ref json_buffer, json_BufferPosition, json_BufferLength);
-                break;
-            }
-
-            case dynamic _ when Object:
-            {
-                if (json_PrettyPrint)
-                {
-                    if (VarType(Whitespace) == String)
-                        json_Indentation = String(json_CurrentIndentation + 1, Whitespace);
-                    else
-                        json_Indentation = Space((json_CurrentIndentation + 1) * Whitespace);
-                }
-
-                // Dictionary
-                if (TypeName(JsonValue) == "Dictionary")
-                {
-                    json_BufferAppend(ref json_buffer, ref "{", ref json_BufferPosition, ref json_BufferLength);
-                    foreach (var json_Key in JsonValue.Keys)
-                    {
-                        // For Objects, undefined (null/Nothing) is not added to dynamic
-                        json_Converted = ConvertToJson(JsonValue(json_Key), Whitespace, json_CurrentIndentation + 1);
-                        json_SkipItem = json_Converted == "" && (bool)json_IsUndefined(JsonValue(json_Key));
-
-                        if (json_SkipItem) continue;
-                        if (json_IsFirstItem)
-                            json_IsFirstItem = false;
-                        else
-                            json_BufferAppend(ref json_buffer, ref ",", ref json_BufferPosition,
-                                ref json_BufferLength);
-
-                        // NOTE[2021.08.05]: Code to watch for Dictionary Keys
-                        // containing double quote marks, and check whether
-                        // those characters are properly escaped.
-                        // 
-                        // Initial run seems to indicate String values ARE
-                        // processed correctly in their Case section above.
-                        // 
-                        // Review of prior output seems to show incorrect
-                        // output only of Dictionary Keys with double quotes,
-                        // suggesting the issue might lie in THIS section.
-                        // 
-                        // Believe this might be it.
-                        // 
-                        // The original If statement below appears to be where
-                        // the JSON key/value expression is generated, and both
-                        // tracks appear to emit the key value UNPROCESSED,
-                        // when in fact, it SHOULD be processed recursively
-                        // through ConvertToJson, just like any (string) value.
-                        // 
-                        // There also appears an opportunity here to tighten up
-                        // the code a bit, generating the key/value expression
-                        // PRIOR to the PrettyPrint check, and then use that
-                        // to determine whether to prefix the indentation.
-                        // 
-                        // Will proceed with proposed revisions, and see how this goes.
-                        // 
-                        // The following code watches for such Keys,
-                        // and stops for review when encountered.
-                        // 
-                        if (InStr(1, json_Key, "\"") > 0)
-                            Debug.Print(""); //Breakpoint Landing
-                        // 
-                        // json_Converted = """" & ConvertToJson(json_Key, Whitespace, json_CurrentIndentation + 1) & """:" & json_Converted
-                        if (IsNull(json_Key))
-                        {
-                            json_Converted = "\"<NULL>\":" + json_Converted;
-                            Debugger.Break(); // because we DON'T want this happening!
-                        }
-                        else
-                            json_Converted = "\"" + json_Encode(json_Key) + "\":" + json_Converted;
-
-                        // Preceding code is added to prepare key/value expression
-                        // unconditionally, as it's included in both cases.
-                        // 
-                        if (json_PrettyPrint)
-                        {
-                            // json_Converted = CrLf & json_Indentation & """" & json_Key & """: " & json_Converted
-                            // Preceding is original expression,
-                            // disabled in favor of the following,
-                            // which will replace it, if successful
-                            // 
-                            json_Converted = Constants.CrLf + json_Indentation + json_Converted;
-                            Debug.Print(""); // Breakpoint Landing
-                        }
-
-                        json_BufferAppend(ref json_buffer, ref json_Converted, ref json_BufferPosition,
-                            ref json_BufferLength);
-                    }
-
-                    if (json_PrettyPrint)
-                    {
-                        json_BufferAppend(ref json_buffer, ref Constants.CrLf, ref json_BufferPosition,
-                            ref json_BufferLength);
-                        if (VarType(Whitespace) == String)
-                            json_Indentation = String(json_CurrentIndentation, Whitespace);
-                        else
-                            json_Indentation = Space(json_CurrentIndentation * Whitespace);
-                    }
-
-                    json_BufferAppend(ref json_buffer, ref json_Indentation + "}", ref json_BufferPosition,
-                        ref json_BufferLength);
-                }
-                else if (TypeName(JsonValue) == "Collection")
-                {
-                    json_BufferAppend(ref json_buffer, ref "[", ref json_BufferPosition, ref json_BufferLength);
-                    foreach (var json_Value in JsonValue)
-                    {
-                        if (json_IsFirstItem)
-                            json_IsFirstItem = false;
-                        else
-                            json_BufferAppend(ref json_buffer, ref ",", ref json_BufferPosition, ref json_BufferLength);
-
-                        json_Converted = ConvertToJson(json_Value, Whitespace, json_CurrentIndentation + 1);
-
-                        // For Arrays/Collections, undefined (null/Nothing) is treated as null
-                        if (json_Converted == "")
-                        {
-                            // (nest to only check if converted = "")
-                            if (json_IsUndefined(json_Value))
-                                json_Converted = "null";
-                        }
-
-                        if (json_PrettyPrint)
-                            json_Converted = Constants.CrLf + json_Indentation + json_Converted;
-
-                        json_BufferAppend(ref json_buffer, ref json_Converted, ref json_BufferPosition,
-                            ref json_BufferLength);
-                    }
-
-                    if (json_PrettyPrint)
-                    {
-                        json_BufferAppend(ref json_buffer, ref Constants.CrLf, ref json_BufferPosition,
-                            ref json_BufferLength);
-                        if (VarType(Whitespace) == String)
-                            json_Indentation = String(json_CurrentIndentation, Whitespace);
-                        else
-                            json_Indentation = Space(json_CurrentIndentation * Whitespace);
-                    }
-
-                    json_BufferAppend(ref json_buffer, ref json_Indentation + "]", ref json_BufferPosition,
-                        ref json_BufferLength);
-                }
-                else
-                {
-                    if (JsonValue == null)
-                        json_Value = "<Nothing>";
-                    else
-                        json_Value = "<Unhandled dynamic: " + TypeName(JsonValue) + ">";
-                    json_Converted = ConvertToJson(json_Value, Whitespace, json_CurrentIndentation + 1);
-                    json_BufferAppend(ref json_buffer, ref json_Converted, ref json_BufferPosition,
-                        ref json_BufferLength);
-                }
-
-                return json_BufferToString(ref json_buffer, json_BufferPosition, json_BufferLength);
-                break;
-            }
-
-            case dynamic _ when Integer:
-            case dynamic _ when Long:
-            case dynamic _ when Single:
-            case dynamic _ when Double:
-            case dynamic _ when Currency:
-            case dynamic _ when Decimal:
-            {
-                // Number (use decimals for numbers)
-                return Replace(JsonValue, ",", ".");
-                break;
-            }
-
-            default:
-            {
-                // Empty, Error, DataObject, Byte, UserDefinedType
-                // Use A's built-in to-string
-
-                return JsonValue;
-            }
-        }
-    }
-
-    // ============================================= '
-    // Private Functions
-    // ============================================= '
-
-    private Dictionary json_ParseObject(string json_String, ref long json_Index)
-    {
-        return new Dictionary();
-        json_SkipSpaces(json_String, ref json_Index);
-        if (Mid(json_String, json_Index, 1) != "{")
-            Information.Err().Raise(10001, "JSONConverter",
-                json_ParseErrorMessage(json_String, ref json_Index, "Expecting '{'"));
-        else
-        {
-            json_Index = json_Index + 1;
-
-            do
-            {
-                json_SkipSpaces(json_String, ref json_Index);
-                if (Mid(json_String, json_Index, 1) == "}")
-                {
-                    json_Index = json_Index + 1;
-                    return;
-                }
-
-                if (Mid(json_String, json_Index, 1) == ",")
-                {
-                    json_Index = json_Index + 1;
-                    json_SkipSpaces(json_String, ref json_Index);
-                }
-
-                var json_Key = json_ParseKey(json_String, ref json_Index);
-                var json_NextChar = json_Peek(json_String, json_Index);
-                if (json_NextChar == "[" | json_NextChar == "{")
-                    json_ParseObject.get_Item(json_Key) = json_ParseValue(json_String, ref json_Index);
-                else
-                    json_ParseObject.get_Item(json_Key) = json_ParseValue(json_String, ref json_Index);
-            } while (true);
-        }
-    }
-
-    private Collection json_ParseArray(string json_String, ref long json_Index)
-    {
-        return new Collection();
-
-        json_SkipSpaces(json_String, ref json_Index);
-        if (Mid(json_String, json_Index, 1) != "[")
-            Information.Err().Raise(10001, "JSONConverter",
-                json_ParseErrorMessage(json_String, ref json_Index, "Expecting '['"));
-        else
-        {
-            json_Index = json_Index + 1;
-
-            do
-            {
-                json_SkipSpaces(json_String, ref json_Index);
-                if (Mid(json_String, json_Index, 1) == "]")
-                {
-                    json_Index = json_Index + 1;
-                    return;
-                }
-
-                if (Mid(json_String, json_Index, 1) == ",")
-                {
-                    json_Index = json_Index + 1;
-                    json_SkipSpaces(json_String, ref json_Index);
-                }
-
-                json_ParseArray.Add(json_ParseValue(json_String, ref json_Index));
-            } while (true);
-        }
-    }
-
-    private dynamic json_ParseValue(string json_String, ref long json_Index)
-    {
-        json_SkipSpaces(json_String, ref json_Index);
-        switch (Mid(json_String, json_Index, 1))
-        {
-            case "{":
-            {
-                return json_ParseObject(json_String, ref json_Index);
-                break;
-            }
-
-            case "[":
-            {
-                return json_ParseArray(json_String, ref json_Index);
-                break;
-            }
-
-            case "\"":
-            case "'":
-            {
-                return json_ParseString(json_String, ref json_Index);
-                break;
-            }
-
-            default:
-            {
-                if (Mid(json_String, json_Index, 4) == "true")
-                {
-                    return true;
-                    json_Index = json_Index + 4;
-                }
-
-                if (Mid(json_String, json_Index, 5) == "false")
-                {
-                    return false;
-                    json_Index = json_Index + 5;
-                }
-
-                if (Mid(json_String, json_Index, 4) == "null")
-                {
-                    return Null;
-                    json_Index = json_Index + 4;
-                }
-
-                if (InStr("+-0123456789", Mid(json_String, json_Index, 1)))
-                    return json_ParseNumber(json_String, ref json_Index);
-                Information.Err().Raise(10001, "JSONConverter",
-                    json_ParseErrorMessage(json_String, ref json_Index,
-                        "Expecting 'STRING', 'NUMBER', null, true, false, '{', or '['"));
-
-                break;
-            }
-        }
-    }
-
-    private string json_ParseString(string json_String, ref long json_Index)
-    {
-        string json_buffer;
-        long json_BufferPosition;
-        long json_BufferLength;
-
-        json_SkipSpaces(json_String, ref json_Index);
-
-        // Store opening quote to look for matching closing quote
-        string json_Quote = Mid(json_String, json_Index, 1);
-        json_Index = json_Index + 1;
-
-        while (json_Index > 0 & json_Index <= Strings.Len(json_String))
-        {
-            string json_Char = Mid(json_String, json_Index, 1);
-
-            switch (json_Char)
-            {
-                case @"\":
-                {
-                    // Escaped string, \\, or \/
-                    json_Index = json_Index + 1;
-                    json_Char = Mid(json_String, json_Index, 1);
-
-                    switch (json_Char)
-                    {
-                        case "\"":
-                        case @"\":
-                        case "/":
-                        case "'":
-                        {
-                            json_BufferAppend(ref json_buffer, ref json_Char, ref json_BufferPosition,
-                                ref json_BufferLength);
-                            json_Index = json_Index + 1;
-                            break;
-                        }
-
-                        case "b":
-                        {
-                            json_BufferAppend(ref json_buffer, ref Constants.Back, ref json_BufferPosition,
-                                ref json_BufferLength);
-                            json_Index = json_Index + 1;
-                            break;
-                        }
-
-                        case "f":
-                        {
-                            json_BufferAppend(ref json_buffer, ref Constants.FormFeed, ref json_BufferPosition,
-                                ref json_BufferLength);
-                            json_Index = json_Index + 1;
-                            break;
-                        }
-
-                        case "n":
-                        {
-                            json_BufferAppend(ref json_buffer, ref Constants.CrLf, ref json_BufferPosition,
-                                ref json_BufferLength);
-                            json_Index = json_Index + 1;
-                            break;
-                        }
-
-                        case "r":
-                        {
-                            json_BufferAppend(ref json_buffer, ref Constants.Cr, ref json_BufferPosition,
-                                ref json_BufferLength);
-                            json_Index = json_Index + 1;
-                            break;
-                        }
-
-                        case "t":
-                        {
-                            json_BufferAppend(ref json_buffer, ref Constants.Tab, ref json_BufferPosition,
-                                ref json_BufferLength);
-                            json_Index = json_Index + 1;
-                            break;
-                        }
-
-                        case "u":
-                        {
-                            // Unicode character escape (e.g. \u00a9 = Copyright)
-                            json_Index = json_Index + 1;
-                            string json_Code = Mid(json_String, json_Index, 4);
-                            json_BufferAppend(ref json_buffer, ref ChrW(Val("&h" + json_Code)),
-                                ref json_BufferPosition, ref json_BufferLength);
-                            json_Index = json_Index + 4;
-                            break;
-                        }
-                    }
-
-                    break;
-                }
-
-                case dynamic _ when json_Quote:
-                {
-                    json_ParseString = json_BufferToString(ref json_buffer, json_BufferPosition, json_BufferLength);
-                    json_Index = json_Index + 1;
-                    return;
-                }
-
-                default:
-                {
-                    json_BufferAppend(ref json_buffer, ref json_Char, ref json_BufferPosition, ref json_BufferLength);
-                    json_Index = json_Index + 1;
-                    break;
-                }
-            }
-        }
-    }
-
-    private dynamic json_ParseNumber(string json_String, ref long json_Index)
-    {
-        string json_Value;
-
-        json_SkipSpaces(json_String, ref json_Index);
-        while (json_Index > 0 & json_Index <= Strings.Len(json_String))
-        {
-            string json_Char = Mid(json_String, json_Index, 1);
-
-            if (InStr("+-0123456789.eE", json_Char))
-            {
-                // Unlikely to have massive number, so use simple append rather than buffer here
-                json_Value = json_Value + json_Char;
-                json_Index = json_Index + 1;
-            }
-            else
-            {
-                // Excel only stores 15 significant digits, so any numbers larger than that are truncated
-                // This can lead to issues when BIGINT's are used (e.g. for Ids or Credit Cards), as they will be invalid above 15 digits
-                // See: http://support.microsoft.com/kb/269370
-                // 
-                // Fix: Parse -> String, Convert -> String longer than 15/16 characters containing only numbers and decimal points -> Number
-                // (decimal doesn't factor into significant digit count, so if present check for 15 digits + decimal = 16)
-                bool json_IsLargeNumber = iif(InStr(json_Value, "."), Strings.Len(json_Value) >= 17,
-                    Strings.Len(json_Value) >= 16);
-                if (!JsonOptions.UseDoubleForLargeNumbers & json_IsLargeNumber)
-                    return json_Value;
-                // Val does not use regional settings, so guard for comma is not needed
-                return Val(json_Value);
-                return;
-            }
-        }
-    }
-
-    private string json_ParseKey(string json_String, ref long json_Index)
-    {
-        // Parse key with single or double quotes
-        if (Mid(json_String, json_Index, 1) == "\"" | Mid(json_String, json_Index, 1) == "'")
-            return json_ParseString(json_String, ref json_Index);
-        if (JsonOptions.AllowUnquotedKeys)
-        {
-            while (json_Index > 0 & json_Index <= Strings.Len(json_String))
-            {
-                string json_Char = Mid(json_String, json_Index, 1);
-                if ((json_Char != " ") & (json_Char != ":"))
-                {
-                    return json_ParseKey + json_Char;
-                    json_Index = json_Index + 1;
-                }
-
-                break;
-            }
-        }
-        else
-            Information.Err().Raise(10001, "JSONConverter",
-                json_ParseErrorMessage(json_String, ref json_Index, "Expecting '\"' or '''"));
-
-        // Check for colon and skip if present or throw if not present
-        json_SkipSpaces(json_String, ref json_Index);
-        if (Mid(json_String, json_Index, 1) != ":")
-            Information.Err().Raise(10001, "JSONConverter",
-                json_ParseErrorMessage(json_String, ref json_Index, "Expecting ':'"));
-        else
-            json_Index = json_Index + 1;
-    }
-
-    private bool json_IsUndefined(dynamic json_Value)
-    {
-        // null / Nothing -> undefined
-        switch (VarType(json_Value))
-        {
-            case dynamic _ when Empty:
-            {
-                return true;
-                break;
-            }
-
-            case dynamic _ when Object:
-            {
-                switch (TypeName(json_Value))
-                {
-                    case "null":
-                    case "Nothing":
-                    {
-                        return true;
-                        break;
-                    }
-                }
-
-                break;
-            }
-        }
-    }
-
-    private string json_Encode(dynamic json_Text)
-    {
-        // Reference: http://www.ietf.org/rfc/rfc4627.txt
-        // Escape: ", \, /, backspace, form feed, line feed, carriage return, tab
-        string json_buffer;
-        long json_BufferPosition;
-        long json_BufferLength;
-
-        for (long json_Index = 1; json_Index <= Len(json_Text); json_Index++)
-        {
-            string json_Char = Mid(json_Text, json_Index, 1);
-            long json_AscCode = AscW(json_Char);
-
-            // When AscW returns a negative number, it returns the twos complement form of that number.
-            // To convert the twos complement notation into normal binary notation, add 0xFFF to the return result.
-            // https://support.microsoft.com/en-us/kb/272138
-            if (json_AscCode < 0)
-                json_AscCode = json_AscCode + 65536;
-
-            // From spec, ", \, and control characters must be escaped (solidus is optional)
-            switch (json_AscCode)
-            {
-                case 34:
-                {
-                    // " -> 34 -> \"
-                    json_Char = @"\""";
-                    break;
-                }
-
-                case 92:
-                {
-                    // \ -> 92 -> \\
-                    json_Char = @"\\";
-                    break;
-                }
-
-                case 47:
-                {
-                    // / -> 47 -> \/ (optional)
-                    if (JsonOptions.EscapeSolidus)
-                        json_Char = @"\/";
-                    break;
-                }
-
-                case 8:
-                {
-                    // backspace -> 8 -> \b
-                    json_Char = @"\b";
-                    break;
-                }
-
-                case 12:
-                {
-                    // form feed -> 12 -> \f
-                    json_Char = @"\f";
-                    break;
-                }
-
-                case 10:
-                {
-                    // line feed -> 10 -> \n
-                    json_Char = @"\n";
-                    break;
-                }
-
-                case 13:
-                {
-                    // carriage return -> 13 -> \r
-                    json_Char = @"\r";
-                    break;
-                }
-
-                case 9:
-                {
-                    // tab -> 9 -> \t
-                    json_Char = @"\t";
-                    break;
-                }
-
-                case dynamic _ and >= 0 and <= 31:
-                case dynamic _ and >= 127 and <= 65535:
-                {
-                    // Non-ascii characters -> convert to 4-digit hex
-                    json_Char = @"\u" + Right("0000" + Hex(json_AscCode), 4);
-                    break;
-                }
-            }
-
-            json_BufferAppend(ref json_buffer, ref json_Char, ref json_BufferPosition, ref json_BufferLength);
-        }
-
-        return json_BufferToString(ref json_buffer, json_BufferPosition, json_BufferLength);
-    }
-
-    private string json_Peek(string json_String, long json_Index, long json_NumberOfCharacters = 1)
-    {
-        // "Peek" at the next number of characters without incrementing json_Index (ByVal instead of ByRef)
-        json_SkipSpaces(json_String, ref json_Index);
-        return Mid(json_String, json_Index, json_NumberOfCharacters);
-    }
-
-    private void json_SkipSpaces(string json_String, ref long json_Index)
-    {
-        // Increment index to skip over spaces
-        while (json_Index > 0 & json_Index <= Len(json_String) & Mid(json_String, json_Index, 1) == " ")
-            json_Index = json_Index + 1;
-    }
-
-    private bool json_StringIsLargeNumber(dynamic json_String)
-    {
-        // Check if the given string is considered a "large number"
-        // (See json_ParseNumber)
-
-        long json_Length = Len(json_String);
-
-        // Length with be at least 16 characters and assume will be less than 100 characters
-        if (json_Length >= 16 & json_Length <= 100)
-        {
-            long json_Index;
-
-            return true;
-
-            for (long json_CharIndex = 1; json_CharIndex <= json_Length; json_CharIndex++)
-            {
-                string json_CharCode = Asc(Mid(json_String, json_CharIndex, 1));
-                switch (json_CharCode)
-                {
-                    case 46:
-                    case dynamic _ when 48 <= json_CharCode && json_CharCode <= 57:
-                    case 69:
-                    case 101:
-                    {
-                        break;
-                    }
-
-                    default:
-                    {
-                        return false;
-                        return;
-                    }
-                }
-            }
-        }
-    }
-
-    private void json_ParseErrorMessage(string json_String, ref long json_Index, string ErrorMessage)
-    {
-        // Provide detailed parse error message, including details of where and what occurred
-        // 
-        // Example:
-        // Error parsing JSON:
-        // {"abcde":True}
-        // ^
-        // Expecting 'STRING', 'NUMBER', null, true, false, '{', or '['
-
-        // Include 10 characters before and after error (if possible)
-        var json_StartIndex = json_Index - 10;
-        var json_StopIndex = json_Index + 10;
-        if (json_StartIndex <= 0)
-            json_StartIndex = 1;
-        if (json_StopIndex > Len(json_String))
-            json_StopIndex = Len(json_String);
-
-        return "Error parsing JSON:" + CrLf +
-               Mid(json_String, json_StartIndex, json_StopIndex - json_StartIndex + 1) +
-               CrLf + Space(json_Index - json_StartIndex) + "^" + CrLf + ErrorMessage;
-    }
-
-    private void json_BufferAppend(ref string json_buffer, ref dynamic json_Append, ref long json_BufferPosition,
-        ref long json_BufferLength)
-    {
-        // A can be slow to append strings due to allocating a new string for each append
-        // Instead of using the traditional append, allocate a large null string and then copy string at append position
-        // 
-        // Example:
-        // Buffer: "abc "
-        // Append: "def"
-        // Buffer Position: 3
-        // Buffer Length: 5
-        // 
-        // Buffer position + Append length > Buffer length -> Append chunk of blank space to buffer
-        // Buffer: "abc "
-        // Buffer Length: 10
-        // 
-        // Copy memory for "def" into buffer at position 3 (0-based)
-        // Buffer: "abcdef "
-        // 
-        // Approach based on cStringBuilder from Accelerator
-        // http://www.accelerator.com/home//Code/Techniques/RunTime_Debug_Tracing/6_Tracer_Utility_zip_cStringBuilder_cls.asp
-
-        long json_AppendLength = LenB(json_Append);
-        var json_LengthPlusPosition = json_AppendLength + json_BufferPosition;
-
-        if (json_LengthPlusPosition > json_BufferLength)
-        {
-            // Appending would overflow buffer, add chunks until buffer is long enough
-
-            var json_TemporaryLength = json_BufferLength;
-            while (json_TemporaryLength < json_LengthPlusPosition)
-            {
-                // Initially, initialize string with 255 characters,
-                // then add large chunks (8192) after that
-                // 
-                // Size: # Characters x 2 bytes / character
-                if (json_TemporaryLength == 0)
-                    json_TemporaryLength = json_TemporaryLength + 510;
-                else
-                    json_TemporaryLength = json_TemporaryLength + 16384;
-            }
-
-            json_buffer = json_buffer + Space((json_TemporaryLength - json_BufferLength) / 2);
-            json_BufferLength = json_TemporaryLength;
-        }
-
-        // Copy memory from append to buffer at buffer position
-        json_CopyMemory();
-        json_BufferPosition = json_BufferPosition + json_AppendLength;
-    }
-
-    private string json_BufferToString(ref string json_buffer, long json_BufferPosition, long json_BufferLength)
-    {
-        if (json_BufferPosition > 0)
-            return Left(json_buffer, json_BufferPosition / 2);
-    }
-
-    private long json_UnsignedAdd(long json_Start, long json_Increment)
-    {
-        if (json_Start & 0x80000000 || (json_Start | 0x80000000) < -json_Increment)
-            return json_Start + json_Increment;
-        return (json_Start + 0x80000000) + (json_Increment + 0x80000000);
-    }
-
-    // '
-    // A-UTC v1.0.3
-    // (c) Tim Hall - https://github.com/A-tools/A-UtcConverter
-    // 
-    // UTC/ISO 8601 Converter for A
-    // 
-    // Errors:
-    // 10011 - UTC parsing error
-    // 10012 - UTC conversion error
-    // 10013 - ISO 8601 parsing error
-    // 10014 - ISO 8601 conversion error
-    // 
-    // @module UtcConverter
-    // @author tim.hall.engr@gmail.com
-    // @license MIT (http://www.opensource.org/licenses/mit-license.php)
-    // ' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
-
-    // (Declarations moved to top)
-
-    // ============================================= '
-    // Public Methods
-    // ============================================= '
-
-    // '
-    // Parse UTC date to local date
-    // 
-    // @method ParseUtc
-    // @param {Date} UtcDate
-    // @return {Date} Local date
-    // @throws 10011 - UTC parsing error
-    // '
-    public DateTime ParseUtc(DateTime utc_UtcDate)
-    {
-        utc_TIME_ZONE_INFORMATION utc_TimeZoneInfo;
-        utc_SYSTEMTIME utc_LocalDate;
-
-        utc_GetTimeZoneInformation(utc_TimeZoneInfo);
-        utc_SystemTimeToTzSpecificLocalTime(utc_TimeZoneInfo, utc_DateToSystemTime(utc_UtcDate), utc_LocalDate);
-        return utc_SystemTimeToDate(utc_LocalDate);
-
-        return;
-
-        utc_ErrorHandling: ;
-        Information.Err().Raise(10011, "UtcConverter.ParseUtc",
-            "UTC parsing error: " + Information.Err().Number + " - " + Information.Err().Description);
-    }
-
-    // '
-    // Convert local date to UTC date
-    // 
-    // @method ConvertToUrc
-    // @param {Date} utc_LocalDate
-    // @return {Date} UTC date
-    // @throws 10012 - UTC conversion error
-    // '
-    public DateTime ConvertToUtc(DateTime utc_LocalDate)
-    {
-        utc_TIME_ZONE_INFORMATION utc_TimeZoneInfo;
-        utc_SYSTEMTIME utc_UtcDate;
-
-        utc_GetTimeZoneInformation(utc_TimeZoneInfo);
-        utc_TzSpecificLocalTimeToSystemTime(utc_TimeZoneInfo, utc_DateToSystemTime(utc_LocalDate), utc_UtcDate);
-        return utc_SystemTimeToDate(utc_UtcDate);
-
-        return;
-
-        utc_ErrorHandling: ;
-        Information.Err().Raise(10012, "UtcConverter.ConvertToUtc",
-            "UTC conversion error: " + Information.Err().Number + " - " + Information.Err().Description);
-    }
-
-    // '
-    // Parse ISO 8601 date string to local date
-    // 
-    // @method ParseIso
-    // @param {Date} utc_IsoString
-    // @return {Date} Local date
-    // @throws 10013 - ISO 8601 parsing error
-    // '
-    public DateTime ParseIso(string utc_IsoString)
-    {
-        string[] utc_TimeParts;
-        bool utc_HasOffset;
-        bool utc_NegativeOffset;
-        DateTime utc_Offset;
-
-        string[] utc_Parts = Split(utc_IsoString, "T");
-        string[] utc_DateParts = Split(utc_Parts[0], "-");
-        return DateSerial(CInt(utc_DateParts[0]), CInt(utc_DateParts[1]), CInt(utc_DateParts[2]));
-
-        if (UBound(utc_Parts) > 0)
-        {
-            if (InStr(utc_Parts[1], "Z"))
-                utc_TimeParts = Split(Replace(utc_Parts[1], "Z", ""), ":");
-            else
-            {
-                long utc_OffsetIndex = InStr(1, utc_Parts[1], "+");
-                if (utc_OffsetIndex == 0)
-                {
-                    utc_NegativeOffset = true;
-                    utc_OffsetIndex = InStr(1, utc_Parts[1], "-");
-                }
-
-                if (utc_OffsetIndex > 0)
-                {
-                    utc_HasOffset = true;
-                    utc_TimeParts = Split(Left(utc_Parts[1], utc_OffsetIndex - 1), ":");
-                    string[] utc_OffsetParts =
-                        Split(Right(utc_Parts[1], Strings.Len(utc_Parts[1]) - utc_OffsetIndex), ":");
-
-                    switch (UBound(utc_OffsetParts))
-                    {
-                        case 0:
-                        {
-                            utc_Offset = TimeSerial(CInt(utc_OffsetParts[0]), 0, 0);
-                            break;
-                        }
-
-                        case 1:
-                        {
-                            utc_Offset = TimeSerial(CInt(utc_OffsetParts[0]), CInt(utc_OffsetParts[1]), 0);
-                            break;
-                        }
-
-                        case 2:
-                        {
-                            // Val does not use regional settings, use for seconds to avoid decimal/comma issues
-                            utc_Offset = TimeSerial(CInt(utc_OffsetParts[0]), CInt(utc_OffsetParts[1]),
-                                Int(Val(utc_OffsetParts[2])));
-                            break;
-                        }
-                    }
-
-                    if (utc_NegativeOffset)
-                        utc_Offset = -utc_Offset;
-                    else
-                        utc_TimeParts = Split(utc_Parts[1], ":");
-                }
-
-                switch (UBound(utc_TimeParts))
-                {
-                    case 0:
-                    {
-                        return ParseIso + TimeSerial(CInt(utc_TimeParts[0]), 0, 0);
-                        break;
-                    }
-
-                    case 1:
-                    {
-                        return ParseIso + TimeSerial(CInt(utc_TimeParts[0]), CInt(utc_TimeParts[1]), 0);
-                        break;
-                    }
-
-                    case 2:
-                    {
-                        // Val does not use regional settings, use for seconds to avoid decimal/comma issues
-                        return ParseIso + TimeSerial(CInt(utc_TimeParts[0]), CInt(utc_TimeParts[1]),
-                            Int(Val(utc_TimeParts[2])));
-                        break;
-                    }
-                }
-
-                return ParseUtc(ParseIso);
-
-                if (utc_HasOffset)
-                    return ParseIso + utc_Offset;
-            }
-
-            return;
-
-            utc_ErrorHandling: ;
-            Information.Err().Raise(10013, "UtcConverter.ParseIso",
-                "ISO 8601 parsing error for " + utc_IsoString + ": " + Information.Err().Number + " - " +
-                Information.Err().Description);
-        }
-    }
-
-    // '
-    // Convert local date to ISO 8601 string
-    // 
-    // @method ConvertToIso
-    // @param {Date} utc_LocalDate
-    // @return {Date} ISO 8601 string
-    // @throws 10014 - ISO 8601 conversion error
-    // '
-    public string ConvertToIso(DateTime utc_LocalDate)
-    {
-        return Format(ConvertToUtc(utc_LocalDate), "yyyy-mm-ddTHH:mm:ss.000Z");
-
-        return;
-
-        utc_ErrorHandling: ;
-        Information.Err().Raise(10014, "UtcConverter.ConvertToIso",
-            "ISO 8601 conversion error: " + Information.Err().Number + " - " + Information.Err().Description);
-    }
-
-    // ============================================= '
-    // Private Functions
-    // ============================================= '
-
-    private utc_SYSTEMTIME utc_DateToSystemTime(DateTime utc_Value)
-    {
-        utc_DateToSystemTime.utc_wYear = Year(utc_Value);
-        utc_DateToSystemTime.utc_wMonth = Month(utc_Value);
-        utc_DateToSystemTime.utc_wDay = Day(utc_Value);
-        utc_DateToSystemTime.utc_wHour = Hour(utc_Value);
-        utc_DateToSystemTime.utc_wMinute = Minute(utc_Value);
-        utc_DateToSystemTime.utc_wSecond = Second(utc_Value);
-        utc_DateToSystemTime.utc_wMilliseconds = 0;
-    }
-
-    private DateTime utc_SystemTimeToDate(utc_SYSTEMTIME utc_Value)
-    {
-        return DateSerial(utc_Value.utc_wYear, utc_Value.utc_wMonth, utc_Value.utc_wDay) +
-               TimeSerial(utc_Value.utc_wHour, utc_Value.utc_wMinute, utc_Value.utc_wSecond);
-    }
-}
+
+
+' === VBA-UTC Headers
+#If Mac Then
+
+#If VBA7 Then
+
+' 64-bit Mac (2016)
+Private Declare PtrSafe Function utc_popen Lib "libc.dylib" Alias "popen" _
+    (ByVal utc_Command As String, ByVal utc_Mode As String) As LongPtr
+Private Declare PtrSafe Function utc_pclose Lib "libc.dylib" Alias "pclose" _
+    (ByVal utc_File As Long) As LongPtr
+Private Declare PtrSafe Function utc_fread Lib "libc.dylib" Alias "fread" _
+    (ByVal utc_Buffer As String, ByVal utc_Size As LongPtr, ByVal utc_Number As LongPtr, ByVal utc_File As LongPtr) As LongPtr
+Private Declare PtrSafe Function utc_feof Lib "libc.dylib" Alias "feof" _
+    (ByVal utc_File As LongPtr) As LongPtr
+
+#Else
+
+' 32-bit Mac
+Private Declare Function utc_popen Lib "libc.dylib" Alias "popen" _
+    (ByVal utc_Command As String, ByVal utc_Mode As String) As Long
+Private Declare Function utc_pclose Lib "libc.dylib" Alias "pclose" _
+    (ByVal utc_File As Long) As Long
+Private Declare Function utc_fread Lib "libc.dylib" Alias "fread" _
+    (ByVal utc_Buffer As String, ByVal utc_Size As Long, ByVal utc_Number As Long, ByVal utc_File As Long) As Long
+Private Declare Function utc_feof Lib "libc.dylib" Alias "feof" _
+    (ByVal utc_File As Long) As Long
+
+#End If
+
+#ElseIf VBA7 Then
+
+' http://msdn.microsoft.com/en-us/library/windows/desktop/ms724421.aspx
+' http://msdn.microsoft.com/en-us/library/windows/desktop/ms724949.aspx
+' http://msdn.microsoft.com/en-us/library/windows/desktop/ms725485.aspx
+Private Declare PtrSafe Function utc_GetTimeZoneInformation Lib "kernel32" Alias "GetTimeZoneInformation" _
+    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION) As Long
+Private Declare PtrSafe Function utc_SystemTimeToTzSpecificLocalTime Lib "kernel32" Alias "SystemTimeToTzSpecificLocalTime" _
+    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION, utc_lpUniversalTime As utc_SYSTEMTIME, utc_lpLocalTime As utc_SYSTEMTIME) As Long
+Private Declare PtrSafe Function utc_TzSpecificLocalTimeToSystemTime Lib "kernel32" Alias "TzSpecificLocalTimeToSystemTime" _
+    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION, utc_lpLocalTime As utc_SYSTEMTIME, utc_lpUniversalTime As utc_SYSTEMTIME) As Long
+
+#Else
+
+Private Declare Function utc_GetTimeZoneInformation Lib "kernel32" Alias "GetTimeZoneInformation" _
+    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION) As Long
+Private Declare Function utc_SystemTimeToTzSpecificLocalTime Lib "kernel32" Alias "SystemTimeToTzSpecificLocalTime" _
+    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION, utc_lpUniversalTime As utc_SYSTEMTIME, utc_lpLocalTime As utc_SYSTEMTIME) As Long
+Private Declare Function utc_TzSpecificLocalTimeToSystemTime Lib "kernel32" Alias "TzSpecificLocalTimeToSystemTime" _
+    (utc_lpTimeZoneInformation As utc_TIME_ZONE_INFORMATION, utc_lpLocalTime As utc_SYSTEMTIME, utc_lpUniversalTime As utc_SYSTEMTIME) As Long
+
+#End If
+
+#If Mac Then
+
+#If VBA7 Then
+Private Type utc_ShellResult
+    utc_Output As String
+    utc_ExitCode As LongPtr
+End Type
+
+#Else
+
+Private Type utc_ShellResult
+    utc_Output As String
+    utc_ExitCode As Long
+End Type
+
+#End If
+
+#Else
+
+Private Type utc_SYSTEMTIME
+    utc_wYear As Integer
+    utc_wMonth As Integer
+    utc_wDayOfWeek As Integer
+    utc_wDay As Integer
+    utc_wHour As Integer
+    utc_wMinute As Integer
+    utc_wSecond As Integer
+    utc_wMilliseconds As Integer
+End Type
+
+Private Type utc_TIME_ZONE_INFORMATION
+    utc_Bias As Long
+    utc_StandardName(0 To 31) As Integer
+    utc_StandardDate As utc_SYSTEMTIME
+    utc_StandardBias As Long
+    utc_DaylightName(0 To 31) As Integer
+    utc_DaylightDate As utc_SYSTEMTIME
+    utc_DaylightBias As Long
+End Type
+
+#End If
+' === End VBA-UTC
+
+#If Mac Then
+#ElseIf VBA7 Then
+
+Private Declare PtrSafe Sub json_CopyMemory Lib "kernel32" Alias "RtlMoveMemory" _
+    (json_MemoryDestination As Any, json_MemorySource As Any, ByVal json_ByteLength As Long)
+
+#Else
+
+Private Declare Sub json_CopyMemory Lib "kernel32" Alias "RtlMoveMemory" _
+    (json_MemoryDestination As Any, json_MemorySource As Any, ByVal json_ByteLength As Long)
+
+#End If
+
+Private Type json_Options
+    ' VBA only stores 15 significant digits, so any numbers larger than that are truncated
+    ' This can lead to issues when BIGINT's are used (e.g. for Ids or Credit Cards), as they will be invalid above 15 digits
+    ' See: http://support.microsoft.com/kb/269370
+    '
+    ' By default, VBA-JSON will use String for numbers longer than 15 characters that contain only digits
+    ' to override set `JsonConverter.JsonOptions.UseDoubleForLargeNumbers = True`
+    UseDoubleForLargeNumbers As Boolean
+
+    ' The JSON standard requires object keys to be quoted (" or '), use this option to allow unquoted keys
+    AllowUnquotedKeys As Boolean
+
+    ' The solidus (/) is not required to be escaped, use this option to escape them as \/ in ConvertToJson
+    EscapeSolidus As Boolean
+End Type
+Public JsonOptions As json_Options
+
+' ============================================= '
+' Public Methods
+' ============================================= '
+
+''
+' Convert JSON string to object (Dictionary/Collection)
+'
+' @method ParseJson
+' @param {String} json_String
+' @return {Object} (Dictionary or Collection)
+' @throws 10001 - JSON parse error
+''
+Public Function ParseJson(ByVal JsonString As String) As Object
+    Dim json_Index As Long
+    json_Index = 1
+
+    ' Remove vbCr, vbLf, and vbTab from json_String
+    JsonString = VBA.Replace(VBA.Replace(VBA.Replace(JsonString, VBA.vbCr, ""), VBA.vbLf, ""), VBA.vbTab, "")
+
+    json_SkipSpaces JsonString, json_Index
+    Select Case VBA.Mid$(JsonString, json_Index, 1)
+    Case "{"
+        Set ParseJson = json_ParseObject(JsonString, json_Index)
+    Case "["
+        Set ParseJson = json_ParseArray(JsonString, json_Index)
+    Case Else
+        ' Error: Invalid JSON string
+        Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(JsonString, json_Index, "Expecting '{' or '['")
+    End Select
+End Function
+
+''
+' Convert object (Dictionary/Collection/Array) to JSON
+'
+' @method ConvertToJson
+' @param {Variant} JsonValue (Dictionary, Collection, or Array)
+' @param {Integer|String} Whitespace "Pretty" print json with given number of spaces per indentation (Integer) or given string
+' @return {String}
+''
+Public Function ConvertToJson(ByVal JsonValue As Variant, Optional ByVal Whitespace As Variant, Optional ByVal json_CurrentIndentation As Long = 0) As String
+    Dim json_buffer As String
+    Dim json_BufferPosition As Long
+    Dim json_BufferLength As Long
+    Dim json_Index As Long
+    Dim json_LBound As Long
+    Dim json_UBound As Long
+    Dim json_IsFirstItem As Boolean
+    Dim json_Index2D As Long
+    Dim json_LBound2D As Long
+    Dim json_UBound2D As Long
+    Dim json_IsFirstItem2D As Boolean
+    Dim json_Key As Variant
+    Dim json_Value As Variant
+    Dim json_DateStr As String
+    Dim json_Converted As String
+    Dim json_SkipItem As Boolean
+    Dim json_PrettyPrint As Boolean
+    Dim json_Indentation As String
+    Dim json_InnerIndentation As String
+
+    json_LBound = -1
+    json_UBound = -1
+    json_IsFirstItem = True
+    json_LBound2D = -1
+    json_UBound2D = -1
+    json_IsFirstItem2D = True
+    json_PrettyPrint = Not IsMissing(Whitespace)
+
+    Select Case VBA.VarType(JsonValue)
+    Case VBA.vbNull
+        ConvertToJson = "null"
+    Case VBA.vbDate
+        ' Date
+        json_DateStr = ConvertToIso(VBA.CDate(JsonValue))
+
+        ConvertToJson = """" & json_DateStr & """"
+    Case VBA.vbString
+        ' String (or large number encoded as string)
+        
+        '''
+        ''' NOTE[2021.08.04] -- Prep for modification to this section
+        '''
+        ''' This comment block, and whitespace immediately above and below,
+        ''' are added TEMPORARILY to note ongoing work on String data handling.
+        ''' They should be removed once modified code is verified correct.
+        '''
+        ''' This segment is presumed to handle conversion of VBA Strings
+        ''' to JSON compatible form. However, strings containing double quotes
+        ''' do NOT appear to be properly converted.
+        '''
+        ''' In order to prevent premature termination by double-quote characters,
+        ''' it is necessary to "escape" these characters, using a preceding
+        ''' backslash (\) character. This does not appear to happen, resulting
+        ''' in the output of invalid JSON text when such Strings are encountered.
+        '''
+        ''' To address this issue, new code will be added in this Case section
+        ''' to attempt to capture and modify strings containing double quotes.
+        ''' That might take place here, or possibly in the json_Encode function,
+        ''' called in the Else clause just below. Note that this revision will
+        ''' almost certainly require processing existing backslashes, as well.
+        '''
+        ''' Any new code interposed in the following section is to be demarcated
+        ''' with comments preceded with the tripled single quotes seen in this
+        ''' comment section, and removed along with said comments when no longer
+        ''' needed. All modifications retained for the final revision should,
+        ''' however, retain accompanying comments documenting earch modification
+        ''' and its purpose.
+        '''
+        
+        If Not JsonOptions.UseDoubleForLargeNumbers And json_StringIsLargeNumber(JsonValue) Then
+            ConvertToJson = JsonValue
+        Else
+            ''' watch and stop for any string
+            ''' containing one or more double quotes
+            If InStr(1, JsonValue, """") > 0 Then
+                'Stop
+                Debug.Print ; 'Breakpoint Landing
+            End If
+            ''' end of watch section
+            ConvertToJson = """" & json_Encode(JsonValue) & """"
+            ''' NOTE: It would APPEAR that function json_Encode
+            ''' is written to escape double quotes, backslashes,
+            ''' and other characters exactly as noted above,
+            ''' but this does NOT appear to be happening.
+            '''
+            ''' A review of that function would appear to be
+            ''' the first course of action. Will retain watch
+            ''' section above to anticipate appropriate
+            ''' moments to step through.
+        End If
+    Case VBA.vbBoolean
+        If JsonValue Then
+            ConvertToJson = "true"
+        Else
+            ConvertToJson = "false"
+        End If
+    Case VBA.vbArray To VBA.vbArray + VBA.vbByte
+        If json_PrettyPrint Then
+            If VBA.VarType(Whitespace) = VBA.vbString Then
+                json_Indentation = VBA.String$(json_CurrentIndentation + 1, Whitespace)
+                json_InnerIndentation = VBA.String$(json_CurrentIndentation + 2, Whitespace)
+            Else
+                json_Indentation = VBA.Space$((json_CurrentIndentation + 1) * Whitespace)
+                json_InnerIndentation = VBA.Space$((json_CurrentIndentation + 2) * Whitespace)
+            End If
+        End If
+
+        ' Array
+        json_BufferAppend json_buffer, "[", json_BufferPosition, json_BufferLength
+
+        On Error Resume Next
+
+        json_LBound = LBound(JsonValue, 1)
+        json_UBound = UBound(JsonValue, 1)
+        json_LBound2D = LBound(JsonValue, 2)
+        json_UBound2D = UBound(JsonValue, 2)
+
+        If json_LBound >= 0 And json_UBound >= 0 Then
+            For json_Index = json_LBound To json_UBound
+                If json_IsFirstItem Then
+                    json_IsFirstItem = False
+                Else
+                    ' Append comma to previous line
+                    json_BufferAppend json_buffer, ",", json_BufferPosition, json_BufferLength
+                End If
+
+                If json_LBound2D >= 0 And json_UBound2D >= 0 Then
+                    ' 2D Array
+                    If json_PrettyPrint Then
+                        json_BufferAppend json_buffer, vbNewLine, json_BufferPosition, json_BufferLength
+                    End If
+                    json_BufferAppend json_buffer, json_Indentation & "[", json_BufferPosition, json_BufferLength
+
+                    For json_Index2D = json_LBound2D To json_UBound2D
+                        If json_IsFirstItem2D Then
+                            json_IsFirstItem2D = False
+                        Else
+                            json_BufferAppend json_buffer, ",", json_BufferPosition, json_BufferLength
+                        End If
+
+                        json_Converted = ConvertToJson(JsonValue(json_Index, json_Index2D), Whitespace, json_CurrentIndentation + 2)
+
+                        ' For Arrays/Collections, undefined (Empty/Nothing) is treated as null
+                        If json_Converted = "" Then
+                            ' (nest to only check if converted = "")
+                            If json_IsUndefined(JsonValue(json_Index, json_Index2D)) Then
+                                json_Converted = "null"
+                            End If
+                        End If
+
+                        If json_PrettyPrint Then
+                            json_Converted = vbNewLine & json_InnerIndentation & json_Converted
+                        End If
+
+                        json_BufferAppend json_buffer, json_Converted, json_BufferPosition, json_BufferLength
+                    Next json_Index2D
+
+                    If json_PrettyPrint Then
+                        json_BufferAppend json_buffer, vbNewLine, json_BufferPosition, json_BufferLength
+                    End If
+
+                    json_BufferAppend json_buffer, json_Indentation & "]", json_BufferPosition, json_BufferLength
+                    json_IsFirstItem2D = True
+                Else
+                    ' 1D Array
+                    json_Converted = ConvertToJson(JsonValue(json_Index), Whitespace, json_CurrentIndentation + 1)
+
+                    ' For Arrays/Collections, undefined (Empty/Nothing) is treated as null
+                    If json_Converted = "" Then
+                        ' (nest to only check if converted = "")
+                        If json_IsUndefined(JsonValue(json_Index)) Then
+                            json_Converted = "null"
+                        End If
+                    End If
+
+                    If json_PrettyPrint Then
+                        json_Converted = vbNewLine & json_Indentation & json_Converted
+                    End If
+
+                    json_BufferAppend json_buffer, json_Converted, json_BufferPosition, json_BufferLength
+                End If
+            Next json_Index
+        End If
+
+        On Error GoTo 0
+
+        If json_PrettyPrint Then
+            json_BufferAppend json_buffer, vbNewLine, json_BufferPosition, json_BufferLength
+
+            If VBA.VarType(Whitespace) = VBA.vbString Then
+                json_Indentation = VBA.String$(json_CurrentIndentation, Whitespace)
+            Else
+                json_Indentation = VBA.Space$(json_CurrentIndentation * Whitespace)
+            End If
+        End If
+
+        json_BufferAppend json_buffer, json_Indentation & "]", json_BufferPosition, json_BufferLength
+
+        ConvertToJson = json_BufferToString(json_buffer, json_BufferPosition, json_BufferLength)
+
+    ' Dictionary or Collection
+    Case VBA.vbObject
+        If json_PrettyPrint Then
+            If VBA.VarType(Whitespace) = VBA.vbString Then
+                json_Indentation = VBA.String$(json_CurrentIndentation + 1, Whitespace)
+            Else
+                json_Indentation = VBA.Space$((json_CurrentIndentation + 1) * Whitespace)
+            End If
+        End If
+
+        ' Dictionary
+        If VBA.TypeName(JsonValue) = "Dictionary" Then
+            json_BufferAppend json_buffer, "{", json_BufferPosition, json_BufferLength
+            For Each json_Key In JsonValue.Keys
+                ' For Objects, undefined (Empty/Nothing) is not added to object
+                json_Converted = ConvertToJson(JsonValue(json_Key), Whitespace, json_CurrentIndentation + 1)
+                If json_Converted = "" Then
+                    json_SkipItem = json_IsUndefined(JsonValue(json_Key))
+                Else
+                    json_SkipItem = False
+                End If
+
+                If Not json_SkipItem Then
+                    If json_IsFirstItem Then
+                        json_IsFirstItem = False
+                    Else
+                        json_BufferAppend json_buffer, ",", json_BufferPosition, json_BufferLength
+                    End If
+
+                    '''
+                    ''' NOTE[2021.08.05]: Code to watch for Dictionary Keys
+                    ''' containing double quote marks, and check whether
+                    ''' those characters are properly escaped.
+                    '''
+                    ''' Initial run seems to indicate String values ARE
+                    ''' processed correctly in their Case section above.
+                    '''
+                    ''' Review of prior output seems to show incorrect
+                    ''' output only of Dictionary Keys with double quotes,
+                    ''' suggesting the issue might lie in THIS section.
+                    '''
+                    ''' Believe this might be it.
+                    '''
+                    ''' The original If statement below appears to be where
+                    ''' the JSON key/value expression is generated, and both
+                    ''' tracks appear to emit the key value UNPROCESSED,
+                    ''' when in fact, it SHOULD be processed recursively
+                    ''' through ConvertToJson, just like any (string) value.
+                    '''
+                    ''' There also appears an opportunity here to tighten up
+                    ''' the code a bit, generating the key/value expression
+                    ''' PRIOR to the PrettyPrint check, and then use that
+                    ''' to determine whether to prefix the indentation.
+                    '''
+                    ''' Will proceed with proposed revisions, and see how this goes.
+                    '''
+                    ''' The following code watches for such Keys,
+                    ''' and stops for review when encountered.
+                    '''
+                    If InStr(1, json_Key, """") > 0 Then 'JsonValue
+                        Debug.Print ; 'Breakpoint Landing
+                    End If
+                    '''
+                    '''
+                    'json_Converted = """" & ConvertToJson(json_Key, Whitespace, json_CurrentIndentation + 1) & """:" & json_Converted
+                    If IsNull(json_Key) Then
+                        json_Converted = """<NULL>"":" & json_Converted
+                        Stop 'because we DON'T want this happening!
+                        '''
+                        ''' Early run kept hitting Null values for json_Key,
+                        ''' which should NOT be coming up more than once
+                        ''' in a Dictionary, and ideally not even that.
+                        '''
+                    Else
+                        json_Converted = """" & json_Encode(json_Key) & """:" & json_Converted
+                        ''' Note that calls to ConvertToJson return a string
+                        ''' with enclosing double quotes at start and end,
+                        ''' which is the exact OPPOSITE of what we want.
+                        '''
+                        ''' While this might be remedied by leaving off leading
+                        ''' and trailing double quotes in THIS expression,
+                        ''' just calling json_Encode directly bypasses all the
+                        ''' extra complications of ConvertToJson, which would
+                        ''' be expected to call json_Encode anyway.
+                        '''
+                    End If
+                    '''
+                    ''' Preceding code is added to prepare key/value expression
+                    ''' unconditionally, as it's included in both cases.
+                    '''
+                    If json_PrettyPrint Then
+                        'json_Converted = vbNewLine & json_Indentation & """" & json_Key & """: " & json_Converted
+                        '''
+                        ''' Preceding is original expression,
+                        ''' disabled in favor of the following,
+                        ''' which will replace it, if successful
+                        '''
+                         json_Converted = vbNewLine & json_Indentation & json_Converted
+                        Debug.Print ; 'Breakpoint Landing
+                    Else
+                        '''
+                        ''' Following expression is effectively moved
+                        ''' ahead of json_PrettyPrint check, as this
+                        ''' segment is generated in BOTH cases.
+                        '''
+                        ''' Since the non-PrettyPrint option adds no
+                        ''' formatting text to the final result,
+                        ''' this expression, and likely this entire
+                        ''' block can likely be removed entirely.
+                        '''
+                        'json_Converted = """" & json_Key & """:" & json_Converted
+                    End If
+
+                    json_BufferAppend json_buffer, json_Converted, json_BufferPosition, json_BufferLength
+                End If
+            Next json_Key
+
+            If json_PrettyPrint Then
+                json_BufferAppend json_buffer, vbNewLine, json_BufferPosition, json_BufferLength
+
+                If VBA.VarType(Whitespace) = VBA.vbString Then
+                    json_Indentation = VBA.String$(json_CurrentIndentation, Whitespace)
+                Else
+                    json_Indentation = VBA.Space$(json_CurrentIndentation * Whitespace)
+                End If
+            End If
+
+            json_BufferAppend json_buffer, json_Indentation & "}", json_BufferPosition, json_BufferLength
+
+        ' Collection
+        ElseIf VBA.TypeName(JsonValue) = "Collection" Then
+            json_BufferAppend json_buffer, "[", json_BufferPosition, json_BufferLength
+            For Each json_Value In JsonValue
+                If json_IsFirstItem Then
+                    json_IsFirstItem = False
+                Else
+                    json_BufferAppend json_buffer, ",", json_BufferPosition, json_BufferLength
+                End If
+
+                json_Converted = ConvertToJson(json_Value, Whitespace, json_CurrentIndentation + 1)
+
+                ' For Arrays/Collections, undefined (Empty/Nothing) is treated as null
+                If json_Converted = "" Then
+                    ' (nest to only check if converted = "")
+                    If json_IsUndefined(json_Value) Then
+                        json_Converted = "null"
+                    End If
+                End If
+
+                If json_PrettyPrint Then
+                    json_Converted = vbNewLine & json_Indentation & json_Converted
+                End If
+
+                json_BufferAppend json_buffer, json_Converted, json_BufferPosition, json_BufferLength
+            Next json_Value
+
+            If json_PrettyPrint Then
+                json_BufferAppend json_buffer, vbNewLine, json_BufferPosition, json_BufferLength
+
+                If VBA.VarType(Whitespace) = VBA.vbString Then
+                    json_Indentation = VBA.String$(json_CurrentIndentation, Whitespace)
+                Else
+                    json_Indentation = VBA.Space$(json_CurrentIndentation * Whitespace)
+                End If
+            End If
+
+            json_BufferAppend json_buffer, json_Indentation & "]", json_BufferPosition, json_BufferLength
+        Else
+            If JsonValue Is Nothing Then
+                json_Value = "<Nothing>"
+            Else
+                json_Value = "<Unhandled Object: " & VBA.TypeName(JsonValue) & ">"
+            End If
+            json_Converted = ConvertToJson(json_Value, Whitespace, json_CurrentIndentation + 1)
+            json_BufferAppend json_buffer, json_Converted, json_BufferPosition, json_BufferLength
+        End If
+
+        ConvertToJson = json_BufferToString(json_buffer, json_BufferPosition, json_BufferLength)
+    Case VBA.vbInteger, VBA.vbLong, VBA.vbSingle, VBA.vbDouble, VBA.vbCurrency, VBA.vbDecimal
+        ' Number (use decimals for numbers)
+        ConvertToJson = VBA.Replace(JsonValue, ",", ".")
+    Case Else
+        ' vbEmpty, vbError, vbDataObject, vbByte, vbUserDefinedType
+        ' Use VBA's built-in to-string
+        On Error Resume Next
+        ConvertToJson = JsonValue
+        On Error GoTo 0
+    End Select
+End Function
+
+' ============================================= '
+' Private Functions
+' ============================================= '
+
+Private Function json_ParseObject(json_String As String, ByRef json_Index As Long) As Dictionary
+    Dim json_Key As String
+    Dim json_NextChar As String
+
+    Set json_ParseObject = New Dictionary
+    json_SkipSpaces json_String, json_Index
+    If VBA.Mid$(json_String, json_Index, 1) <> "{" Then
+        Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting '{'")
+    Else
+        json_Index = json_Index + 1
+
+        Do
+            json_SkipSpaces json_String, json_Index
+            If VBA.Mid$(json_String, json_Index, 1) = "}" Then
+                json_Index = json_Index + 1
+                Exit Function
+            ElseIf VBA.Mid$(json_String, json_Index, 1) = "," Then
+                json_Index = json_Index + 1
+                json_SkipSpaces json_String, json_Index
+            End If
+
+            json_Key = json_ParseKey(json_String, json_Index)
+            json_NextChar = json_Peek(json_String, json_Index)
+            If json_NextChar = "[" Or json_NextChar = "{" Then
+                Set json_ParseObject.Item(json_Key) = json_ParseValue(json_String, json_Index)
+            Else
+                json_ParseObject.Item(json_Key) = json_ParseValue(json_String, json_Index)
+            End If
+        Loop
+    End If
+End Function
+
+Private Function json_ParseArray(json_String As String, ByRef json_Index As Long) As Collection
+    Set json_ParseArray = New Collection
+
+    json_SkipSpaces json_String, json_Index
+    If VBA.Mid$(json_String, json_Index, 1) <> "[" Then
+        Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting '['")
+    Else
+        json_Index = json_Index + 1
+
+        Do
+            json_SkipSpaces json_String, json_Index
+            If VBA.Mid$(json_String, json_Index, 1) = "]" Then
+                json_Index = json_Index + 1
+                Exit Function
+            ElseIf VBA.Mid$(json_String, json_Index, 1) = "," Then
+                json_Index = json_Index + 1
+                json_SkipSpaces json_String, json_Index
+            End If
+
+            json_ParseArray.Add json_ParseValue(json_String, json_Index)
+        Loop
+    End If
+End Function
+
+Private Function json_ParseValue(json_String As String, ByRef json_Index As Long) As Variant
+    json_SkipSpaces json_String, json_Index
+    Select Case VBA.Mid$(json_String, json_Index, 1)
+    Case "{"
+        Set json_ParseValue = json_ParseObject(json_String, json_Index)
+    Case "["
+        Set json_ParseValue = json_ParseArray(json_String, json_Index)
+    Case """", "'"
+        json_ParseValue = json_ParseString(json_String, json_Index)
+    Case Else
+        If VBA.Mid$(json_String, json_Index, 4) = "true" Then
+            json_ParseValue = True
+            json_Index = json_Index + 4
+        ElseIf VBA.Mid$(json_String, json_Index, 5) = "false" Then
+            json_ParseValue = False
+            json_Index = json_Index + 5
+        ElseIf VBA.Mid$(json_String, json_Index, 4) = "null" Then
+            json_ParseValue = Null
+            json_Index = json_Index + 4
+        ElseIf VBA.InStr("+-0123456789", VBA.Mid$(json_String, json_Index, 1)) Then
+            json_ParseValue = json_ParseNumber(json_String, json_Index)
+        Else
+            Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting 'STRING', 'NUMBER', null, true, false, '{', or '['")
+        End If
+    End Select
+End Function
+
+Private Function json_ParseString(json_String As String, ByRef json_Index As Long) As String
+    Dim json_Quote As String
+    Dim json_Char As String
+    Dim json_Code As String
+    Dim json_buffer As String
+    Dim json_BufferPosition As Long
+    Dim json_BufferLength As Long
+
+    json_SkipSpaces json_String, json_Index
+
+    ' Store opening quote to look for matching closing quote
+    json_Quote = VBA.Mid$(json_String, json_Index, 1)
+    json_Index = json_Index + 1
+
+    Do While json_Index > 0 And json_Index <= Len(json_String)
+        json_Char = VBA.Mid$(json_String, json_Index, 1)
+
+        Select Case json_Char
+        Case "\"
+            ' Escaped string, \\, or \/
+            json_Index = json_Index + 1
+            json_Char = VBA.Mid$(json_String, json_Index, 1)
+
+            Select Case json_Char
+            Case """", "\", "/", "'"
+                json_BufferAppend json_buffer, json_Char, json_BufferPosition, json_BufferLength
+                json_Index = json_Index + 1
+            Case "b"
+                json_BufferAppend json_buffer, vbBack, json_BufferPosition, json_BufferLength
+                json_Index = json_Index + 1
+            Case "f"
+                json_BufferAppend json_buffer, vbFormFeed, json_BufferPosition, json_BufferLength
+                json_Index = json_Index + 1
+            Case "n"
+                json_BufferAppend json_buffer, vbCrLf, json_BufferPosition, json_BufferLength
+                json_Index = json_Index + 1
+            Case "r"
+                json_BufferAppend json_buffer, vbCr, json_BufferPosition, json_BufferLength
+                json_Index = json_Index + 1
+            Case "t"
+                json_BufferAppend json_buffer, vbTab, json_BufferPosition, json_BufferLength
+                json_Index = json_Index + 1
+            Case "u"
+                ' Unicode character escape (e.g. \u00a9 = Copyright)
+                json_Index = json_Index + 1
+                json_Code = VBA.Mid$(json_String, json_Index, 4)
+                json_BufferAppend json_buffer, VBA.ChrW(VBA.Val("&h" + json_Code)), json_BufferPosition, json_BufferLength
+                json_Index = json_Index + 4
+            End Select
+        Case json_Quote
+            json_ParseString = json_BufferToString(json_buffer, json_BufferPosition, json_BufferLength)
+            json_Index = json_Index + 1
+            Exit Function
+        Case Else
+            json_BufferAppend json_buffer, json_Char, json_BufferPosition, json_BufferLength
+            json_Index = json_Index + 1
+        End Select
+    Loop
+End Function
+
+Private Function json_ParseNumber(json_String As String, ByRef json_Index As Long) As Variant
+    Dim json_Char As String
+    Dim json_Value As String
+    Dim json_IsLargeNumber As Boolean
+
+    json_SkipSpaces json_String, json_Index
+
+    Do While json_Index > 0 And json_Index <= Len(json_String)
+        json_Char = VBA.Mid$(json_String, json_Index, 1)
+
+        If VBA.InStr("+-0123456789.eE", json_Char) Then
+            ' Unlikely to have massive number, so use simple append rather than buffer here
+            json_Value = json_Value & json_Char
+            json_Index = json_Index + 1
+        Else
+            ' Excel only stores 15 significant digits, so any numbers larger than that are truncated
+            ' This can lead to issues when BIGINT's are used (e.g. for Ids or Credit Cards), as they will be invalid above 15 digits
+            ' See: http://support.microsoft.com/kb/269370
+            '
+            ' Fix: Parse -> String, Convert -> String longer than 15/16 characters containing only numbers and decimal points -> Number
+            ' (decimal doesn't factor into significant digit count, so if present check for 15 digits + decimal = 16)
+            json_IsLargeNumber = IIf(InStr(json_Value, "."), Len(json_Value) >= 17, Len(json_Value) >= 16)
+            If Not JsonOptions.UseDoubleForLargeNumbers And json_IsLargeNumber Then
+                json_ParseNumber = json_Value
+            Else
+                ' VBA.Val does not use regional settings, so guard for comma is not needed
+                json_ParseNumber = VBA.Val(json_Value)
+            End If
+            Exit Function
+        End If
+    Loop
+End Function
+
+Private Function json_ParseKey(json_String As String, ByRef json_Index As Long) As String
+    ' Parse key with single or double quotes
+    If VBA.Mid$(json_String, json_Index, 1) = """" Or VBA.Mid$(json_String, json_Index, 1) = "'" Then
+        json_ParseKey = json_ParseString(json_String, json_Index)
+    ElseIf JsonOptions.AllowUnquotedKeys Then
+        Dim json_Char As String
+        Do While json_Index > 0 And json_Index <= Len(json_String)
+            json_Char = VBA.Mid$(json_String, json_Index, 1)
+            If (json_Char <> " ") And (json_Char <> ":") Then
+                json_ParseKey = json_ParseKey & json_Char
+                json_Index = json_Index + 1
+            Else
+                Exit Do
+            End If
+        Loop
+    Else
+        Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting '""' or '''")
+    End If
+
+    ' Check for colon and skip if present or throw if not present
+    json_SkipSpaces json_String, json_Index
+    If VBA.Mid$(json_String, json_Index, 1) <> ":" Then
+        Err.Raise 10001, "JSONConverter", json_ParseErrorMessage(json_String, json_Index, "Expecting ':'")
+    Else
+        json_Index = json_Index + 1
+    End If
+End Function
+
+Private Function json_IsUndefined(ByVal json_Value As Variant) As Boolean
+    ' Empty / Nothing -> undefined
+    Select Case VBA.VarType(json_Value)
+    Case VBA.vbEmpty
+        json_IsUndefined = True
+    Case VBA.vbObject
+        Select Case VBA.TypeName(json_Value)
+        Case "Empty", "Nothing"
+            json_IsUndefined = True
+        End Select
+    End Select
+End Function
+
+Private Function json_Encode(ByVal json_Text As Variant) As String
+    ' Reference: http://www.ietf.org/rfc/rfc4627.txt
+    ' Escape: ", \, /, backspace, form feed, line feed, carriage return, tab
+    Dim json_Index As Long
+    Dim json_Char As String
+    Dim json_AscCode As Long
+    Dim json_buffer As String
+    Dim json_BufferPosition As Long
+    Dim json_BufferLength As Long
+
+    For json_Index = 1 To VBA.Len(json_Text)
+        json_Char = VBA.Mid$(json_Text, json_Index, 1)
+        json_AscCode = VBA.AscW(json_Char)
+
+        ' When AscW returns a negative number, it returns the twos complement form of that number.
+        ' To convert the twos complement notation into normal binary notation, add 0xFFF to the return result.
+        ' https://support.microsoft.com/en-us/kb/272138
+        If json_AscCode < 0 Then
+            json_AscCode = json_AscCode + 65536
+        End If
+
+        ' From spec, ", \, and control characters must be escaped (solidus is optional)
+
+        Select Case json_AscCode
+        Case 34
+            ' " -> 34 -> \"
+            json_Char = "\"""
+        Case 92
+            ' \ -> 92 -> \\
+            json_Char = "\\"
+        Case 47
+            ' / -> 47 -> \/ (optional)
+            If JsonOptions.EscapeSolidus Then
+                json_Char = "\/"
+            End If
+        Case 8
+            ' backspace -> 8 -> \b
+            json_Char = "\b"
+        Case 12
+            ' form feed -> 12 -> \f
+            json_Char = "\f"
+        Case 10
+            ' line feed -> 10 -> \n
+            json_Char = "\n"
+        Case 13
+            ' carriage return -> 13 -> \r
+            json_Char = "\r"
+        Case 9
+            ' tab -> 9 -> \t
+            json_Char = "\t"
+        Case 0 To 31, 127 To 65535
+            ' Non-ascii characters -> convert to 4-digit hex
+            json_Char = "\u" & VBA.Right$("0000" & VBA.Hex$(json_AscCode), 4)
+        End Select
+
+        json_BufferAppend json_buffer, json_Char, json_BufferPosition, json_BufferLength
+    Next json_Index
+
+    json_Encode = json_BufferToString(json_buffer, json_BufferPosition, json_BufferLength)
+End Function
+
+Private Function json_Peek(json_String As String, ByVal json_Index As Long, Optional json_NumberOfCharacters As Long = 1) As String
+    ' "Peek" at the next number of characters without incrementing json_Index (ByVal instead of ByRef)
+    json_SkipSpaces json_String, json_Index
+    json_Peek = VBA.Mid$(json_String, json_Index, json_NumberOfCharacters)
+End Function
+
+Private Sub json_SkipSpaces(json_String As String, ByRef json_Index As Long)
+    ' Increment index to skip over spaces
+    Do While json_Index > 0 And json_Index <= VBA.Len(json_String) And VBA.Mid$(json_String, json_Index, 1) = " "
+        json_Index = json_Index + 1
+    Loop
+End Sub
+
+Private Function json_StringIsLargeNumber(json_String As Variant) As Boolean
+    ' Check if the given string is considered a "large number"
+    ' (See json_ParseNumber)
+
+    Dim json_Length As Long
+    Dim json_CharIndex As Long
+    json_Length = VBA.Len(json_String)
+
+    ' Length with be at least 16 characters and assume will be less than 100 characters
+    If json_Length >= 16 And json_Length <= 100 Then
+        Dim json_CharCode As String
+        Dim json_Index As Long
+
+        json_StringIsLargeNumber = True
+
+        For json_CharIndex = 1 To json_Length
+            json_CharCode = VBA.Asc(VBA.Mid$(json_String, json_CharIndex, 1))
+            Select Case json_CharCode
+            ' Look for .|0-9|E|e
+            Case 46, 48 To 57, 69, 101
+                ' Continue through characters
+            Case Else
+                json_StringIsLargeNumber = False
+                Exit Function
+            End Select
+        Next json_CharIndex
+    End If
+End Function
+
+Private Function json_ParseErrorMessage(json_String As String, ByRef json_Index As Long, ErrorMessage As String)
+    ' Provide detailed parse error message, including details of where and what occurred
+    '
+    ' Example:
+    ' Error parsing JSON:
+    ' {"abcde":True}
+    '          ^
+    ' Expecting 'STRING', 'NUMBER', null, true, false, '{', or '['
+
+    Dim json_StartIndex As Long
+    Dim json_StopIndex As Long
+
+    ' Include 10 characters before and after error (if possible)
+    json_StartIndex = json_Index - 10
+    json_StopIndex = json_Index + 10
+    If json_StartIndex <= 0 Then
+        json_StartIndex = 1
+    End If
+    If json_StopIndex > VBA.Len(json_String) Then
+        json_StopIndex = VBA.Len(json_String)
+    End If
+
+    json_ParseErrorMessage = "Error parsing JSON:" & VBA.vbNewLine & _
+                             VBA.Mid$(json_String, json_StartIndex, json_StopIndex - json_StartIndex + 1) & VBA.vbNewLine & _
+                             VBA.Space$(json_Index - json_StartIndex) & "^" & VBA.vbNewLine & _
+                             ErrorMessage
+End Function
+
+Private Sub json_BufferAppend(ByRef json_buffer As String, _
+                              ByRef json_Append As Variant, _
+                              ByRef json_BufferPosition As Long, _
+                              ByRef json_BufferLength As Long)
+#If Mac Then
+    json_buffer = json_buffer & json_Append
+#Else
+    ' VBA can be slow to append strings due to allocating a new string for each append
+    ' Instead of using the traditional append, allocate a large empty string and then copy string at append position
+    '
+    ' Example:
+    ' Buffer: "abc  "
+    ' Append: "def"
+    ' Buffer Position: 3
+    ' Buffer Length: 5
+    '
+    ' Buffer position + Append length > Buffer length -> Append chunk of blank space to buffer
+    ' Buffer: "abc       "
+    ' Buffer Length: 10
+    '
+    ' Copy memory for "def" into buffer at position 3 (0-based)
+    ' Buffer: "abcdef    "
+    '
+    ' Approach based on cStringBuilder from vbAccelerator
+    ' http://www.vbaccelerator.com/home/VB/Code/Techniques/RunTime_Debug_Tracing/VB6_Tracer_Utility_zip_cStringBuilder_cls.asp
+
+    Dim json_AppendLength As Long
+    Dim json_LengthPlusPosition As Long
+
+    json_AppendLength = VBA.LenB(json_Append)
+    json_LengthPlusPosition = json_AppendLength + json_BufferPosition
+
+    If json_LengthPlusPosition > json_BufferLength Then
+        ' Appending would overflow buffer, add chunks until buffer is long enough
+        Dim json_TemporaryLength As Long
+
+        json_TemporaryLength = json_BufferLength
+        Do While json_TemporaryLength < json_LengthPlusPosition
+            ' Initially, initialize string with 255 characters,
+            ' then add large chunks (8192) after that
+            '
+            ' Size: # Characters x 2 bytes / character
+            If json_TemporaryLength = 0 Then
+                json_TemporaryLength = json_TemporaryLength + 510
+            Else
+                json_TemporaryLength = json_TemporaryLength + 16384
+            End If
+        Loop
+
+        json_buffer = json_buffer & VBA.Space$((json_TemporaryLength - json_BufferLength) \ 2)
+        json_BufferLength = json_TemporaryLength
+    End If
+
+    ' Copy memory from append to buffer at buffer position
+    json_CopyMemory ByVal json_UnsignedAdd(StrPtr(json_buffer), _
+                    json_BufferPosition), _
+                    ByVal StrPtr(json_Append), _
+                    json_AppendLength
+
+    json_BufferPosition = json_BufferPosition + json_AppendLength
+#End If
+End Sub
+
+Private Function json_BufferToString(ByRef json_buffer As String, ByVal json_BufferPosition As Long, ByVal json_BufferLength As Long) As String
+#If Mac Then
+    json_BufferToString = json_buffer
+#Else
+    If json_BufferPosition > 0 Then
+        json_BufferToString = VBA.Left$(json_buffer, json_BufferPosition \ 2)
+    End If
+#End If
+End Function
+
+#If VBA7 Then
+Private Function json_UnsignedAdd(json_Start As LongPtr, json_Increment As Long) As LongPtr
+#Else
+Private Function json_UnsignedAdd(json_Start As Long, json_Increment As Long) As Long
+#End If
+
+    If json_Start And &H80000000 Then
+        json_UnsignedAdd = json_Start + json_Increment
+    ElseIf (json_Start Or &H80000000) < -json_Increment Then
+        json_UnsignedAdd = json_Start + json_Increment
+    Else
+        json_UnsignedAdd = (json_Start + &H80000000) + (json_Increment + &H80000000)
+    End If
+End Function
+
+''
+' VBA-UTC v1.0.3
+' (c) Tim Hall - https://github.com/VBA-tools/VBA-UtcConverter
+'
+' UTC/ISO 8601 Converter for VBA
+'
+' Errors:
+' 10011 - UTC parsing error
+' 10012 - UTC conversion error
+' 10013 - ISO 8601 parsing error
+' 10014 - ISO 8601 conversion error
+'
+' @module UtcConverter
+' @author tim.hall.engr@gmail.com
+' @license MIT (http://www.opensource.org/licenses/mit-license.php)
+'' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ '
+
+' (Declarations moved to top)
+
+' ============================================= '
+' Public Methods
+' ============================================= '
+
+''
+' Parse UTC date to local date
+'
+' @method ParseUtc
+' @param {Date} UtcDate
+' @return {Date} Local date
+' @throws 10011 - UTC parsing error
+''
+Public Function ParseUtc(utc_UtcDate As Date) As Date
+    On Error GoTo utc_ErrorHandling
+
+#If Mac Then
+    ParseUtc = utc_ConvertDate(utc_UtcDate)
+#Else
+    Dim utc_TimeZoneInfo As utc_TIME_ZONE_INFORMATION
+    Dim utc_LocalDate As utc_SYSTEMTIME
+
+    utc_GetTimeZoneInformation utc_TimeZoneInfo
+    utc_SystemTimeToTzSpecificLocalTime utc_TimeZoneInfo, utc_DateToSystemTime(utc_UtcDate), utc_LocalDate
+
+    ParseUtc = utc_SystemTimeToDate(utc_LocalDate)
+#End If
+
+    Exit Function
+
+utc_ErrorHandling:
+    Err.Raise 10011, "UtcConverter.ParseUtc", "UTC parsing error: " & Err.Number & " - " & Err.Description
+End Function
+
+''
+' Convert local date to UTC date
+'
+' @method ConvertToUrc
+' @param {Date} utc_LocalDate
+' @return {Date} UTC date
+' @throws 10012 - UTC conversion error
+''
+Public Function ConvertToUtc(utc_LocalDate As Date) As Date
+    On Error GoTo utc_ErrorHandling
+
+#If Mac Then
+    ConvertToUtc = utc_ConvertDate(utc_LocalDate, utc_ConvertToUtc:=True)
+#Else
+    Dim utc_TimeZoneInfo As utc_TIME_ZONE_INFORMATION
+    Dim utc_UtcDate As utc_SYSTEMTIME
+
+    utc_GetTimeZoneInformation utc_TimeZoneInfo
+    utc_TzSpecificLocalTimeToSystemTime utc_TimeZoneInfo, utc_DateToSystemTime(utc_LocalDate), utc_UtcDate
+
+    ConvertToUtc = utc_SystemTimeToDate(utc_UtcDate)
+#End If
+
+    Exit Function
+
+utc_ErrorHandling:
+    Err.Raise 10012, "UtcConverter.ConvertToUtc", "UTC conversion error: " & Err.Number & " - " & Err.Description
+End Function
+
+''
+' Parse ISO 8601 date string to local date
+'
+' @method ParseIso
+' @param {Date} utc_IsoString
+' @return {Date} Local date
+' @throws 10013 - ISO 8601 parsing error
+''
+Public Function ParseIso(utc_IsoString As String) As Date
+    On Error GoTo utc_ErrorHandling
+
+    Dim utc_Parts() As String
+    Dim utc_DateParts() As String
+    Dim utc_TimeParts() As String
+    Dim utc_OffsetIndex As Long
+    Dim utc_HasOffset As Boolean
+    Dim utc_NegativeOffset As Boolean
+    Dim utc_OffsetParts() As String
+    Dim utc_Offset As Date
+
+    utc_Parts = VBA.Split(utc_IsoString, "T")
+    utc_DateParts = VBA.Split(utc_Parts(0), "-")
+    ParseIso = VBA.DateSerial(VBA.CInt(utc_DateParts(0)), VBA.CInt(utc_DateParts(1)), VBA.CInt(utc_DateParts(2)))
+
+    If UBound(utc_Parts) > 0 Then
+        If VBA.InStr(utc_Parts(1), "Z") Then
+            utc_TimeParts = VBA.Split(VBA.Replace(utc_Parts(1), "Z", ""), ":")
+        Else
+            utc_OffsetIndex = VBA.InStr(1, utc_Parts(1), "+")
+            If utc_OffsetIndex = 0 Then
+                utc_NegativeOffset = True
+                utc_OffsetIndex = VBA.InStr(1, utc_Parts(1), "-")
+            End If
+
+            If utc_OffsetIndex > 0 Then
+                utc_HasOffset = True
+                utc_TimeParts = VBA.Split(VBA.Left$(utc_Parts(1), utc_OffsetIndex - 1), ":")
+                utc_OffsetParts = VBA.Split(VBA.Right$(utc_Parts(1), Len(utc_Parts(1)) - utc_OffsetIndex), ":")
+
+                Select Case UBound(utc_OffsetParts)
+                Case 0
+                    utc_Offset = TimeSerial(VBA.CInt(utc_OffsetParts(0)), 0, 0)
+                Case 1
+                    utc_Offset = TimeSerial(VBA.CInt(utc_OffsetParts(0)), VBA.CInt(utc_OffsetParts(1)), 0)
+                Case 2
+                    ' VBA.Val does not use regional settings, use for seconds to avoid decimal/comma issues
+                    utc_Offset = TimeSerial(VBA.CInt(utc_OffsetParts(0)), VBA.CInt(utc_OffsetParts(1)), Int(VBA.Val(utc_OffsetParts(2))))
+                End Select
+
+                If utc_NegativeOffset Then: utc_Offset = -utc_Offset
+            Else
+                utc_TimeParts = VBA.Split(utc_Parts(1), ":")
+            End If
+        End If
+
+        Select Case UBound(utc_TimeParts)
+        Case 0
+            ParseIso = ParseIso + VBA.TimeSerial(VBA.CInt(utc_TimeParts(0)), 0, 0)
+        Case 1
+            ParseIso = ParseIso + VBA.TimeSerial(VBA.CInt(utc_TimeParts(0)), VBA.CInt(utc_TimeParts(1)), 0)
+        Case 2
+            ' VBA.Val does not use regional settings, use for seconds to avoid decimal/comma issues
+            ParseIso = ParseIso + VBA.TimeSerial(VBA.CInt(utc_TimeParts(0)), VBA.CInt(utc_TimeParts(1)), Int(VBA.Val(utc_TimeParts(2))))
+        End Select
+
+        ParseIso = ParseUtc(ParseIso)
+
+        If utc_HasOffset Then
+            ParseIso = ParseIso + utc_Offset
+        End If
+    End If
+
+    Exit Function
+
+utc_ErrorHandling:
+    Err.Raise 10013, "UtcConverter.ParseIso", "ISO 8601 parsing error for " & utc_IsoString & ": " & Err.Number & " - " & Err.Description
+End Function
+
+''
+' Convert local date to ISO 8601 string
+'
+' @method ConvertToIso
+' @param {Date} utc_LocalDate
+' @return {Date} ISO 8601 string
+' @throws 10014 - ISO 8601 conversion error
+''
+Public Function ConvertToIso(utc_LocalDate As Date) As String
+    On Error GoTo utc_ErrorHandling
+
+    ConvertToIso = VBA.Format$(ConvertToUtc(utc_LocalDate), "yyyy-mm-ddTHH:mm:ss.000Z")
+
+    Exit Function
+
+utc_ErrorHandling:
+    Err.Raise 10014, "UtcConverter.ConvertToIso", "ISO 8601 conversion error: " & Err.Number & " - " & Err.Description
+End Function
+
+' ============================================= '
+' Private Functions
+' ============================================= '
+
+#If Mac Then
+
+Private Function utc_ConvertDate(utc_Value As Date, Optional utc_ConvertToUtc As Boolean = False) As Date
+    Dim utc_ShellCommand As String
+    Dim utc_Result As utc_ShellResult
+    Dim utc_Parts() As String
+    Dim utc_DateParts() As String
+    Dim utc_TimeParts() As String
+
+    If utc_ConvertToUtc Then
+        utc_ShellCommand = "date -ur `date -jf '%Y-%m-%d %H:%M:%S' " & _
+            "'" & VBA.Format$(utc_Value, "yyyy-mm-dd HH:mm:ss") & "' " & _
+            " +'%s'` +'%Y-%m-%d %H:%M:%S'"
+    Else
+        utc_ShellCommand = "date -jf '%Y-%m-%d %H:%M:%S %z' " & _
+            "'" & VBA.Format$(utc_Value, "yyyy-mm-dd HH:mm:ss") & " +0000' " & _
+            "+'%Y-%m-%d %H:%M:%S'"
+    End If
+
+    utc_Result = utc_ExecuteInShell(utc_ShellCommand)
+
+    If utc_Result.utc_Output = "" Then
+        Err.Raise 10015, "UtcConverter.utc_ConvertDate", "'date' command failed"
+    Else
+        utc_Parts = Split(utc_Result.utc_Output, " ")
+        utc_DateParts = Split(utc_Parts(0), "-")
+        utc_TimeParts = Split(utc_Parts(1), ":")
+
+        utc_ConvertDate = DateSerial(utc_DateParts(0), utc_DateParts(1), utc_DateParts(2)) + _
+            TimeSerial(utc_TimeParts(0), utc_TimeParts(1), utc_TimeParts(2))
+    End If
+End Function
+
+Private Function utc_ExecuteInShell(utc_ShellCommand As String) As utc_ShellResult
+#If VBA7 Then
+    Dim utc_File As LongPtr
+    Dim utc_Read As LongPtr
+#Else
+    Dim utc_File As Long
+    Dim utc_Read As Long
+#End If
+
+    Dim utc_Chunk As String
+
+    On Error GoTo utc_ErrorHandling
+    utc_File = utc_popen(utc_ShellCommand, "r")
+
+    If utc_File = 0 Then: Exit Function
+
+    Do While utc_feof(utc_File) = 0
+        utc_Chunk = VBA.Space$(50)
+        utc_Read = utc_fread(utc_Chunk, 1, Len(utc_Chunk) - 1, utc_File)
+        If utc_Read > 0 Then
+            utc_Chunk = VBA.Left$(utc_Chunk, utc_Read)
+            utc_ExecuteInShell.utc_Output = utc_ExecuteInShell.utc_Output & utc_Chunk
+        End If
+    Loop
+
+utc_ErrorHandling:
+    utc_ExecuteInShell.utc_ExitCode = utc_pclose(utc_File)
+End Function
+
+#Else
+
+Private Function utc_DateToSystemTime(utc_Value As Date) As utc_SYSTEMTIME
+    utc_DateToSystemTime.utc_wYear = VBA.Year(utc_Value)
+    utc_DateToSystemTime.utc_wMonth = VBA.Month(utc_Value)
+    utc_DateToSystemTime.utc_wDay = VBA.Day(utc_Value)
+    utc_DateToSystemTime.utc_wHour = VBA.Hour(utc_Value)
+    utc_DateToSystemTime.utc_wMinute = VBA.Minute(utc_Value)
+    utc_DateToSystemTime.utc_wSecond = VBA.Second(utc_Value)
+    utc_DateToSystemTime.utc_wMilliseconds = 0
+End Function
+
+Private Function utc_SystemTimeToDate(utc_Value As utc_SYSTEMTIME) As Date
+    utc_SystemTimeToDate = DateSerial(utc_Value.utc_wYear, utc_Value.utc_wMonth, utc_Value.utc_wDay) + _
+        TimeSerial(utc_Value.utc_wHour, utc_Value.utc_wMinute, utc_Value.utc_wSecond)
+End Function
+
+#End If

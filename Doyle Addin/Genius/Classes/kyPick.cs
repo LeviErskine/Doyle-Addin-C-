@@ -1,62 +1,63 @@
-﻿namespace Doyle_Addin.Genius.Classes;
 
-public class kyPick
-{
-    private Dictionary dcGrpIn;
-    private Dictionary dcGrpOut;
 
-    private void Class_Initialize()
-    {
-        dcGrpIn = new Dictionary();
-        dcGrpOut = new Dictionary();
-    }
+Private dcGrpIn As Scripting.Dictionary
+Private dcGrpOut As Scripting.Dictionary
 
-    public kyPick Itself()
-    {
-        return this;
-    }
+Private Sub Class_Initialize()
+    Set dcGrpIn = New Scripting.Dictionary
+    Set dcGrpOut = New Scripting.Dictionary
+End Sub
 
-    public kyPick WithInDc(Dictionary Dict)
-    {
-        dcGrpIn = dcNewIfNone(Dict);
-        return this;
-    }
+Public Function Itself() As kyPick
+    Set Itself = Me
+End Function
 
-    public kyPick WithOutDc(Dictionary Dict)
-    {
-        dcGrpOut = dcNewIfNone(Dict);
-        return this;
-    }
+Public Function WithInDc( _
+    Dict As Scripting.Dictionary _
+) As kyPick
+    Set dcGrpIn = dcNewIfNone(Dict)
+    Set WithInDc = Me
+End Function
 
-    public kyPick AfterScanning(Dictionary dSrc)
-    {
-        {
-            foreach (var ky in dSrc.Keys)
-            {
-                {
-                    var withBlock1 = dcFor(dSrc.get_Item(ky));
-                    if (withBlock1.Exists(ky))
-                        Debugger.Break();
-                    else
-                        withBlock1.Add(ky, dSrc.get_Item(ky));
-                }
-            }
-        }
-        return this;
-    }
+Public Function WithOutDc( _
+    Dict As Scripting.Dictionary _
+) As kyPick
+    Set dcGrpOut = dcNewIfNone(Dict)
+    Set WithOutDc = Me
+End Function
 
-    public Dictionary dcIn()
-    {
-        return dcGrpIn;
-    }
+Public Function AfterScanning( _
+    dSrc As Scripting.Dictionary _
+) As kyPick
+    Dim ky As Variant
+    
+    With dSrc: For Each ky In .Keys
+        With dcFor(.Item(ky))
+        If .Exists(ky) Then
+            Stop
+        Else
+            .Add ky, dSrc.Item(ky)
+        End If
+        End With
+    Next: End With
+    Set AfterScanning = Me
+End Function
 
-    public Dictionary dcOut()
-    {
-        return dcGrpOut;
-    }
+Public Function dcIn() As Scripting.Dictionary
+    Set dcIn = dcGrpIn
+End Function
 
-    public Dictionary dcFor(dynamic Item)
-    {
-        return Item is not null ? dcGrpIn : dcGrpOut;
-    }
-}
+Public Function dcOut() As Scripting.Dictionary
+    Set dcOut = dcGrpOut
+End Function
+
+Public Function dcFor( _
+    Item As Variant _
+) As Scripting.Dictionary
+    If IsObject(Item) Then
+        Set dcFor = dcGrpIn
+    Else
+        Set dcFor = dcGrpOut
+    End If
+End Function
+

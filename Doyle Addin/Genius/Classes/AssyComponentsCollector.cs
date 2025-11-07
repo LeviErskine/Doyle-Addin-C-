@@ -1,112 +1,108 @@
-﻿using Microsoft.VisualBasic;
 
-namespace Doyle_Addin.Genius.Classes;
+'''
+''' Purpose of this module is to provide an alternate
+''' method of collecting assembly components
+''' using the native VBA Collection instead of
+''' the Scripting Runtime's Dictionary.
+''' Though less powerful/convenient, it does avoid
+''' the need for a reference to the Scripting Runtime.
+'''
 
-internal class AssyComponentsCollector
-{
-    // Purpose of this module is to provide an alternate
-    // method of collecting assembly components
-    // using the native VBA Collection instead of
-    // the Scripting Runtime's Dictionary.
-    // Though less powerful/convenient, it does avoid
-    // the need for a reference to the Scripting Runtime.
-    // 
+Public Function CollectItem(Item As Variant, _
+    Optional Key As Variant, _
+    Optional coll As Collection = Nothing _
+) As Collection
+    Dim rt As Collection
+    
+    If coll Is Nothing Then
+        Set rt = New Collection
+    Else
+        Set rt = coll
+    End If
+    
+    On Error Resume Next
+    With Err
+        rt.Add Item, Key
+        If .Number Then
+            If .Number = 457 Then
+                If IsObject(Item) Then
+                    If IsObject(rt.Item(Key)) Then
+                        If Item Is rt.Item(Key) Then
+                            ''' OK! Same Object!
+                        Else
+                            Stop 'Different Objects!
+                        End If
+                    Else
+                        Stop 'Object vs non-Object
+                    End If
+                ElseIf IsObject(rt.Item(Key)) Then
+                    Stop 'Object vs non-Object
+                Else
+                    If Item = rt.Item(Key) Then
+                        ''' OK! Equal Values!
+                    Else
+                        Stop 'Different Values!
+                    End If
+                End If
+            Else
+                Stop
+            End If
+        End If
+    End With
+    On Error GoTo 0
+    
+    Set CollectItem = rt
+End Function
 
-    private static Collection CollectItem(dynamic Item, string Key, Collection coll = null)
-    {
-        var rt = coll ?? new Collection();
+Public Function CollectComponents( _
+    AiDoc As Inventor.Document, _
+    Optional coll As Collection = Nothing _
+) As Collection
+    Dim aiDType As Inventor.DocumentTypeEnum
+    Dim aiOcc As Inventor.ComponentOccurrence
+    Dim rt As Collection
+    
+    If coll Is Nothing Then
+        Set rt = CollectComponents(AiDoc, New Collection)
+    Else
+        Set rt = coll
+        aiDType = AiDoc.DocumentType
+        If aiDType = kAssemblyDocumentObject Then
+            With aiDocAssy(AiDoc).ComponentDefinition
+                For Each aiOcc In .Occurrences
+                    If aiOcc.Definition.Document Is AiDoc Then 'skip it
+                        'Otherwise, we'll dive into
+                        'a bottomless pit of recursion.
+                    Else
+                        Set rt = CollectComponents( _
+                            aiOcc.Definition.Document, rt _
+                        )
+                    End If
+                Next
+            End With
+        ElseIf aiDType = kPartDocumentObject Then
+            Set rt = CollectItem(AiDoc, AiDoc.FullFileName, rt)
+        Else
+            Stop 'cuz we dunno what to do with this one.
+        End If
+    End If
+    
+    Set CollectComponents = rt
+End Function
 
-        {
-            var withBlock = Information.Err;
-            rt.Add(Item, Key);
-            if (!withBlock.Number) return rt;
-            if (withBlock.Number == 457)
-            {
-                if (Item != null)
-                {
-                    if (rt.get_Item(Key) is dynamic)
-                    {
-                        if (Item == rt.get_item(Key))
-                        {
-                        }
-                        else
-                            Debugger.Break(); // Different Objects!
-                    }
-                    else
-                        Debugger.Break(); // dynamic vs non-dynamic
-                }
-                else if (rt.get_Item(Key) is dynamic)
-                    Debugger.Break(); // dynamic vs non-dynamic
-                else if ((dynamic)null == rt.get_Item(Key))
-                {
-                }
-                else
-                    Debugger.Break(); // Different Values!
-            }
-            else
-                Debugger.Break();
-        }
+Public Function ActiveDocsComponents(aiApp As Inventor.Application) As Collection
+    Set ActiveDocsComponents = CollectComponents(aiApp.ActiveDocument)
+End Function
 
-        return rt;
-    }
+Public Function strActiveDocsComponents(aiApp As Inventor.Application) As String
+    Dim AiDoc As Inventor.Document
+    Dim rt As String
+    
+    rt = ""
+    For Each AiDoc In ActiveDocsComponents(aiApp)
+        rt = rt & vbNewLine & AiDoc.FullFileName
+    Next
+    strActiveDocsComponents = rt
+End Function
+'Debug.Print strActiveDocsComponents(ThisApplication)
 
-    private static Collection CollectComponents(Document AiDoc, Collection coll = null)
-    {
-        Collection rt;
-
-        if (coll == null)
-            rt = CollectComponents(AiDoc, new Collection());
-        else
-        {
-            rt = coll;
-            var aiDType = AiDoc.DocumentType;
-            switch (aiDType)
-            {
-                case kAssemblyDocumentObject:
-                {
-                    {
-                        var withBlock = aiDocAssy(AiDoc).ComponentDefinition;
-                        foreach (ComponentOccurrence aiOcc in withBlock.Occurrences)
-                        {
-                            if (aiOcc.Definition.Document == AiDoc)
-                            {
-                            }
-                            else
-                                rt = CollectComponents(aiOcc.Definition.Document, rt);
-                        }
-                    }
-                    break;
-                }
-                case kPartDocumentObject:
-                    rt = CollectItem(AiDoc, AiDoc.FullFileName, rt);
-                    break;
-                case kUnknownDocumentObject:
-                case kDrawingDocumentObject:
-                case kPresentationDocumentObject:
-                case kDesignElementDocumentObject:
-                case kForeignModelDocumentObject:
-                case kSATFileDocumentObject:
-                case kNoDocument:
-                case kNestingDocument:
-                default:
-                    Debugger.Break(); // cuz we don't know what to do with this one.
-                    break;
-            }
-        }
-
-        return rt;
-    }
-
-    private static Collection ActiveDocsComponents(Application aiApp)
-    {
-        return CollectComponents(aiApp.ActiveDocument);
-    }
-
-    public string strActiveDocsComponents(Application aiApp)
-    {
-        Document AiDoc;
-
-        return ActiveDocsComponents(aiApp).Cast<dynamic>()
-            .Aggregate("", (current, AiDoc) => current + Constants.vbCrLf + AiDoc.FullFileName);
-    }
-}

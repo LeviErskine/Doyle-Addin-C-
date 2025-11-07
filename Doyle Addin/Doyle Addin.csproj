@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -19,8 +19,8 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-	<UseWPF>true</UseWPF>
-    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+	  <UseWPF>true</UseWPF>
+    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets> 
     <Title>Doyle Addin</Title>
     <Version>$(GitVersion_FullSemVer)</Version>
     <GetAssemblyVersion>$(GitVersion_AssemblySemVer)</GetAssemblyVersion>
@@ -37,7 +37,6 @@
     <DocumentationFile>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin.xml</DocumentationFile>
     <NoWarn>42016,42017,42018,42019,42032,42353,42354,42355</NoWarn>
     <RegisterForComInterop>False</RegisterForComInterop>
-    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <OutputPath>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin</OutputPath>
@@ -49,7 +48,6 @@
     <NoWarn>42016,42017,42018,42019,42032,42353,42354,42355</NoWarn>
     <DebugType>embedded</DebugType>
     <RegisterForComInterop>False</RegisterForComInterop>
-    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <OutputPath>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin</OutputPath>
@@ -210,53 +208,17 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <COMReference Include="stdole">
-      <Guid>{00020430-0000-0000-C000-000000000046}</Guid>
-      <VersionMajor>2</VersionMajor>
-      <VersionMinor>0</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>primary</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </COMReference>
-    <COMReference Include="Scripting">
-      <VersionMinor>0</VersionMinor>
-      <VersionMajor>1</VersionMajor>
-      <Guid>420b2830-e718-11cf-893d-00a0c9054228</Guid>
-      <Lcid>0</Lcid>
-      <WrapperTool>tlbimp</WrapperTool>
-      <Isolated>false</Isolated>
-      <EmbedInteropTypes>true</EmbedInteropTypes>
-    </COMReference>
-    <COMReference Include="ADODB">
-      <WrapperTool>tlbimp</WrapperTool>
-      <VersionMinor>1</VersionMinor>
-      <VersionMajor>6</VersionMajor>
-      <Guid>b691e011-1797-432e-907a-4d8c69339129</Guid>
-      <Lcid>0</Lcid>
-      <Isolated>false</Isolated>
-      <EmbedInteropTypes>true</EmbedInteropTypes>
-    </COMReference>
-    <COMReference Include="VBIDE">
-      <WrapperTool>tlbimp</WrapperTool>
-      <VersionMinor>3</VersionMinor>
-      <VersionMajor>5</VersionMajor>
-      <Guid>0002e157-0000-0000-c000-000000000046</Guid>
-      <Lcid>0</Lcid>
-      <Isolated>false</Isolated>
-      <EmbedInteropTypes>true</EmbedInteropTypes>
-    </COMReference>
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Docnet.Core" Version="2.7.0-alpha.1"></PackageReference>
-    <PackageReference Include="GitInfo" Version="3.5.0">
+    <PackageReference Include="GitInfo" Version="3.6.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="GitVersion.MsBuild" Version="6.4.0">
+    <PackageReference Include="GitVersion.MsBuild" Version="6.5.0">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.2" />
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
+    <PackageReference Include="stdole" Version="17.14.40260" />
     <PackageReference Include="Svg" Version="3.4.7" />
     <PackageReference Include="WPF-UI" Version="4.0.3" />
   </ItemGroup>

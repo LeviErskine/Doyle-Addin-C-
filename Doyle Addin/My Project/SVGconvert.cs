@@ -1,5 +1,4 @@
-﻿
-namespace Doyle_Addin.My_Project;
+﻿namespace Doyle_Addin.My_Project;
 
 // ReSharper disable once IdentifierTypo
 // ReSharper disable once InconsistentNaming
@@ -9,7 +8,7 @@ internal static class SVGconvert
     private static IPictureDisp ImageToPictureDisp(Image image)
     {
         // Use reflection to access AxHost.GetIPictureDispFromPicture without inheriting from AxHost
-        var axHostType = typeof(System.Windows.Forms.AxHost);
+        var axHostType = typeof(AxHost);
         var method = axHostType.GetMethod("GetIPictureDispFromPicture",
             BindingFlags.Static | BindingFlags.NonPublic);
 
@@ -30,20 +29,16 @@ internal static class SVGconvert
         var svgDoc = SvgDocument.Open<SvgDocument>(stream);
         // Search for <g> with name or inkscape:label
         var layer = svgDoc.Descendants().OfType<SvgGroup>().FirstOrDefault(g =>
-            g.CustomAttributes.ContainsKey("inkscape:label") &&
-            (g.CustomAttributes["inkscape:label"] ?? "") == (layerName ?? "") ||
-            g.CustomAttributes.ContainsKey("http://www.inkscape.org/namespaces/inkscape:label") &&
-            (g.CustomAttributes["http://www.inkscape.org/namespaces/inkscape:label"] ?? "") ==
-            (layerName ?? ""));
+            (g.CustomAttributes.ContainsKey("inkscape:label") &&
+             (g.CustomAttributes["inkscape:label"] ?? "") == (layerName ?? "")) ||
+            (g.CustomAttributes.ContainsKey("http://www.inkscape.org/namespaces/inkscape:label") &&
+             (g.CustomAttributes["http://www.inkscape.org/namespaces/inkscape:label"] ?? "") ==
+             (layerName ?? "")));
 
-
-        if (layer is null)
-        {
-            throw new ArgumentException($"Layer '{layerName}' not found in SVG.");
-        }
+        if (layer is null) throw new ArgumentException($"Layer '{layerName}' not found in SVG.");
 
         // Create a new SVG document with just the selected layer
-        var newDoc = new SvgDocument()
+        var newDoc = new SvgDocument
         {
             Width = svgDoc.Width,
             Height = svgDoc.Height

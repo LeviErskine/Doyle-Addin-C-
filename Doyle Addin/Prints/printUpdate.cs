@@ -1,4 +1,8 @@
-﻿using Doyle_Addin.Options;
+﻿#region
+
+using Doyle_Addin.Options;
+
+#endregion
 
 namespace Doyle_Addin.Prints;
 
@@ -15,7 +19,7 @@ internal static class PrintUpdate
         }
 
         // Set reference to active document
-        DrawingDocument oDDoc = (DrawingDocument)ThisApplication.ActiveDocument;
+        var oDDoc = (DrawingDocument)ThisApplication.ActiveDocument;
 
         // Gets referenced model document type (part or assembly)
         var refDocType = oDDoc.ReferencedDocuments[1].DocumentType;
@@ -83,10 +87,7 @@ internal static class PrintUpdate
             // Only convert and delete if single page
             if (pageCount != 1) return;
             PdfToImage.ExportFirstPageAsImage(pdfPath, oFilePath + @"\" + pn + ".jpg");
-            if (File.Exists(pdfPath))
-            {
-                File.Delete(pdfPath);
-            }
+            if (File.Exists(pdfPath)) File.Delete(pdfPath);
             // Optionally, notify the user or handle multipage PDFs as needed
             // MsgBox("PDF has multiple pages and will not be converted to JPG or deleted.", MsgBoxStyle.Information)
         }

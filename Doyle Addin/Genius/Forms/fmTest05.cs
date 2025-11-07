@@ -1,204 +1,210 @@
-﻿using Microsoft.VisualBasic;
+VERSION 5.00
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} fmTest05 
+   Caption         =   "UserForm1"
+   ClientHeight    =   7155
+   ClientLeft      =   120
+   ClientTop       =   465
+   ClientWidth     =   10860
+   OleObjectBlob   =   "fmTest05.frx":0000
+   StartUpPosition =   1  'CenterOwner
+End
+Attribute VB_Name = "fmTest05"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Explicit
 
-namespace Doyle_Addin.Genius.Forms;
+Public Event Sent(Signal As VbMsgBoxResult)
+Public Event GroupIs(Now As String)
+Public Event ItemIs(Now As String)
 
-class fmTest05 : Form
-{
-    private var VB_Name = "fmTest05";
+Private dcHolding As Scripting.Dictionary
 
-    private var VB_GlobalNameSpace = false;
+Private Const txVersion As String = ""
+'''
+'''
+'''
 
-    private var VB_Creatable = false;
+Public Function Holding( _
+    Obj As Object _
+) As fmTest05
+    '''
+    ''' Holding -- Hold onto supplied
+    '''     Object until terminated,
+    '''     or directed to drop it.
+    '''
+    '''     not sure about this one.
+    '''     purpose is to keep a
+    '''     client interface "alive"
+    '''     while the form itself
+    '''     remains active.
+    '''
+    With dcHolding
+        If .Exists(Obj) Then
+        Else
+            .Add Obj, .Count
+        End If
+    End With
 
-    private var VB_PredeclaredId = true;
+    Holding = Me
+End Function
 
-    private var VB_Exposed = false;
+Public Function Dropping(
+    Obj As Object
+) As fmTest05
+    With dcHolding
+        If .Exists(Obj) Then
+            .Remove Obj
+        Else
+        End If
+    End With
 
-    public event SentEventHandler Sent;
+    Dropping = Me
+End Function
 
-    public delegate void SentEventHandler(VbMsgBoxResult Signal);
+Public Function GroupNow() As String
+    Dim tb As MSForms.Tab
+    Dim dx As Long
 
-    public event GroupIsEventHandler GroupIs;
+    With tbsItemGrps
+        dx = .Value
+        tb = .Tabs.Item(dx)
+        GroupNow = tb.Name
+    End With
+End Function
 
-    public delegate void GroupIsEventHandler(string Now);
+Public Function InGroup(
+    GrpId As String
+) As fmTest05 'fmIfcTest05A
+    Dim tb As MSForms.Tab
 
-    public event ItemIsEventHandler ItemIs;
+    With tbsItemGrps
+        On Error Resume Next
+        Err.Clear()
 
-    public delegate void ItemIsEventHandler(string Now);
+        tb = .Tabs.Item(GrpId)
+        If Err.Number = 0 Then
+            .Value = tb.Index
+        Else
+            ''' might be a good idea to raise
+            ''' a "Fault" event here, to permit
+            ''' a client entity to respond
+            ''' to an error/fault condition
+        End If
 
-    private Dictionary dcHolding;
+        Err.Clear()
+        On Error GoTo 0
+    End With
 
-    private const string txVersion = "";
-    // 
+    InGroup = Me
+End Function
 
-    // 
+Public Function ItemNow() As String
+    'With lbxItems
+    ItemNow = lbxItems.Value
+    'End With
+End Function
 
-    public fmTest05 Holding(dynamic Obj
-    )
-    {
-        // Holding -- Hold onto supplied
-        // dynamic until terminated,
-        // or directed to drop it.
-        // 
-        // not sure about this one.
-        // purpose is to keep a
-        // client interface "alive"
-        // while the form itself
-        // remains active.
-        // 
-        {
-            var withBlock = dcHolding;
-            if (withBlock.Exists(Obj))
-            {
-            }
-            else
-                withBlock.Add(Obj, withBlock.Count);
-        }
+Public Function OnItem(
+    ItemId As String
+) As fmTest05 'fmIfcTest05A
+    'Dim tb As MSForms.Tab
 
-        return this;
-    }
+    With lbxItems
+        On Error Resume Next
+        Err.Clear()
 
-    public fmTest05 Dropping(dynamic Obj
-    )
-    {
-        {
-            var withBlock = dcHolding;
-            if (withBlock.Exists(Obj))
-                withBlock.Remove(Obj);
-            else
-            {
-            }
-        }
+        ' tb = .Tabs.Item(ItemId)
+        .Value = ItemId
+        If Err.Number = 0 Then
+            '.Value = tb.Index
+            'Stop
+            Debug.Print() ; 'Breakpoint Landing
+        Else
+            Stop
+        End If
 
-        return this;
-    }
+        Err.Clear()
+        On Error GoTo 0
+    End With
 
-    public string GroupNow()
-    {
-        {
-            var withBlock = tbsItemGrps;
-            long dx = withBlock.Value;
-            MSForms.Tab tb = withBlock.Tabs.get_Item(dx);
-            return tb.Name;
-        }
-    }
+    OnItem = Me
+End Function
 
-    public fmTest05 InGroup(string GrpId
-    ) // fmIfcTest05A
-    {
-        {
-            var withBlock = tbsItemGrps;
-            Information.Err().Clear();
+Private Sub cmdEndCancel_Click()
+    RaiseEvent Sent(vbCancel)
+End Sub
 
-            MSForms.Tab tb = withBlock.Tabs.get_Item(GrpId);
-            if (Information.Err().Number == 0)
-                withBlock.Value = tb.Index;
-            else
-            {
-            }
+Private Sub cmdEndSave_Click()
+    RaiseEvent Sent(vbOK)
+End Sub
 
-            Information.Err().Clear();
-        }
+Private Sub cmdOpenItem_Click()
+    RaiseEvent Sent(vbRetry)
+    'might make a different event
+    'to trigger file open, perphaps
+    'with active group/item
+End Sub
 
-        return this;
-    }
+Private Sub lbxItems_Change()
+    RaiseEvent ItemIs(lbxItems.Value)
+End Sub
 
-    public string ItemNow()
-    {
-        // With lbxItems
-        return lbxItems.Value;
-    }
+Private Sub tbsItemGrps_Change()
+    RaiseEvent GroupIs(GroupNow)
+End Sub
 
-    public fmTest05 OnItem(string ItemId
-    ) // fmIfcTest05A
-    {
-        // Dim tb As MSForms.Tab
+Private Sub tbsItemGrps_BeforeDropOrPaste(
+    ByVal Index As Long,
+    ByVal Cancel As MSForms.ReturnBoolean,
+    ByVal Action As MSForms.fmAction,
+    ByVal Data As MSForms.DataObject,
+    ByVal X As Single, ByVal Y As Single,
+    ByVal Effect As MSForms.ReturnEffect,
+    ByVal Shift As Integer
+)
+    'will keep this one as is, for now
+    'not sure what you can actually drop
+    'onto a tab group
+    Stop
+End Sub
 
-        {
-            var withBlock = lbxItems;
+Private Sub lbxItems_MouseMove(
+    ByVal Button As Integer,
+    ByVal Shift As Integer,
+    ByVal X As Single,
+    ByVal Y As Single
+)
+    ''' keeping this one here, since it basically governs
+    ''' drag-and-drop behavior from a local control.
+    ''' might try to see if this is actually needed.
+    ''' one would think this kind of behavior
+    ''' would occur automatically.
+    Dim dt As MSForms.DataObject
+    Dim ef As Integer
 
-            Information.Err().Clear();
+    If Button = 1 Then
+        dt = New MSForms.DataObject
+        dt.SetText lbxItems.Value
+        ef = dt.StartDrag()
+    End If
+End Sub
 
-            // tb = .Tabs.get_Item(ItemId)
-            withBlock.Value = ItemId;
-            if (Information.Err().Number == 0)
-                // .Value = tb.Index
-                // Stop
-                Debug.Print(""); // Breakpoint Landing
-            else
-                Debugger.Break();
+Private Sub UserForm_Initialize()
+    dcHolding = New Scripting.Dictionary
+End Sub
 
-            Information.Err().Clear();
-        }
+Private Sub UserForm_QueryClose(
+    Cancel As Integer,
+    CloseMode As Integer
+)
+    Cancel = 1
+    RaiseEvent Sent(vbAbort)
+    'Me.Hide
+End Sub
 
-        return this;
-    }
-
-    private void cmdEndCancel_Click()
-    {
-        Sent?.Invoke(Constants.vbCancel);
-    }
-
-    private void cmdEndSave_Click()
-    {
-        Sent?.Invoke(Constants.vbOK);
-    }
-
-    private void cmdOpenItem_Click()
-    {
-        Sent?.Invoke(Constants.vbRetry);
-    }
-
-    private void lbxItems_Change()
-    {
-        ItemIs?.Invoke(lbxItems.Value);
-    }
-
-    private void tbsItemGrps_Change()
-    {
-        GroupIs?.Invoke(GroupNow);
-    }
-
-    private void tbsItemGrps_BeforeDropOrPaste(long Index, MSForms.ReturnBoolean Cancel, MSForms.fmAction Action,
-        MSForms.DataObject Data, float X, float Y, MSForms.ReturnEffect Effect, int Shift
-    )
-    {
-        // will keep this one as is, for now
-        // not sure what you can actually drop
-        // onto a tab group
-        Debugger.Break();
-    }
-
-    private void lbxItems_MouseMove(int Button, int Shift, float X, float Y
-    )
-    {
-        // keeping this one here, since it basically governs
-        // drag-and-drop behavior from a local control.
-        // might try to see if this is actually needed.
-        // one would think this kind of behavior
-        // would occur automatically.
-
-        if (Button != 1) return;
-        var dt = new DataObject();
-        dt.SetText(lbxItems.Value);
-        int ef = dt.StartDrag();
-    }
-
-    private void InitializeComponent()
-    {
-        dcHolding = new Dictionary();
-    }
-
-    private void UserForm_QueryClose(int Cancel, int CloseMode
-    )
-    {
-        Cancel = 1;
-        Sent?.Invoke(Constants.vbAbort);
-    }
-
-    private void UserForm_Terminate()
-    {
-        dcHolding.RemoveAll();
-        dcHolding = null;
-    }
-}
+Private Sub UserForm_Terminate()
+    dcHolding.RemoveAll
+    dcHolding = Nothing
+End Sub

@@ -1,354 +1,389 @@
-﻿using Microsoft.VisualBasic;
+VERSION 5.00
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} fmTest1 
+   Caption         =   "Please Review"
+   ClientHeight    =   7440
+   ClientLeft      =   120
+   ClientTop       =   450
+   ClientWidth     =   7950
+   OleObjectBlob   =   "fmTest1.frx":0000
+   StartUpPosition =   1  'CenterOwner
+End
+Attribute VB_Name = "fmTest1"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Explicit
 
-class fmTest1 : Form
-{
-    private var VB_Name = "fmTest1";
-    private var VB_GlobalNameSpace = false;
-    private var VB_Creatable = false;
-    private var VB_PredeclaredId = true;
-    private var VB_Exposed = false;
+Private cn As ADODB.Connection
+Private rsFam As ADODB.Recordset
+Private rsPrt As ADODB.Recordset
+Private rsItm As ADODB.Recordset
 
-    private ADODB.Connection cn;
-    private ADODB.Recordset rsFam;
-    private ADODB.Recordset rsPrt;
-    private ADODB.Recordset rsItm;
+Private dc As Scripting.Dictionary
+Private ad As Inventor.Document
 
-    private Dictionary dc;
-    private Document ad;
+Private psDsn As Inventor.PropertySet
+Private psUsr As Inventor.PropertySet
 
-    private PropertySet psDsn;
-    private PropertySet psUsr;
+Private dcDsn As Scripting.Dictionary
+Private dcUsr As Scripting.Dictionary
 
-    private Dictionary dcDsn;
-    private Dictionary dcUsr;
+Private prFam As Inventor.Property
+Private prStk As Inventor.Property
+Private prThk As Inventor.Property
 
-    private Property prFam;
-    private Property prStk;
-    private Property prThk;
+Public Function AskAbout( _
+    AiDoc As Inventor.Document, _
+    Optional txMsg As String = "" _
+) As VbMsgBoxResult
+    Dim pc As stdole.IPictureDisp
+    Dim ck As VbMsgBoxResult
+    Dim pn As String    'part number
+    Dim sn As String    'material (stock) number
+    Dim sf As String    'material (stock) family
+    Dim pd As String    'part description
+    Dim df As Single
 
-    public VbMsgBoxResult AskAbout(Document AiDoc, string txMsg = "")
-    {
-        stdole.IPictureDisp pc;
-        VbMsgBoxResult ck;
-        string pn; // part number
-        string sn; // material (stock) number
-        string pd; // part description
+    ad = AiDoc
+    With ad
+        On Error Resume Next
+        Err.Clear()
+        pc = .Thumbnail
+        If Err.Number = 0 Then 'we're good
+        Else 'no image
+        End If
+        On Error GoTo 0
 
-        ad = AiDoc;
-        {
-            var withBlock = ad;
+        psDsn = .PropertySets(gnDesign)
+        psUsr = .PropertySets(gnCustom)
 
-            Information.Err().Clear();
-            pc = withBlock.Thumbnail;
-            if (Information.Err().Number == 0)
-            {
-            }
+        dcDsn = dcAiPropsInSet(psDsn)
+        dcUsr = dcAiPropsInSet(psUsr)
 
-            psDsn = withBlock.PropertySets(gnDesign);
-            psUsr = withBlock.PropertySets(gnCustom);
+        prFam = psDsn.Item(pnFamily)
 
-            dcDsn = dcAiPropsInSet(psDsn);
-            dcUsr = dcAiPropsInSet(psUsr);
+        ''  Get Sheet Metal Thickness Property
+        prThk = aiPropShtMetalThickness(ad)
+        ''  NOTE: Function returns Nothing
+        ''      if Part is NOT Sheet Metal!
 
-            prFam = psDsn.get_Item(pnFamily);
+        With dcUsr
+            If .Exists(pnRawMaterial) Then
+                prStk = psUsr.Item(pnRawMaterial)
+            Else
+                On Error Resume Next
+                Err.Clear()
+                prStk = psUsr.Add("", pnRawMaterial)
+                If Err.Number Then
+                    Stop
+                Else
+                    .Add pnRawMaterial, prStk
+                End If
+                On Error GoTo 0
+            End If
+        End With
 
-            // ' Get Sheet Metal Thickness Property
-            prThk = aiPropShtMetalThickness(ad);
-            // ' NOTE: Function returns Nothing
-            // ' if Part is NOT Sheet Metal!
+        ''' REV[2022.04.28.1615]
+        ''' added initializtion of Dictionary dc
+        ''' with initial raw material setting.
+        ''' sn now assigned from the Dictionary.
+        ''' NOTE: probably want to  initial
+        ''' values in a separate "recovery"
+        ''' Dictionary to be restored if
+        ''' the User chooses to cancel.
+        ''' Also, see function/method dcUpd.
+        ''' looks like it gets called when
+        ''' something changes. Easy to miss!
+        dc.Item(pnRawMaterial) = prStk.Value
+        sn = dc.Item(pnRawMaterial)
+        pn = psDsn.Item(pnPartNum).Value
+        pd = psDsn.Item(pnDesc).Value
+    End With
 
-            {
-                var withBlock1 = dcUsr;
-                if (withBlock1.Exists(pnRawMaterial))
-                    prStk = psUsr.get_Item(pnRawMaterial);
-                else
-                {
-                    Information.Err().Clear();
-                    prStk = psUsr.Add("", pnRawMaterial);
-                    if (Information.Err().Number)
-                        Debugger.Break();
-                    else
-                        withBlock1.Add(pnRawMaterial, prStk);
-                }
-            }
+    With Me
+        .Caption = "Please Review Part Number: " & pn
 
-            // REV[2022.04.28.1615]
-            // added initializtion of Dictionary dc
-            // with initial raw material setting.
-            // sn now assigned from the Dictionary.
-            // NOTE: probably want to initial
-            // values in a separate "recovery"
-            // Dictionary to be restored if
-            // the User chooses to cancel.
-            // Also, see function/method dcUpd.
-            // looks like it gets called when
-            // something changes. Easy to miss!
-            dc.get_Item(pnRawMaterial) = prStk.Value;
-            sn = dc.get_Item(pnRawMaterial);
-            pn = psDsn.get_Item(pnPartNum).Value;
-            pd = psDsn.get_Item(pnDesc).Value;
-        }
+        If pc Is Nothing Then
+        Else
+            .imThmNail.Picture = pc
+        End If
 
-        {
-            var withBlock = this;
-            withBlock.Caption = "Please Review Part Number: " + pn;
+        With .lbMsg
+            .Caption = pn & ": " & pd _
+                & vbNewLine & txMsg & IIf(Len(txMsg) > 0, vbNewLine, "") _
+                & ft1g0f0(pnCatWebLink, psDsn.Item(pnCatWebLink)) & vbNewLine _
+                & ft1g0f0(pnMaterial, psDsn.Item(pnMaterial)) & vbNewLine _
+                & ft1g0f0(pnThickness, prThk) & vbNewLine _
+                & ""
+                '& vbNewLine _
+                & vbNewLine & pnThickness & ": " & psUsr.Item(pnThickness).Value _
+                '
+        End With
+        df = mdl1g1f2(.lbMsg)
+        If df > 0 Then
+            mdl1g1f3.lbMtFamily, 0, df
+            mdl1g1f3.lbxFamily, 0, df
+        End If
 
-            if (pc == null)
-            {
-            }
-            else
-                withBlock.imThmNail.Picture = pc;
+        .dbFamily.Value = prFam.Value
 
-            {
-                var withBlock1 = withBlock.lbMsg;
-                withBlock1.Caption = pn + ": " + pd
-                                     + Constants.vbCrLf + txMsg + Interaction.IIf(Strings.Len(txMsg) > 0,
-                                         Constants.vbCrLf, "")
-                                     + ft1g0f0(pnCatWebLink, psDsn.get_Item(pnCatWebLink)) + Constants.vbCrLf
-                                     + ft1g0f0(pnMaterial, psDsn.get_Item(pnMaterial)) + Constants.vbCrLf
-                                     + ft1g0f0(pnThickness, prThk) + Constants.vbCrLf
-                                     + "";
+        If Len(sn) > 0 Then
+            With cn.Execute(
+                "select Family from vgMfiItems where Item = '" _
+                & Replace(sn, "'", "''") & "'"
+            )
+                ''' REV[2022.08.19.1359]
+                ''' temporarily replacing direct use of sn
+                ''' with call to Replace single quotes
+                ''' in string with doubled single quotes
+                ''' (NOT double quotes!) to "escape" the
+                ''' character in a string value.
+                ''' '
+                ''' will ultimately want to produce some
+                ''' sort of 'handler' to preprocess values
+                ''' for use in SQL commands to avoid errors
+                ''' that arise from this sort of thing.
+                If .BOF Or .EOF Then
+                    sf = ""
+                Else
+                    sf = .Fields(0).Value
+                End If
+                ''' NOTE[2022.04.28.1625]
+                ''' THOUGHT Material Family was also
+                ''' added to Dictionary dc, but believe
+                ''' that's actually the PART Family.
+            End With
 
-                //& vbCrLf                 & vbCrLf & pnThickness & ": " & psUsr.get_Item(pnThickness).Value 
-            }
-            float df = mdl1g1f2(withBlock.lbMsg);
-            if (df > 0)
-            {
-                mdl1g1f3.lbMtFamily(null /* Conversion error: Set to default value for this argument */, 0, df);
-                mdl1g1f3.lbxFamily(null /* Conversion error: Set to default value for this argument */, 0, df);
-            }
+            If Len(sf) = 0 Then 'selected Material
+                'EITHER doesn't have a Family,
+                'OR is not (yet) in Genius.
+                'SO, let's just ...
+                sf = "DSHEET" 'as a default!
+            Else 'no need to do anything
+                'comments below are from when
+                'this was the NO family block.
+                'retain for now, until we're sure
+                'this are working all right.
 
-            withBlock.dbFamily.Value = prFam.Value;
+                'this SHOULDN'T happen, so hopefully
+                'things won't come to this...
+                'Stop
+                'worry about the handler later
+            End If
 
-            if (Strings.Len(sn) > 0)
-            {
-                string sf; // material (stock) family
-                {
-                    var withBlock1 = cn.Execute("select Family from vgMfiItems where Item = '"
-                                                + Replace(sn, "'", "''") + "'"
-                    );
-                    // REV[2022.08.19.1359]
-                    // temporarily replacing direct use of sn
-                    // with call to Replace single quotes
-                    // in string with doubled single quotes
-                    // (NOT double quotes!) to "escape" the
-                    // character in a string value.
-                    // '
-                    // will ultimately want to produce some
-                    // sort of 'handler' to preprocess values
-                    // for use in SQL commands to avoid errors
-                    // that arise from this sort of thing.
-                    if (withBlock1.BOF | withBlock1.EOF)
-                        sf = "";
-                    else
-                        sf = withBlock1.Fields(0).Value;
-                }
+            On Error Resume Next
+            Err.Clear()
+            .lbxFamily.Value = sf
+            If Err.Number Then
+                Debug.Print "FAILED TO  MATERIAL FAMILY " & sf
+                ck = MsgBox(Join(Array(
+                    "Part Number " & pn, "uses Material " & sn _
+                    , "which is a" & IIf(
+                        InStr(1, "AEIOU", UCase$(Left$(sf, 1))),
+                        "n ", " "
+                    ) & sf & " Item." _
+                    , "" _
+                    , "This interface does not presently" _
+                    , "support Materials from this Family." _
+                    , "" _
+                    , "You might not be able to find the correct" _
+                    , "Material for this Part, and might wish" _
+                    , "to avoid changing it here." _
+                    , "" _
+                    , "Do you wish to proceed anyway?"
+                ), vbNewLine),
+                    vbYesNoCancel + vbExclamation + vbDefaultButton2,
+                    "Material Family not Supported"
+                )
+                If ck = vbCancel Then
+                    Stop
+                End If
+            Else
+                Err.Clear()
+                .lbxItem.Value = sn
 
-                if (Strings.Len(sf) == 0)
-                    // EITHER doesn't have a Family,
-                    // OR is not (yet) in Genius.
-                    // SO, let's just ...
-                    sf = "DSHEET"; // as a default!
+                ''' REV[2022.05.06.1329]
+                ''' added intermediate error handler
+                ''' to capture failure in Material
+                ''' Family selector to adopt new Value.
+                ''' it re-implements process of Event
+                ''' handler Sub lbxFamily_Change
+                ''' against variable 'sf' directly
+                ''' in an effort to force population
+                ''' of Material list.
+                If Err.Number Then
+                    Debug.Print() ; 'Breakpoint Landing
+                    Err.Clear()
+                    rsItm.Filter = "Family = '" & sf & "'"
+                    .lbxItem.List = m0g3f1(rsItm)
+                    .lbxItem.Value = sn
+                End If
+                ''' something MIGHT have happened
+                ''' to prevent normal Value update
+                ''' when lbxFamily is  above.
+                ''' further investigation may be
+                ''' warranted.
 
-                Information.Err().Clear();
-                withBlock.lbxFamily.Value = sf;
-                if (Information.Err().Number)
-                {
-                    Debug.Print("FAILED TO MATERIAL FAMILY " + sf);
-                    ck = MessageBox.Show(Join(new[]
-                        {
-                            "Part Number " + pn, "uses Material " + sn, "which is a" + IIf(
-                                InStr(1, "AEIOU", UCase(Left(sf, 1))), "n ", " "
-                            ) + sf + " Item.",
-                            "", "This interface does not presently", "support Materials from this Family.", "",
-                            "You might not be able to find the correct", "Material for this Part, and might wish",
-                            "to avoid changing it here.", "", "Do you wish to proceed anyway?"
-                        }, Constants.vbCrLf),
-                        Constants.vbYesNoCancel + Constants.vbExclamation + Constants.vbDefaultButton2,
-                        "Material Family not Supported"
-                    );
-                    if (ck == Constants.vbCancel)
-                        Debugger.Break();
-                }
-                else
-                {
-                    Information.Err().Clear();
-                    withBlock.lbxItem.Value = sn;
+                If Err.Number Then
+                    Debug.Print "FAILED TO  MATERIAL " & sn
+                    ck = MsgBox(Join(Array("!!WARNING!!", "" _
+                        , "Active Material " & sn _
+                        , "for Part Number " & pn _
+                        , "could NOT be selected," _
+                        , "and might be unavailable." _
+                        , "" _
+                        , "You might wish to avoid" _
+                        , "making Material changes" _
+                        , "to this Part here." _
+                        , "" _
+                        , "Do you wish to proceed anyway?"
+                    ), vbNewLine),
+                        vbYesNoCancel + vbExclamation,
+                        "Active Material Not Found!"
+                    )
+                    If ck = vbCancel Then
+                        Stop
+                    End If
+                Else
+                    ck = vbYes
+                    lbxItem_Change()
+                    'lbxFamily_Change
+                    rsItm.Filter = "Family = '" & sf & "'"
+                    .lbxItem.List = m0g3f1(rsItm)
+                End If
+            End If
+            On Error GoTo 0
+        Else
+            ck = vbYes
+        End If
 
-                    // REV[2022.05.06.1329]
-                    // added intermediate error handler
-                    // to capture failure in Material
-                    // Family selector to adopt new Value.
-                    // it re-implements process of Event
-                    // handler Sub lbxFamily_Change
-                    // against variable 'sf' directly
-                    // in an effort to force population
-                    // of Material list.
-                    if (Information.Err().Number)
-                    {
-                        Debug.Print(""); // Breakpoint Landing
-                        Information.Err().Clear();
-                        rsItm.Filter = "Family = '" + sf + "'";
-                        withBlock.lbxItem.List = m0g3f1(rsItm);
-                        withBlock.lbxItem.Value = sn;
-                    }
-                    // something MIGHT have happened
-                    // to prevent normal Value update
-                    // when lbxFamily is above.
-                    // further investigation may be
-                    // warranted.
+        If ck = vbYes Then
+            .Show 1
+        End If
+    End With
+    AskAbout = ck 'vbYes ' = 1
+End Function
 
-                    if (Information.Err().Number)
-                    {
-                        Debug.Print("FAILED TO MATERIAL " + sn);
-                        ck = MessageBox.Show(Join(new[]
-                            {
-                                "!!WARNING!!", "", "Active Material " + sn, "for Part Number " + pn,
-                                "could NOT be selected,", "and might be unavailable.", "",
-                                "You might wish to avoid",
-                                "making Material changes", "to this Part here.", "",
-                                "Do you wish to proceed anyway?"
-                            }, Constants.vbCrLf), Constants.vbYesNoCancel + Constants.vbExclamation,
-                            "Active Material Not Found!"
-                        );
-                        if (ck == Constants.vbCancel)
-                            Debugger.Break();
-                    }
-                    else
-                    {
-                        ck = Constants.vbYes;
-                        lbxItem_Change();
-                        // lbxFamily_Change
-                        rsItm.Filter = "Family = '" + sf + "'";
-                        withBlock.lbxItem.List = m0g3f1(rsItm);
-                    }
-                }
-            }
-            else
-                ck = Constants.vbYes;
+Private Function ft1g0f0(
+    pn As String, pr As Inventor.Property
+) As String
+    If pr Is Nothing Then
+        ft1g0f0 = ""
+    Else
+        ft1g0f0 = vbNewLine & pn & ": " & pr.Value
+    End If
+End Function
 
-            if (ck == Constants.vbYes)
-                withBlock.Show(1);
-        }
+Private Sub dbFamily_Change()
+    Debug.Print dcUpd(pnFamily, dbFamily.Value)
+End Sub
+'Me.lbxItem.ColumnWidths = "84 pt;6 pt;180 pt"
+'Me.lbxItem.ColumnWidths = "84 pt;48 pt;216 pt"
 
-        return ck; // vbYes ' = 1
-    }
+Private Sub lbMsg_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
+    Stop
+End Sub
 
-    private string ft1g0f0(string pn, Property pr
-    )
-    {
-        if (pr == null)
-            return "";
-        return Constants.vbCrLf + pn + ": " + pr.Value;
-    }
+Private Sub lbxFamily_Change()
+    With Me
+        rsItm.Filter = "Family = '" & .lbxFamily.Value & "'"
+        .lbxItem.List = m0g3f1(rsItm)
+    End With
+End Sub
 
-    private void dbFamily_Change()
-    {
-        Debug.Print(dcUpd(pnFamily, dbFamily.Value));
-    }
-    // Me.lbxItem.ColumnWidths = "84 pt;6 pt;180 pt"
-    // Me.lbxItem.ColumnWidths = "84 pt;48 pt;216 pt"
+Public Function ItemData() As Scripting.Dictionary
+    Dim rt As Scripting.Dictionary
+    Dim ky As Variant
 
-    private void lbMsg_DblClick(MSForms.ReturnBoolean Cancel)
-    {
-        Debugger.Break();
-    }
+    rt = New Scripting.Dictionary
+    With dc
+        For Each ky In .Keys
+            rt.Add ky, .Item(ky)
+        Next
+    End With
+    ItemData = rt
+End Function
 
-    private void lbxFamily_Change()
-    {
-        {
-            var withBlock = this;
-            rsItm.Filter = "Family = '" + withBlock.lbxFamily.Value + "'";
-            withBlock.lbxItem.List = m0g3f1(rsItm);
-        }
-    }
+Public Function Synch() As Scripting.Dictionary
+    With dc
+        If .Exists(pnFamily) Then prFam.Value = dc.Item(pnFamily)
+        If .Exists(pnRawMaterial) Then prStk.Value = dc.Item(pnRawMaterial)
+    End With
 
-    public Dictionary ItemData()
-    {
-        var rt = new Dictionary();
-        {
-            var withBlock = dc;
-            foreach (var ky in withBlock.Keys)
-                rt.Add(ky, withBlock.get_Item(ky));
-        }
-        return rt;
-    }
+    Synch = Me.ItemData
+End Function
 
-    public Dictionary Synch()
-    {
-        {
-            var withBlock = dc;
-            if (withBlock.Exists(pnFamily))
-                prFam.Value = dc.get_Item(pnFamily);
-            if (withBlock.Exists(pnRawMaterial))
-                prStk.Value = dc.get_Item(pnRawMaterial);
-        }
+Private Function dcUpd(ky As String, vl As Variant) As String
+    Dim rt As String
 
-        return ItemData();
-    }
+    If IsNull(vl) Then
+        dcUpd = dcUpd(ky, "")
+    Else
+        With dc
+            If .Exists(ky) Then
+                rt = CStr(.Item(ky))
+                .Item(ky) = vl
+                dcUpd = "CHANGE[" & ky & "] FROM '" & rt _
+                & "' TO '" & CStr(.Item(ky)) & "'"
+            Else
+                .Add ky, vl
+            dcUpd = "[" & ky & "] TO '" _
+                & CStr(.Item(ky)) & "'"
+            End If
+        End With
+    End If
+End Function
 
-    private string dcUpd(string ky, dynamic vl)
-    {
-        if (IsNull(vl))
-            return dcUpd(ky, "");
-        var withBlock = dc;
-        if (withBlock.Exists(ky))
-        {
-            string rt = Convert.ToHexString(withBlock.get_Item(ky));
-            withBlock.get_Item(ky) = vl;
-            return "CHANGE[" + ky + "] FROM '" + rt
-                   + "' TO '" + Convert.ToHexString(withBlock.get_Item(ky)) + "'";
-        }
+Private Sub lbxItem_Change()
+    Debug.Print dcUpd(pnRawMaterial, lbxItem.Value)
+End Sub
 
-        withBlock.Add(ky, vl);
-        return "[" + ky + "] TO '"
-               + Convert.ToHexString(withBlock.get_Item(ky)) + "'";
-    }
+Private Sub UserForm_Initialize()
+    dc = New Scripting.Dictionary
+    cn = cnGnsDoyle()
 
-    private void lbxItem_Change()
-    {
-        Debug.Print(dcUpd(pnRawMaterial, lbxItem.Value));
-    }
-
-    private void UserForm_Initialize()
-    {
-        dc = new Dictionary();
-        cn = cnGnsDoyle();
-
-        {
-            var withBlock = cn;
-
-            // rsFam = .Execute(Join(new [] { "select Family, Description1", "from vgMfiFamilies", "order by Family" ), " ")) ', "where FamilyGroup = 'RAW'"rsPrt = withBlock.Execute(Join(new [] {"select Family, FamilyGroup, Description1", "from vgMfiFamilies", "order by Family"), Constants.vbCrLf)); // , ;/* Cannot convert EmptyStatementSyntax, CONVERSION ERROR: Conversion for EmptyStatement not implemented, please report this issue in '' at character 11306
-
+    With cn
+        ' rsFam = .Execute(Join(Array( _
+            "select Family, Description1", _
+            "from vgMfiFamilies", _
+            "order by Family" _
+        ), " ")) ', _
+            "where FamilyGroup = 'RAW'"
+         rsPrt = .Execute(Join(Array(
+            "select Family, FamilyGroup, Description1",
+            "from vgMfiFamilies",
+            "order by Family"
+        ), vbNewLine)) ', _
             "where FamilyGroup = 'PARTS'"
-            rsItm = withBlock.Execute(Join(new[]
-            {
-                "Select I.Item, I.Family, I.Description1, I.Specification1",
-                "From vgMfiItems as I", "Inner Join vgMfiFamilies as F", "On I.Family = F.Family",
-                "Where F.FamilyGroup = 'RAW'", "order by Family, Item"
-            }, " "));
-        }
+         rsItm = .Execute(Join(Array(
+            "Select I.Item, I.Family, I.Description1, I.Specification1",
+            "From vgMfiItems as I",
+            "Inner Join vgMfiFamilies as F",
+            "On I.Family = F.Family",
+            "Where F.FamilyGroup = 'RAW'",
+            "order by Family, Item"
+        ), " "))
+    End With
 
-        {
-            var withBlock = this;
-            rsPrt.Filter = "FamilyGroup = 'RAW'";
-            withBlock.lbxFamily.List = m0g3f1(rsPrt); // rsFam
+    With Me
+        rsPrt.Filter = "FamilyGroup = 'RAW'"
+        .lbxFamily.List = m0g3f1(rsPrt) 'rsFam
 
-            rsPrt.Filter = "FamilyGroup = 'PARTS'";
-            withBlock.dbFamily.List = m0g3f1(rsPrt);
-        }
-    }
+        rsPrt.Filter = "FamilyGroup = 'PARTS'"
+        .dbFamily.List = m0g3f1(rsPrt)
+    End With
+End Sub
 
-    private void UserForm_QueryClose(int Cancel, int CloseMode
-    )
-    {
-        Cancel = 1;
-        this.Hide();
-    }
+Private Sub UserForm_QueryClose(
+    Cancel As Integer, CloseMode As Integer
+)
+    Cancel = 1
+    Me.Hide()
+End Sub
 
-    private void UserForm_Terminate()
-    {
-        cn.Close();
-        cn = null;
-    }
-}
+Private Sub UserForm_Terminate()
+    cn.Close
+    cn = Nothing
+End Sub
+

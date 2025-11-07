@@ -1,77 +1,82 @@
-﻿namespace Doyle_Addin.Genius.Classes;
 
-public class dcSplitter
-{
-    // Private dcGrpIn As Scripting.Dictionary
-    // Private dcGrpOut As Scripting.Dictionary
-    private kyPick dcPicker;
 
-    // Sample Usage:
-    // Debug.Print txDumpLs(nuSplitter().WithSel(New kyPickAiPartVsAssy).Scanning(dcAiDocComponents(aiDocActive())).OutGroup().Keys)
-    // Debug.Print txDumpLs(nuSplitter().WithSel(New kyPickAiPartVsAssy).Scanning(dcAiDocComponents(aiDocActive())).WithSel(New kyPickAiDocWithRM, 1).SubScanning().OutGroup().Keys)
+'Private dcGrpIn As Scripting.Dictionary
+'Private dcGrpOut As Scripting.Dictionary
+Private dcPicker As kyPick
 
-    private void Class_Initialize()
-    {
-        // dcGrpIn = New Scripting.Dictionary
-        // dcGrpOut = New Scripting.Dictionary
-        dcPicker = new kyPick();
-    }
+''' Sample Usage:
+'Debug.Print txDumpLs(nuSplitter().WithSel(New kyPickAiPartVsAssy).Scanning(dcAiDocComponents(aiDocActive())).OutGroup().Keys)
+'Debug.Print txDumpLs(nuSplitter().WithSel(New kyPickAiPartVsAssy).Scanning(dcAiDocComponents(aiDocActive())).WithSel(New kyPickAiDocWithRM, 1).SubScanning().OutGroup().Keys)
 
-    public dcSplitter WithInDc(Dictionary dict)
-    {
-        dcPicker = dcPicker.WithInDc(dict);
-        return this;
-    }
+Private Sub Class_Initialize()
+    'Set dcGrpIn = New Scripting.Dictionary
+    'Set dcGrpOut = New Scripting.Dictionary
+    Set dcPicker = New kyPick
+End Sub
 
-    public dcSplitter WithOutDc(Dictionary dict)
-    {
-        dcPicker = dcPicker.WithOutDc(dict);
-        return this;
-    }
+Public Function WithInDc( _
+    Dict As Scripting.Dictionary _
+) As dcSplitter
+    Set dcPicker = dcPicker.WithInDc(Dict)
+    Set WithInDc = Me
+End Function
 
-    public dcSplitter WithSel(kyPick selector, bool keepData = false)
-    {
-        dcPicker = !keepData ? selector : selector.WithInDc(dcPicker.dcIn).WithOutDc(dcPicker.dcOut);
-        return this;
-    }
+Public Function WithOutDc( _
+    Dict As Scripting.Dictionary _
+) As dcSplitter
+    Set dcPicker = dcPicker.WithOutDc(Dict)
+    Set WithOutDc = Me
+End Function
 
-    public Dictionary InGroup()
-    {
-        return dcPicker.dcIn;
-    }
+Public Function WithSel(Selector As kyPick, _
+    Optional KeepData As Long = 0 _
+) As dcSplitter
+    If KeepData = 0 Then
+        Set dcPicker = Selector
+    Else
+        Set dcPicker = Selector.WithInDc( _
+            dcPicker.dcIn).WithOutDc( _
+            dcPicker.dcOut _
+        )
+    End If
+    Set WithSel = Me
+End Function
 
-    public Dictionary OutGroup()
-    {
-        return dcPicker.dcOut;
-    }
+Public Function InGroup() As Scripting.Dictionary
+    Set InGroup = dcPicker.dcIn
+End Function
 
-    public dcSplitter Scanning(Dictionary srcDict)
-    {
-        {
-            foreach (var ky in srcDict.Keys)
-            {
-                {
-                    var withBlock1 = dcPicker.dcFor(srcDict.get_Item(ky));
-                    if (withBlock1.Exists(ky))
-                        Debugger.Break();
-                    else
-                        withBlock1.Add(ky, srcDict.get_Item(ky));
-                }
-            }
-        }
-        return this;
-    }
+Public Function OutGroup() As Scripting.Dictionary
+    Set OutGroup = dcPicker.dcOut
+End Function
 
-    public dcSplitter SubScanning(bool wantOut = false)
-    {
-        Dictionary dcSub;
+Public Function Scanning(SrcDict As Scripting.Dictionary) As dcSplitter
+    Dim ky As Variant
+    
+    With SrcDict
+        For Each ky In .Keys
+            With dcPicker.dcFor(.Item(ky))
+                If .Exists(ky) Then
+                    Stop
+                Else
+                    .Add ky, SrcDict.Item(ky)
+                End If
+            End With
+        Next
+    End With
+    Set Scanning = Me
+End Function
 
-        if (!wantOut)
-            dcSub = dcPicker.dcIn;
-        else
-            dcSub = dcPicker.dcOut;
-        dcPicker = dcPicker.WithInDc(new Dictionary()).WithOutDc(new Dictionary());
+Public Function SubScanning(Optional WantOut As Long = 0) As dcSplitter
+    Dim dcSub As Scripting.Dictionary
+    
+    If WantOut = 0 Then
+        Set dcSub = dcPicker.dcIn
+    Else
+        Set dcSub = dcPicker.dcOut
+    End If
+    Set dcPicker = dcPicker.WithInDc(New Scripting.Dictionary).WithOutDc(New Scripting.Dictionary)
+    
+    Set SubScanning = Scanning(dcSub)
+End Function
 
-        return Scanning(dcSub);
-    }
-}

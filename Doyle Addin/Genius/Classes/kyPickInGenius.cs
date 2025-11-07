@@ -1,115 +1,125 @@
-﻿using Microsoft.VisualBasic;
 
-namespace Doyle_Addin.Genius.Classes;
 
-class kyPickInGenius : kyPick
-{
-    // Private Const sqlA As String = "select ItemId from vgMfiItems where Item='"
-    private const string sqlA = "select count(ItemId) as ct from vgMfiItems where Item='";
+Implements kyPick
 
-    private kyPick pk;
-    private ADODB.Connection cn;
-    // Private cm As ADODB.Command
+'Private Const sqlA As String = "select ItemId from vgMfiItems where Item='"
+Private Const sqlA As String = "select count(ItemId) as ct from vgMfiItems where Item='"
 
-    private void Class_Initialize()
-    {
-        pk = new kyPick();
-        cn = cnGnsDoyle;
-    }
+Private pk As kyPick
+Private cn As ADODB.Connection
+'Private cm As ADODB.Command
 
-    public IDictionary dcFor(dynamic Item)
-    {
-        Document ob = aiDocument(obOf(Item));
-        if (ob == null || ob.DocumentType != kPartDocumentObjectOr)
-            return pk.dcFor(0);
-        string pn = ob.PropertySets.get_Item(gnDesign).get_Item(pnPartNum).Value;
-        if (Strings.Len(pn) <= 0) return pk.dcFor(0);
-        {
-            var withBlock = cn.Execute(sqlA + pn + "'");
-            // If .BOF Or .EOF Then
-            return withBlock.Fields("ct").Value > 0 ? pk.dcFor(ob) : pk.dcFor(0);
-        }
-    }
+Private Sub Class_Initialize()
+    Set pk = New kyPick
+    Set cn = cnGnsDoyle
+    'dcGeniusItems
+    'Set cm = New ADODB.Command
+    'With cm
+        '.CreateParameter(
+    'End With
+End Sub
 
-    public kyPick WithInDc(Dictionary Dict)
-    {
-        pk = pk.WithInDc(Dict);
-        return this;
-    }
+Public Function dcFor(Item As Variant) As Scripting.IDictionary
+    Dim ob As Inventor.Document
+    Dim pn As String
+    
+    Set ob = aiDocument(obOf(Item))
+    If ob Is Nothing Then
+        Set dcFor = pk.dcFor(0)
+    Else
+        If ob.DocumentType = kPartDocumentObject _
+        Or ob.DocumentType = kAssemblyDocumentObject Then
+            pn = ob.PropertySets.Item(gnDesign).Item(pnPartNum).Value
+            If Len(pn) > 0 Then
+                With cn.Execute(sqlA & pn & "'")
+                    'If .BOF Or .EOF Then
+                    If .Fields("ct").Value > 0 Then
+                        Set dcFor = pk.dcFor(ob)
+                    Else
+                        Set dcFor = pk.dcFor(0)
+                    End If
+                End With
+            Else
+                Set dcFor = pk.dcFor(0)
+            End If
+        Else
+            Set dcFor = pk.dcFor(0)
+        End If
+    End If
+End Function
 
-    public kyPick WithOutDc(Dictionary Dict)
-    {
-        pk = pk.WithOutDc(Dict);
-        return this;
-    }
+Public Function WithInDc( _
+    Dict As Scripting.Dictionary _
+) As kyPick
+    Set pk = pk.WithInDc(Dict)
+    Set WithInDc = Me
+End Function
 
-    public IDictionary dcIn()
-    {
-        return pk.dcIn;
-    }
+Public Function WithOutDc( _
+    Dict As Scripting.Dictionary _
+) As kyPick
+    Set pk = pk.WithOutDc(Dict)
+    Set WithOutDc = Me
+End Function
 
-    public IDictionary dcOut()
-    {
-        return pk.dcOut;
-    }
+Public Function dcIn() As Scripting.Dictionary
+    Set dcIn = pk.dcIn
+End Function
 
-    public kyPick AfterScanning(Dictionary dSrc)
-    {
-        return kyPick_AfterScanning(dSrc);
-    }
+Public Function dcOut() As Scripting.Dictionary
+    Set dcOut = pk.dcOut
+End Function
 
-    private kyPick kyPick_AfterScanning(IDictionary dSrc)
-    {
-        {
-            foreach (var ky in dSrc.Keys)
-            {
-                {
-                    var withBlock1 = dcFor(dSrc.get_Item(ky));
-                    if (withBlock1.Exists(ky))
-                        Debugger.Break();
-                    else
-                        withBlock1.Add(ky, dSrc.get_Item(ky));
-                }
-            }
-        }
-        return this;
-    }
+Public Function AfterScanning( _
+    dSrc As Scripting.Dictionary _
+) As kyPick
+    Set AfterScanning = kyPick_AfterScanning(dSrc)
+End Function
 
-    // kyPick Implementation code follows
+Private Function kyPick_AfterScanning(dSrc As Scripting.IDictionary) As kyPick
+    Dim ky As Variant
+    
+    With dSrc
+        For Each ky In .Keys
+            With dcFor(.Item(ky))
+                If .Exists(ky) Then
+                    Stop
+                Else
+                    .Add ky, dSrc.Item(ky)
+                End If
+            End With
+        Next
+    End With
+    Set kyPick_AfterScanning = Me
+End Function
 
-    // 
-    private IDictionary kyPick_DcFor(dynamic Item)
-    {
-        return dcFor(Item);
-    }
+'''
+''' kyPick Implementation code follows
+'''
+Private Function kyPick_DcFor(Item As Variant) As Scripting.IDictionary
+    Set kyPick_DcFor = dcFor(Item)
+End Function
 
-    private IDictionary kyPick_DcIn()
-    {
-        return dcIn();
-    }
+Private Function kyPick_DcIn() As Scripting.IDictionary
+    Set kyPick_DcIn = dcIn()
+End Function
 
-    private IDictionary kyPick_DcOut()
-    {
-        return dcOut();
-    }
+Private Function kyPick_DcOut() As Scripting.IDictionary
+    Set kyPick_DcOut = dcOut()
+End Function
 
-    public kyPick Itself()
-    {
-        return this;
-    }
+Public Function Itself() As kyPick
+    Set Itself = Me
+End Function
 
-    private kyPick kyPick_Itself()
-    {
-        return Itself();
-    }
+Private Function kyPick_Itself() As kyPick
+    Set kyPick_Itself = Me.Itself
+End Function
 
-    private kyPick kyPick_WithInDc(Dictionary Dict)
-    {
-        return WithInDc(Dict);
-    }
+Private Function kyPick_WithInDc(Dict As Scripting.IDictionary) As kyPick
+    Set kyPick_WithInDc = WithInDc(Dict)
+End Function
 
-    private kyPick kyPick_WithOutDc(Dictionary Dict)
-    {
-        return WithOutDc(Dict);
-    }
-}
+Private Function kyPick_WithOutDc(Dict As Scripting.IDictionary) As kyPick
+    Set kyPick_WithOutDc = WithOutDc(Dict)
+End Function

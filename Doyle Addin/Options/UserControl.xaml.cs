@@ -127,9 +127,9 @@ public partial class UserOptionsWindow
         if (rd != null)
         {
             // If we have an Application-level resources, copy theme resources there so DynamicResource lookups succeed
-            if (Application.Current?.Resources != null)
+            if (System.Windows.Application.Current?.Resources != null)
             {
-                var appRes = Application.Current.Resources;
+                var appRes = System.Windows.Application.Current.Resources;
                 foreach (var key in rd.Keys)
                 {
                     appRes[key] = rd[key];
@@ -174,7 +174,7 @@ public partial class UserOptionsWindow
     }
 
     // Helper method using the modern WPF folder browser dialog
-    private void SelectFolderPath(TextBox targetTextBox, string description)
+    private void SelectFolderPath(Wpf.Ui.Controls.TextBox targetTextBox, string description)
     {
         var folderBrowser = new VistaFolderBrowserDialog
         {

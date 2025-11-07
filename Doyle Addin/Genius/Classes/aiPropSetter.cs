@@ -1,53 +1,44 @@
-﻿using Microsoft.VisualBasic;
 
-namespace Doyle_Addin.Genius.Classes;
 
-class aiPropSetter
-{
-    private string[] ls;
+Private ls() As String
 
-    public string[] PropList()
-    {
-        return ls;
-    }
+Public Function PropList() As String()
+    PropList = ls
+End Function
 
-    public Dictionary dcPropsIn(Document ad, Dictionary dc = null)
-    {
-        while (true)
-        {
-            var ps = ad.PropertySets.GetType(gnCustom);
+Public Function dcPropsIn(ad As Inventor.Document, _
+    Optional dc As Scripting.Dictionary = Nothing _
+) As Scripting.Dictionary
+    Dim ps As Inventor.PropertySet
+    Dim pr As Inventor.Property
+    Dim ky As Variant
+    
+    Set ps = ad.PropertySets.Item(gnCustom)
+    
+    If dc Is Nothing Then
+        Set dcPropsIn = dcPropsIn(ad, _
+            New Scripting.Dictionary _
+        )
+    Else
+        If IsArray(ls) Then
+            For Each ky In ls
+                Set pr = aiGetProp(ps, CStr(ky), 1)
+                If pr Is Nothing Then
+                    'nothing we can do (as yet?)
+                Else
+                    dc.Add ky, pr
+                End If
+            Next
+            Set dcPropsIn = dc
+        ElseIf VarType(ls) = vbString Then
+            Stop 'shouldn't wind up here
+            Set dcPropsIn = dcPropsIn(ad, dc)
+        Else
+            Stop 'or here, either
+        End If
+    End If
+End Function
 
-            if (dc == null)
-                return dcPropsIn(ad, new Dictionary());
-            if (Information.IsArray(ls))
-            {
-                foreach (var ky in ls)
-                {
-                    var pr = aiGetProp(ps, Convert.ToString(ky), 1);
-                    if (pr == null)
-                    {
-                    }
-                    else
-                        dc.Add(ky, pr);
-                }
-
-                return dc;
-            }
-
-            if (VarType(ls) == Constants.vbString)
-            {
-                Debugger.Break(); // shouldn't wind up here
-                continue;
-            }
-
-            Debugger.Break(); // or here, either
-
-            break;
-        }
-    }
-
-    private void Class_Initialize()
-    {
-        ls = string.Split("andrew patrick thompson", " ");
-    }
-}
+Private Sub Class_Initialize()
+    ls = Split("andrew patrick thompson", " ")
+End Sub

@@ -1,601 +1,687 @@
-﻿using Microsoft.VisualBasic;
 
-namespace Doyle_Addin.Genius.Classes;
 
-/// <summary>
-/// 
-/// </summary>
-public class mod1
-{
-    public static Dictionary m1g0f0()
-    {
-        var rt = new Dictionary();
-        {
-            var withBlock = dcAiSheetMetal(dcAiDocsByType(dcAssyDocComponents(ThisApplication.ActiveDocument)));
-            long gt0 = 0;
-            long eq0 = 0;
-            foreach (var ky in withBlock.Keys)
-            {
-                {
-                    var withBlock1 = aiDocPart(withBlock.get_Item(ky));
-                    {
-                        var withBlock2 = vcChkFlatPat(aiCompDefShtMetal(withBlock1.ComponentDefinition));
-                        if (Abs(withBlock2.X * withBlock2.Y * withBlock2.Z) > 0)
-                        {
-                            Debug.Print.X(*withBlock2.Y * withBlock2.Z, ky);
-                            // Stop
-                            gt0 = 1 + gt0;
-                        }
-                        else
-                            // Stop
-                            eq0 = 1 + eq0;
-                    }
-                }
-            }
+Public Function m1g0f0() As Scripting.Dictionary
+    Dim rt As Scripting.Dictionary
+    Dim ky As Variant
+    Dim gt0 As Long
+    Dim eq0 As Long
+    
+    Set rt = New Scripting.Dictionary
+    With dcAiSheetMetal(dcAiDocsByType( _
+        dcAssyDocComponents(ThisApplication.ActiveDocument) _
+    ))
+        gt0 = 0
+        eq0 = 0
+        For Each ky In .Keys
+            With aiDocPart(.Item(ky))
+            With vcChkFlatPat(aiCompDefShtMetal( _
+                .ComponentDefinition _
+            ))
+                If Abs(.X * .Y * .Z) > 0 Then
+                    Debug.Print .X * .Y * .Z, ky
+                    'Stop
+                    gt0 = 1 + gt0
+                Else
+                    'Stop
+                    eq0 = 1 + eq0
+                End If
+                'If .HasFlatPattern Then
+                    'With .FlatPattern
+                        'If .Features.Count > 0 Then
+                            'gt0 = 1 + gt0
+                            'rt.Add ky, .Document
+                        'Else
+                            'eq0 = 1 + eq0
+                            ''Debug.Print .Width * .Length
+                            ''Stop
+                        'End If
+                    'End With
+                'Else
+                    ''Debug.Print aiDocument(.Document).FullFileName
+                    ''Stop
+                'End If
+            End With
+            End With
+        Next
+        Debug.Print gt0, eq0
+    End With
+    Set m1g0f0 = rt
+End Function
 
-            Debug.Print(gt0, eq0);
-        }
-        return rt;
-    }
+Public Function m1g0f1() As Scripting.Dictionary
+    Dim rt As Scripting.Dictionary
+    Dim ky As Variant
+    Dim gt0 As Long
+    Dim eq0 As Long
+    
+    Set rt = New Scripting.Dictionary
+    With dcAssyDocComponents( _
+        ThisApplication.ActiveDocument, , 1 _
+    )
+        gt0 = 0
+        eq0 = 0
+        For Each ky In .Keys
+            With aiDocument(.Item(ky))
+                If .DocumentInterests.HasInterest( _
+                    guidDesignAccl _
+                ) Then
+                    Stop
+                End If
+            End With
+        Next
+        Debug.Print gt0, eq0
+    End With
+    Set m1g0f1 = rt
+End Function
 
-    public static Dictionary m1g0f1()
-    {
-        var rt = new Dictionary();
-        {
-            var withBlock = dcAssyDocComponents(ThisApplication.ActiveDocument, null, 1);
-            const long gt0 = 0;
-            const long eq0 = 0;
-            foreach (var ky in withBlock.Keys)
-            {
-                {
-                    var withBlock1 = aiDocument(withBlock.get_Item(ky));
-                    if (withBlock1.DocumentInterests.HasInterest(guidDesignAccl))
-                        Debugger.Break();
-                }
-            }
+Public Function vcDiaBox(bx As Inventor.Box) As Inventor.Vector
+    ''  Given a Box Object
+    ''  containing diametrically opposed
+    ''  MinPoint and MaxPoint Objects,
+    ''  return the Vector from Min to Max
+    With bx
+        Set vcDiaBox = .MinPoint.VectorTo(.MaxPoint)
+    End With
+End Function
 
-            Debug.Print(gt0, eq0);
-        }
-        return rt;
-    }
+Public Function vc2flatPat( _
+    df As Inventor.SheetMetalComponentDefinition _
+) As Inventor.Vector
+    ''  From an Inventor Sheet Metal Component Definition,
+    ''  obtain a Vector representing the translation
+    ''  of the Folded Model's bounding box diagonal
+    ''  to that of the Flat Pattern.
+    ''
+    Dim rt As Inventor.Vector
+    
+    With df
+        Set rt = vcDiaBox(.RangeBox)
+        If .HasFlatPattern Then
+            rt.SubtractVector vcDiaBox(.FlatPattern.RangeBox)
+        Else
+            rt.SubtractVector rt
+        End If
+    End With
+    ''
+    ''  If they're the same point, this vector should
+    ''  have zero length, however, this is NOT proof
+    ''  positive of an invalid Flat Pattern. A valid
+    ''  flat piece, with no folds, should produce
+    ''  the same result.
+    ''
+    ''  A good follow-up check would probably be to
+    ''  compare the Flat Pattern diagonal vector's
+    ''  Z component to the model's Thickness
+    
+    Set vc2flatPat = rt
+End Function
+'Debug.Print vc2flatPat(aiCompDefShtMetal(aiDocPart(ThisApplication.Documents(2)).ComponentDefinition)).Length
 
-    public static Vector vcDiaBox(Box bx)
-    {
-        //Given a Box dynamic
-        //containing diametrically opposed
-        //MinPoint and MaxPoint Objects,
-        //return the Vector from Min to Max
-        {
-            return bx.MinPoint.VectorTo(bx.MaxPoint);
-        }
-    }
+Public Function vcCubicThickness( _
+    df As Inventor.SheetMetalComponentDefinition _
+) As Inventor.Vector
+    Dim hk As Double
+    
+    hk = df.Thickness.Value
+    With ThisApplication.TransientGeometry
+        Set vcCubicThickness = .CreateVector(hk, hk, hk)
+    End With
+End Function
 
-    public static Vector vc2flatPat(SheetMetalComponentDefinition df)
-    {
-        //From an Inventor Sheet Metal Component Definition,
-        //obtain a Vector representing the translation
-        //of the Folded Model's bounding box diagonal
-        //to that of the Flat Pattern.
-        // '
-        Vector rt;
+Public Function vcChkFlatPat( _
+    df As Inventor.SheetMetalComponentDefinition _
+) As Inventor.Vector
+    ''  From an Inventor Sheet Metal Component Definition,
+    ''  subtract a vector of cubic thickness from the
+    ''  diagonal vector of either its Flat Pattern,
+    ''  if available, or otherwise, the Folded Model.
+    ''
+    Dim rt As Inventor.Vector
+    
+    With df
+        If .HasFlatPattern Then
+            Set rt = vcDiaBox(.FlatPattern.RangeBox)
+            'With .Thickness
+                'rt.SubtractVector ThisApplication.TransientGeometry.CreateVector(.Value, .Value, .Value)
+                'With ThisApplication.TransientGeometry.CreateVector(.Value, .Value, .Value)
+                    '.SubtractVector rt
+                    'If (.X * .Y * .Z) <> 0 Then
+                        'Debug.Print .X * .Y * .Z
+                        'Stop
+                    'End If
+                'End With
+            'End With
+            'rt.SubtractVector vcDiaBox(.RangeBox)
+        Else
+            Set rt = vcDiaBox(.RangeBox)
+        End If
+    End With
+    rt.SubtractVector vcCubicThickness(df)
+    ''
+    ''  If the model is a valid sheet metal part,
+    ''  one of the dimensions of its flat pattern's
+    ''  bounding box diagonal should either equal
+    ''  the defined sheet metal thickness,
+    ''  or fall very close. At least, in theory.
+    ''
+    ''  Plan at this point is to try to determine
+    ''  just how often this bears out.
+    ''  While this HAS failed one pretest, the Flat
+    ''  Pattern of that model includes features;
+    ''  a relatively infrequent occurrence, and
+    ''  quite possibly one that can throw off
+    ''  the boundaries.
+    
+    Set vcChkFlatPat = rt
+End Function
+'Debug.Print vcChkFlatPat(aiCompDefShtMetal(aiDocPart(ThisApplication.Documents(2)).ComponentDefinition)).Length
 
-        {
-            rt = vcDiaBox(df.RangeBox);
-            rt.SubtractVector(df.HasFlatPattern ? vcDiaBox(df.FlatPattern.RangeBox) : rt);
-        }
-        // '
-        //If they're the same point, this vector should
-        //have zero length, however, this is NOT proof
-        //positive of an invalid Flat Pattern. A valid
-        //flat piece, with no folds, should produce
-        //the same result.
-        // '
-        //A good follow-up check would probably be to
-        //compare the Flat Pattern diagonal vector's
-        //Z component to the model's Thickness
+Public Function m1tst0() As Variant
+    Debug.Print iFacAssy(aiCompDefAssy(aiDocAssy(aiCompDefAssy(aiDocAssy(ThisApplication.ActiveDocument).ComponentDefinition).Occurrences(1).Definition.Document).ComponentDefinition))
+End Function
 
-        return rt;
-    }
-    // Debug.Print vc2flatPat(aiCompDefShtMetal(aiDocPart(ThisApplication.Documents(2)).ComponentDefinition)).Length
+Public Function m1tst1() As Variant
+    Dim ky As Variant
+    Dim pr As Inventor.Property
+    'Dim bm As Inventor.BOMStructureEnum
+    
+    For Each ky In Filter(dcAssyCompAndSub( _
+        aiDocDefAssy(ThisApplication.ActiveDocument).Occurrences _
+    ).Keys, "(DC)")
+        With aiDocPart(ThisApplication.Documents.ItemByName((ky)))
+            Set pr = .PropertySets("Design Tracking Properties").Item("Cost Center")
+            With .ComponentDefinition
+                If .BOMStructure <> kPurchasedBOMStructure Then
+                    .BOMStructure = kPurchasedBOMStructure
+                    pr.Value = "D-PTS"
+                    Debug.Print pr.Value, .BOMStructure, ky
+                End If
+            End With
+            '.ComponentDefinition
+            '.ComponentDefinition.BOMStructure = kPurchasedBOMStructure) & "|" & ky
+        End With
+        'Debug.Print (aiDocPart(ThisApplication.Documents.ItemByName((ky))).ComponentDefinition.BOMStructure = kPurchasedBOMStructure) & "|" & ky
+    Next
+End Function
 
-    public static Vector vcCubicThickness(SheetMetalComponentDefinition df)
-    {
-        double hk = df.Thickness.Value;
-        {
-            var withBlock = ThisApplication.TransientGeometry;
-            return withBlock.CreateVector(hk, hk, hk);
-        }
-    }
+Public Function iFacAssy( _
+    ob As Inventor.AssemblyComponentDefinition _
+) As Inventor.iAssemblyFactory
+    With ob
+        If .iAssemblyFactory Is Nothing Then
+            If .iAssemblyMember Is Nothing Then
+                Set iFacAssy = Nothing
+            Else
+                Set iFacAssy = .iAssemblyMember.ParentFactory
+            End If
+        Else
+            Set iFacAssy = .iAssemblyFactory
+        End If
+    End With
+End Function
 
-    public static Vector vcChkFlatPat(SheetMetalComponentDefinition df)
-    {
-        //From an Inventor Sheet Metal Component Definition,
-        //subtract a vector of cubic thickness from the
-        //diagonal vector of either its Flat Pattern,
-        //if available, or otherwise, the Folded Model.
-        // '
-        Vector rt;
+Public Function aiOccDoc( _
+    ob As Inventor.ComponentOccurrence _
+) As Inventor.Document
+    Set aiOccDoc = ob.Definition.Document
+End Function
 
-        {
-            rt = vcDiaBox(df.HasFlatPattern ? df.FlatPattern.RangeBox : df.RangeBox);
-        }
-        rt.SubtractVector(vcCubicThickness(df));
-        // '
-        //If the model is a valid sheet metal part,
-        //one of the dimensions of its flat pattern's
-        //bounding box diagonal should either equal
-        //the defined sheet metal thickness,
-        //or fall very close. At least, in theory.
-        // '
-        //Plan at this point is to try to determine
-        //just how often this bears out.
-        //While this HAS failed one pretest, the Flat
-        //Pattern of that model includes features;
-        //a relatively infrequent occurrence, and
-        //quite possibly one that can throw off
-        //the boundaries.
+Public Function aiDocDefAssy( _
+    ob As Inventor.AssemblyDocument _
+) As Inventor.AssemblyComponentDefinition
+    Set aiDocDefAssy = ob.ComponentDefinition
+End Function
 
-        return rt;
-    }
-    // Debug.Print vcChkFlatPat(aiCompDefShtMetal(aiDocPart(ThisApplication.Documents(2)).ComponentDefinition)).Length
+Public Function dcAssyComponentsImmediate( _
+    ob As Inventor.AssemblyDocument _
+) As Scripting.Dictionary
+    Dim rt As Scripting.Dictionary
+    Dim oc As Inventor.ComponentOccurrence
+    Dim cp As Inventor.Document
+    Dim fn As String
+    
+    Set rt = New Scripting.Dictionary
+    For Each oc In ob.ComponentDefinition.Occurrences
+        'aiDocument(oc.Definition.Document).FullFileName
+        Set cp = oc.Definition.Document
+        fn = cp.FullFileName
+        With rt
+            If Not .Exists(fn) Then .Add fn, cp
+        End With
+    Next
+    Set dcAssyComponentsImmediate = rt
+End Function
+'For Each pn In Array(pnMass, pnRawMaterial, pnRmQty, pnRmUnit, pnArea, pnLength, pnWidth, pnThickness): Debug.Print pn & "=" & aiDocument(ThisApplication.ActiveDocument).PropertySets.Item(gnCustom).Item((pn)).Value: Next
 
-    public static dynamic m1tst0()
-    {
-        Debug.Print(iFacAssy(aiCompDefAssy(
-            aiDocAssy(aiCompDefAssy(aiDocAssy(ThisApplication.ActiveDocument).ComponentDefinition).Occurrences(1)
-                .Definition.Document).ComponentDefinition)));
-    }
+Public Function iSyncPartFactory(pd As Inventor.PartDocument) As Long
+    ''
+    ''  Backport iPart Member Properties to parent Factory
+    ''
+    Dim dcCols As Scripting.Dictionary
+    Dim dcRows As Scripting.Dictionary
+    Dim tr As Inventor.iPartTableRow
+    Dim ps As Inventor.PropertySet
+    Dim pr As Inventor.Property
+    Dim rt As Long
+    Dim ck As VbMsgBoxResult
+    
+    rt = 0
+    With pd.ComponentDefinition
+        Set ps = aiDocument(.Document).PropertySets.Item(gnCustom)
+        If .iPartMember Is Nothing Then
+            'Stop
+        Else
+            With .iPartMember
+                Set dcRows = dcIPartTbRows(.ParentFactory.TableRows)
+                If dcRows.Exists(pd.DisplayName) Then
+                    Set dcCols = dcIPartTbCols(.ParentFactory.TableColumns)
+                    
+                    On Error Resume Next
+                    Err.Clear
+                    Set tr = .Row
+                    
+                    ''' REV[2022.03.23.1624]
+                    '''     adding "pickup" attempt to capture
+                    '''     and recover from errors encountered
+                    '''     in trying to retrieve .Row directly
+                    If Err.Number = 0 Then
+                    Else
+                        Set tr = dcRows.Item(pd.DisplayName)
+                        If tr.MemberName = pd.DisplayName Then
+                            Err.Clear
+                        ElseIf tr.PartName = pd.DisplayName Then
+                            Err.Clear
+                        Else
+                            Stop
+                        End If
+                    End If
+                    
+                    If Err.Number = 0 Then
+                    For Each pr In ps
+                        If dcCols.Exists(pr.Name) Then
+                            Debug.Print pr.Name; "["; pr.Value; "]: "
+                            With tr.Item(dcCols.Item(pr.Name))
+                                Debug.Print "  "; .Value;
+                                If pr.Value = .Value Then
+                                    'Stop 'No change necessary
+                                    Debug.Print " (NO CHANGE)"
+                                Else
+                                    On Error Resume Next
+                                    .Value = pr.Value
+                                    If Err.Number = 0 Then
+                                        rt = 1 + rt
+                                        
+                                        '' The update invalidated the object
+                                        '' We'll have to grab it again
+                                        With tr.Item(dcCols.Item(pr.Name))
+                                            Debug.Print " -> "; .Value
+                                        End With
+                                    Else
+                                        Debug.Print " <!!ERROR!!> Couldn't Change"
+                                        'Debug.Print Err.Number, Err.Description
+                                    End If
+                                    
+                                    On Error GoTo 0
+                                End If
+                            End With
+                        Else
+                            'Stop
+                        End If
+                    Next
+                    Debug.Print ; 'Breakpoint Landing
+                    Else
+                        Debug.Print "=== CAN'T SYNC IFACTORY ==="
+                        Debug.Print "   Failed to access Row"
+                        Debug.Print "   for Member " & pd.DisplayName
+                        Debug.Print "   of Factory " & aiDocument(.ParentFactory.Parent).DisplayName
+                        Debug.Print "=== PLEASE CHECK PARENT ==="
+                        Debug.Print "====== FACTORY TABLE ======"
+                        Debug.Print "Error 0x" & Hex$(Err.Number) & "("; CStr(Err.Number) & ")"
+                        Debug.Print "    " & Err.Description
+                        Debug.Print "==========================="
+                        ck = MsgBox(Join(Array("" _
+                            & "iPart Member " & pd.DisplayName _
+                            , "in Factory" & aiDocument(.ParentFactory.Parent).DisplayName _
+                            , "could not be accessed for updates." _
+                            , "" _
+                            , "Its Row might still be present" _
+                            , "but somehow unavailable." _
+                            , "" _
+                            , "Please review iPart Factory." _
+                        ), vbNewLine), vbOKCancel, _
+                            "ERROR ACCESSING MEMBER ROW!" _
+                        )
+                        If ck = vbCancel Then
+                            Stop
+                        End If
+                    End If
+                    
+                    On Error GoTo 0
+                    Debug.Print ; 'Breakpoint Landing
+                Else
+                    Debug.Print "==== CAN'T FIND MEMBER ===="
+                    Debug.Print "   Failed to locate Row"
+                    Debug.Print "   for Member " & pd.DisplayName
+                    Debug.Print "   of Factory " & aiDocument(.ParentFactory.Parent).DisplayName
+                    Debug.Print "=== PLEASE CHECK PARENT ==="
+                    Debug.Print "====== FACTORY TABLE ======"
+                    'Debug.Print "Error 0x" & Hex$(Err.Number) & "("; CStr(Err.Number) & ")"
+                    'Debug.Print "    " & Err.Description
+                    'Debug.Print "==========================="
+                    ck = MsgBox(Join(Array("" _
+                        & "iPart Member " & pd.DisplayName _
+                        , "could not be located in Factory" _
+                        , aiDocument(.ParentFactory.Parent).DisplayName _
+                        , "" _
+                        , "Its Row might have been removed" _
+                        , "or separated from the main table." _
+                        , "" _
+                        , "Please review iPart Factory Table." _
+                    ), vbNewLine), vbOKCancel, _
+                        "WARNING!! MEMBER NOT FOUND!" _
+                    )
+                    If ck = vbCancel Then
+                        Stop
+                    End If
+                End If
+            End With
+        End If
+    End With
+End Function
 
-    public static dynamic m1tst1()
-    {
-        // Dim bm As Inventor.BOMStructureEnum
+Public Function iSyncAssyFactory(pd As Inventor.AssemblyDocument) As Long
+    ''
+    ''  Backport iPart Member Properties to parent Factory
+    ''
+    Dim dcCols As Scripting.Dictionary
+    Dim dcRows As Scripting.Dictionary
+    Dim tr As Inventor.iAssemblyTableRow
+    Dim ps As Inventor.PropertySet
+    Dim pr As Inventor.Property
+    Dim rt As Long
+    
+    rt = 0
+    With pd.ComponentDefinition
+        Set ps = aiDocument(.Document).PropertySets.Item(gnCustom)
+        If .iAssemblyMember Is Nothing Then
+            'Stop
+        Else
+            With .iAssemblyMember
+                Set dcRows = dcIAssyTbRows(.ParentFactory.TableRows)
+                If dcRows.Exists(pd.DisplayName) Then
+                    Set dcCols = dcIAssyTbCols(.ParentFactory.TableColumns)
+                    Set tr = .Row
+                    For Each pr In ps
+                        If dcCols.Exists(pr.Name) Then
+                            Debug.Print pr.Name; "["; pr.Value; "]: "
+                            With tr.Item(dcCols.Item(pr.Name))
+                                Debug.Print "  "; .Value;
+                                If pr.Value = .Value Then
+                                    'Stop 'No change necessary
+                                    Debug.Print " (NO CHANGE)"
+                                Else
+                                    On Error Resume Next
+                                    .Value = pr.Value
+                                    If Err.Number = 0 Then
+                                        rt = 1 + rt
+                                        
+                                        '' The update invalidated the object
+                                        '' We'll have to grab it again
+                                        With tr.Item(dcCols.Item(pr.Name))
+                                            Debug.Print " -> "; .Value
+                                        End With
+                                    Else
+                                        Debug.Print " <!!ERROR!!> Couldn't Change"
+                                    End If
+                                    
+                                    On Error GoTo 0
+                                End If
+                            End With
+                        Else
+                            'Stop
+                        End If
+                    Next
+                Else
+                    Stop
+                End If
+            End With
+        End If
+    End With
+End Function
 
-        foreach (var ky in Filter(dcAssyCompAndSub(aiDocDefAssy(ThisApplication.ActiveDocument).Occurrences).Keys,
-                     "(DC)"))
-        {
-            {
-                var withBlock = aiDocPart(ThisApplication.Documents.ItemByName((ky)));
-                Property pr = withBlock.PropertySets("Design Tracking Properties").get_Item("Cost Center");
-                {
-                    var withBlock1 = withBlock.ComponentDefinition;
-                    if (withBlock1.BOMStructure == kPurchasedBOMStructure) continue;
-                    withBlock1.BOMStructure = kPurchasedBOMStructure;
-                    pr.Value = "D-PTS";
-                    Debug.Print(pr.Value, withBlock1.BOMStructure, ky);
-                }
-            }
-        }
-    }
+Public Function dcColumnsIPart( _
+    pd As Inventor.PartDocument _
+) As Scripting.Dictionary
+    ''  Retrieve Dictionary of iPart Factory Table Columns
+    ''  If supplied Part Document is NOT an iPart Factory
+    ''  OR Member, returned Dictionary will be empty
+    ''
+    With pd.ComponentDefinition
+        If .iPartMember Is Nothing Then
+            If .iPartFactory Is Nothing Then
+                Set dcColumnsIPart = New Scripting.Dictionary
+            Else
+                Set dcColumnsIPart = dcIPartTbCols( _
+                    .iPartFactory.TableColumns _
+                )
+            End If
+        Else
+            Set dcColumnsIPart = dcIPartTbCols( _
+                .iPartMember.ParentFactory.TableColumns _
+            )
+        End If
+    End With
+End Function
 
-    public static iAssemblyFactory iFacAssy(AssemblyComponentDefinition ob)
-    {
-        {
-            return ob.iAssemblyFactory ?? ob.iAssemblyMember?.ParentFactory;
-        }
-    }
+Public Function dcColumnsIAssy( _
+    pd As Inventor.AssemblyDocument _
+) As Scripting.Dictionary
+    ''  Retrieve Dictionary of iAssembly Factory Table Columns
+    ''  If supplied Assembly Document is NOT an iAssembly Factory
+    ''  OR Member, returned Dictionary will be empty
+    ''
+    With pd.ComponentDefinition
+        If .iAssemblyMember Is Nothing Then
+            If .iAssemblyFactory Is Nothing Then
+                Set dcColumnsIAssy = New Scripting.Dictionary
+            Else
+                Set dcColumnsIAssy = dcIAssyTbCols( _
+                    .iAssemblyFactory.TableColumns _
+                )
+            End If
+        Else
+            Set dcColumnsIAssy = dcIAssyTbCols( _
+                .iAssemblyMember.ParentFactory.TableColumns _
+            )
+        End If
+    End With
+End Function
 
-    public static Document aiOccDoc(ComponentOccurrence ob)
-    {
-        return ob.Definition.Document;
-    }
+Public Function dcIPartTbCols( _
+    ls As Inventor.iPartTableColumns _
+) As Scripting.Dictionary
+    Dim rt As Scripting.Dictionary
+    Dim it As Inventor.iPartTableColumn
+    
+    Set rt = New Scripting.Dictionary
+    On Error Resume Next
+    For Each it In ls
+        rt.Add it.DisplayHeading, it.Index
+        If Err.Number Then
+            rt.Add it.FormattedHeading, it.Index
+            Err.Clear
+        End If
+    Next
+    On Error GoTo 0
+    Set dcIPartTbCols = rt
+End Function
 
-    public static AssemblyComponentDefinition aiDocDefAssy(AssemblyDocument ob)
-    {
-        return ob.ComponentDefinition;
-    }
+Public Function dcIPartTbRows( _
+    ls As Inventor.iPartTableRows _
+) As Scripting.Dictionary
+    Dim rt As Scripting.Dictionary
+    Dim it As Inventor.iPartTableRow
+    Dim ck As Long
+    
+    Set rt = New Scripting.Dictionary
+    
+    ''' REV[2022.08.05.1003]
+    ''' added error trap code to more gracefully handle
+    ''' errors accessing iPart/iAssembly factory table
+    ''' (replicated changes also to dcIAssyTbRows)
+    On Error Resume Next
+    ck = ls.Count 'to trigger potential error
+    
+    If Err.Number = 0 Then 'should be good
+        For Each it In ls
+            ''' REV[2022.03.23.1618]
+            '''     replacing Index of iPartTableRow
+            '''     with iPartTableRow itself, so it
+            '''     can just be pulled directly out
+            '''     of the Dictionary by the client
+            '''     process. if it needs the Index,
+            '''     it can just get it itself, right?
+            rt.Add it.MemberName, it '.Index
+            rt.Add it.PartName, it '.Index
+            Debug.Print ; 'debug landing
+        Next
+    Else
+        Debug.Print "ERROR " & CStr(Err.Number) & " (" & Hex$(Err.Number) & ")" & vbNewLine & Err.Description
+        Debug.Print Join(Array("Could not access Table Rows", "for member of iPart factory."), vbNewLine)
+        'Stop
+        Debug.Print ; 'Breakpoint Landing
+    End If
+    
+    On Error GoTo 0
+    
+    Set dcIPartTbRows = rt
+'Debug.Print aiDocAssy(aiDocAssy(aiDocActive()).ComponentDefinition.Occurrences(1).Definition.Document).ComponentDefinition.iAssemblyMember.ParentFactory.TableRows.Count
+'Debug.Print txDumpLs(dcIPartTbRows(aiDocAssy(aiDocAssy(aiDocActive()).ComponentDefinition.Occurrences(1).Definition.Document).ComponentDefinition.iAssemblyMember.ParentFactory.TableRows).Keys)
+End Function
 
-    public static Dictionary dcAssyComponentsImmediate(AssemblyDocument ob)
-    {
-        var rt = new Dictionary();
-        foreach (ComponentOccurrence oc in ob.ComponentDefinition.Occurrences)
-        {
-            // aiDocument(oc.Definition.Document).FullFileName
-            Document cp = oc.Definition.Document;
-            var fn = cp.FullFileName;
-            {
-                if (!rt.Exists(fn))
-                    rt.Add(fn, cp);
-            }
-        }
+Public Function dcIAssyTbCols( _
+    ls As Inventor.iAssemblyTableColumns _
+) As Scripting.Dictionary
+    Dim rt As Scripting.Dictionary
+    Dim it As Inventor.iAssemblyTableColumn
+    
+    Set rt = New Scripting.Dictionary
+    On Error Resume Next
+    For Each it In ls
+        rt.Add it.DisplayHeading, it.Index
+        If Err.Number Then
+            rt.Add it.FormattedHeading, it.Index
+            Err.Clear
+        End If
+    Next
+    On Error GoTo 0
+    Set dcIAssyTbCols = rt
+End Function
 
-        return rt;
-    }
-    // For Each pn In new [] {pnMass, pnRawMaterial, pnRmQty, pnRmUnit, pnArea, pnLength, pnWidth, pnThickness): Debug.Print pn & "=" & aiDocument(ThisApplication.ActiveDocument).PropertySets.get_Item(gnCustom).Item((pn)).Value: Next
+Public Function dcIAssyTbRows( _
+    ls As Inventor.iAssemblyTableRows _
+) As Scripting.Dictionary
+    Dim rt As Scripting.Dictionary
+    Dim it As Inventor.iAssemblyTableRow
+    Dim ck As Long
+    
+    Set rt = New Scripting.Dictionary
+    
+    ''' REV[2022.08.05.1003]
+    ''' added error trap code to more gracefully handle
+    ''' errors accessing iPart/iAssembly factory table
+    ''' (replicated from dcIPartTbRows)
+    On Error Resume Next
+    ck = ls.Count 'to trigger potential error
+    
+    If Err.Number = 0 Then 'should be good
+        For Each it In ls
+            rt.Add it.MemberName, it.Index
+            rt.Add it.DocumentName, it.Index
+            Debug.Print ; 'debug landing
+        Next
+    Else
+        Debug.Print "ERROR " & CStr(Err.Number) & " (" & Hex$(Err.Number) & ")" & vbNewLine & Err.Description
+        Debug.Print Join(Array("Could not access Table Rows", "for member of iAssembly factory."), vbNewLine)
+        Stop
+    End If
+    
+    On Error GoTo 0
+    
+    Set dcIAssyTbRows = rt
+'Debug.Print aiDocAssy(aiDocAssy(aiDocActive()).ComponentDefinition.Occurrences(1).Definition.Document).ComponentDefinition.iAssemblyMember.ParentFactory.TableRows.Count
+'Debug.Print txDumpLs(dcIAssyTbRows(aiDocAssy(aiDocAssy(aiDocActive()).ComponentDefinition.Occurrences(1).Definition.Document).ComponentDefinition.iAssemblyMember.ParentFactory.TableRows).Keys)
+End Function
 
-    public static long iSyncPartFactory(PartDocument pd)
-    {
-        // '
-        //Backport iPart Member Properties to parent Factory
-        // '
+Public Function m1g1f2(vr As Variant) As Inventor.iPartTableColumn
+    Set m1g1f2 = vr
+End Function
 
-        long rt = 0;
-        {
-            var withBlock = pd.ComponentDefinition;
-            var ps = aiDocument(withBlock.Document).PropertySets.get_Item(gnCustom);
-            if (withBlock.iPartMember == null)
-            {
-            }
-            else
-            {
-                var withBlock1 = withBlock.iPartMember;
-                var dcRows = dcIPartTbRows(withBlock1.ParentFactory.TableRows);
-                VbMsgBoxResult ck;
-                if (dcRows.Exists(pd.DisplayName))
-                {
-                    var dcCols = dcIPartTbCols(withBlock1.ParentFactory.TableColumns);
+Public Function m1g1f3(ad As Inventor.AssemblyDocument) As Long
+    Dim oc As Inventor.ComponentOccurrence
+    Dim rt As Long
+    
+    rt = 0
+    For Each oc In ad.ComponentDefinition.Occurrences '(1)
+        With oc.Definition
+            'Debug.Print Hex$(aiDocument(.Document).Type)
+            'Stop
+            If aiDocument(.Document).DocumentType = kPartDocumentObject Then
+                rt = rt + iSyncPartFactory(aiDocPart(.Document))
+            Else
+            End If
+        End With
+    Next
+    m1g1f3 = rt
+End Function
 
-                    Information.Err().Clear();
-                    var tr = withBlock1.Row;
+Public Function m1g1f4() As Long
+    m1g1f4 = m1g1f3(aiDocAssy(ThisApplication.ActiveDocument))
+End Function
 
-                    // REV[2022.03.23.1624]
-                    // adding "pickup" attempt to capture
-                    // and recover from errors encountered
-                    // in trying to retrieve .Row directly
-                    if (Information.Err().Number == 0)
-                    {
-                    }
-                    else
-                    {
-                        tr = dcRows.get_Item(pd.DisplayName);
-                        if (tr.MemberName == pd.DisplayName || tr.PartName == pd.DisplayName)
-                            Information.Err().Clear();
-                        else
-                            Debugger.Break();
-                    }
+Public Function m1g1f5( _
+    pd As Inventor.PartDocument _
+) As Scripting.Dictionary
+    ''  Retrieve Dictionary of Custom Properties
+    ''
+    Dim rt As Scripting.Dictionary
+    Dim psMember As Inventor.PropertySet
+    Dim psFactry As Inventor.PropertySet
+    'Dim dcMember As Scripting.Dictionary
+    Dim dcFactry As Scripting.Dictionary
+    Dim pr As Inventor.Property
+    
+    Set rt = New Scripting.Dictionary
+    With pd
+        Set psMember = .PropertySets.Item(gnCustom)
+        With .ComponentDefinition
+            If Not .iPartMember Is Nothing Then
+                With .iPartMember
+                    With aiDocument(.ParentFactory.Parent)
+                        Set psFactry = .PropertySets.Item(gnCustom)
+                        Set dcFactry = dcAiPropsInSet(psFactry)
+                    End With
+                    
+                    For Each pr In psMember
+                        If Not dcFactry.Exists(pr.Name) Then
+                            'rt.Add pr.Name, pr
+                            Set rt = dcWithProp( _
+                                psFactry, pr.Name, pr.Value, rt _
+                            )
+                        End If
+                    Next
+                End With
+            End If
+        End With
+    End With
+    Set m1g1f5 = rt
+End Function
 
-                    if (Information.Err().Number == 0)
-                    {
-                        foreach (Property pr in ps)
-                        {
-                            if (!dcCols.Exists(pr.Name)) continue;
-                            Debug.Print(pr.Name);
-                            {
-                                var withBlock2 = tr.get_Item(dcCols.get_Item(pr.Name));
-                                Debug.Print(" ");
-                                if (pr.Value == withBlock2.Value)
-                                    // Stop 'No change necessary
-                                    Debug.Print(" (NO CHANGE)");
-                                else
-                                {
-                                    withBlock2.Value = pr.Value;
-                                    if (Information.Err().Number == 0)
-                                    {
-                                        rt = 1 + rt;
+Public Function m1g1f5t0() As String
+    m1g1f5t0 = Join(m1g1f5(aiDocPart( _
+        aiDocAssy(ThisApplication.ActiveDocument _
+        ).ComponentDefinition.Occurrences.Item(1 _
+        ).Definition.Document _
+    )).Keys, vbNewLine)
+End Function
 
-                                        //The update invalidated the dynamic
-                                        //We'll have to grab it again
-                                        {
-                                            var withBlock3 = tr.get_Item(dcCols.get_Item(pr.Name));
-                                            Debug.Print(" -> ");
-                                        }
-                                    }
-                                    else
-                                        Debug.Print(" <!!ERROR!!> Couldn't Change");
-                                }
-                            }
-                        }
-
-                        Debug.Print(""); // Breakpoint Landing
-                    }
-                    else
-                    {
-                        Debug.Print("=== CAN'T SYNC IFACTORY ===");
-                        Debug.Print(" Failed to access Row");
-                        Debug.Print(" for Member " + pd.DisplayName);
-                        Debug.Print(" of Factory " + aiDocument(withBlock1.ParentFactory.Parent).DisplayName);
-                        Debug.Print("=== PLEASE CHECK PARENT ===");
-                        Debug.Print("====== FACTORY TABLE ======");
-                        Debug.Print("Error 0x" + Hex(Information.Err()Number) + "(");
-                        Debug.Print(" " + Information.Err()Description);
-                        Debug.Print("===========================");
-                        ck = MessageBox.Show(Join(new[]
-                            {
-                                "" + "iPart Member " + pd.DisplayName,
-                                "in Factory" + aiDocument(withBlock1.ParentFactory.Parent).DisplayName,
-                                "could not be accessed for updates.", "", "Its Row might still be present",
-                                "but somehow unavailable.", "", "Please review iPart Factory."
-                            }, Constants.vbCrLf),
-                            Constants.vbOKCancel, "ERROR ACCESSING MEMBER ROW!");
-                        if (ck == Constants.vbCancel)
-                            Debugger.Break();
-                    }
-
-                    Debug.Print(""); // Breakpoint Landing
-                }
-                else
-                {
-                    Debug.Print("==== CAN'T FIND MEMBER ====");
-                    Debug.Print(" Failed to locate Row");
-                    Debug.Print(" for Member " + pd.DisplayName);
-                    Debug.Print(" of Factory " + aiDocument(withBlock1.ParentFactory.Parent).DisplayName);
-                    Debug.Print("=== PLEASE CHECK PARENT ===");
-                    Debug.Print("====== FACTORY TABLE ======");
-                    // Debug.Print "Error 0x" & Hex$(Err()Number) & "("; CStr(Err()Number) & ")"
-                    // Debug.Print " " & Err()Description
-                    // Debug.Print "==========================="
-                    ck = MessageBox.Show(Join(new[]
-                        {
-                            "" + "iPart Member " + pd.DisplayName, "could not be located in Factory",
-                            aiDocument(withBlock1.ParentFactory.Parent).DisplayName, "",
-                            "Its Row might have been removed",
-                            "or separated from the main table.", "", "Please review iPart Factory Table."
-                        },
-                        Constants.vbCrLf), Constants.vbOKCancel, "WARNING!! MEMBER NOT FOUND!");
-                    if (ck == Constants.vbCancel)
-                        Debugger.Break();
-                }
-            }
-        }
-    }
-
-    public static long iSyncAssyFactory(AssemblyDocument pd)
-    {
-        // '
-        //Backport iPart Member Properties to parent Factory
-        // '
-
-        long rt = 0;
-        {
-            var withBlock = pd.ComponentDefinition;
-            var ps = aiDocument(withBlock.Document).PropertySets.get_Item(gnCustom);
-            if (withBlock.iAssemblyMember == null)
-            {
-            }
-            else
-            {
-                var withBlock1 = withBlock.iAssemblyMember;
-                var dcRows = dcIAssyTbRows(withBlock1.ParentFactory.TableRows);
-                if (dcRows.Exists(pd.DisplayName))
-                {
-                    var dcCols = dcIAssyTbCols(withBlock1.ParentFactory.TableColumns);
-                    var tr = withBlock1.Row;
-                    foreach (Property pr in ps)
-                    {
-                        if (!dcCols.Exists(pr.Name)) continue;
-                        Debug.Print(pr.Name);
-                        {
-                            var withBlock2 = tr.get_Item(dcCols.get_Item(pr.Name));
-                            Debug.Print(" ");
-                            if (pr.Value == withBlock2.Value)
-                                // Stop 'No change necessary
-                                Debug.Print(" (NO CHANGE)");
-                            else
-                            {
-                                withBlock2.Value = pr.Value;
-                                if (Information.Err().Number == 0)
-                                {
-                                    rt = 1 + rt;
-
-                                    //The update invalidated the dynamic
-                                    //We'll have to grab it again
-                                    {
-                                        var withBlock3 = tr.get_Item(dcCols.get_Item(pr.Name));
-                                        Debug.Print(" -> ");
-                                    }
-                                }
-                                else
-                                    Debug.Print(" <!!ERROR!!> Couldn't Change");
-                            }
-                        }
-                    }
-                }
-                else
-                    Debugger.Break();
-            }
-        }
-    }
-
-    public static Dictionary dcColumnsIPart(PartDocument pd)
-    {
-        //Retrieve Dictionary of iPart Factory Table Columns
-        //If supplied Part Document is NOT an iPart Factory
-        //OR Member, returned Dictionary will be null
-        // '
-        {
-            var withBlock = pd.ComponentDefinition;
-            if (withBlock.iPartMember == null)
-            {
-                return withBlock.iPartFactory == null
-                    ? new Dictionary()
-                    : dcIPartTbCols(withBlock.iPartFactory.TableColumns);
-            }
-
-            return dcIPartTbCols(withBlock.iPartMember.ParentFactory.TableColumns);
-        }
-    }
-
-    public static Dictionary dcColumnsIAssy(AssemblyDocument pd)
-    {
-        //Retrieve Dictionary of iAssembly Factory Table Columns
-        //If supplied Assembly Document is NOT an iAssembly Factory
-        //OR Member, returned Dictionary will be null
-        // '
-        {
-            var withBlock = pd.ComponentDefinition;
-            if (withBlock.iAssemblyMember == null)
-            {
-                return withBlock.iAssemblyFactory == null
-                    ? new Dictionary()
-                    : dcIAssyTbCols(withBlock.iAssemblyFactory.TableColumns);
-            }
-
-            return dcIAssyTbCols(withBlock.iAssemblyMember.ParentFactory.TableColumns);
-        }
-    }
-
-    public static Dictionary dcIPartTbCols(iPartTableColumns ls)
-    {
-        var rt = new Dictionary();
-
-        foreach (iPartTableColumn it in ls)
-        {
-            rt.Add(it.DisplayHeading, it.Index);
-            if (!Information.Err().Number) continue;
-            rt.Add(it.FormattedHeading, it.Index);
-            Information.Err().Clear();
-        }
-
-        return rt;
-    }
-
-    public static Dictionary dcIPartTbRows(iPartTableRows ls)
-    {
-        var rt = new Dictionary();
-
-        // REV[2022.08.05.1003]
-        // added error trap code to more gracefully handle
-        // errors accessing iPart/iAssembly factory table
-        // (replicated changes also to dcIAssyTbRows)
-        long ck = ls.Count; // to trigger potential error
-
-        if (Information.Err().Number == 0)
-        {
-            foreach (iPartTableRow it in ls)
-            {
-                // REV[2022.03.23.1618]
-                // replacing Index of iPartTableRow
-                // with iPartTableRow itself, so it
-                // can just be pulled directly out
-                // of the Dictionary by the client
-                // process. if it needs the Index,
-                // it can just get it itself, right?
-                rt.Add(it.MemberName, it);
-                rt.Add(it.PartName, it);
-                Debug.Print(""); // debug landing
-            }
-        }
-        else
-        {
-            Debug.Print(
-                "ERROR " + Convert.ToHexString(Information.Err().Number) + " (" + Hex(Information.Err().Number) + ")" +
-                Constants.vbCrLf + Information.Err().Description);
-            Debug.Print(Join(new[]
-            {
-                "Could not access Table Rows", "for member of iPart factory."
-            }, Constants.vbCrLf));
-            // Stop
-            Debug.Print(""); // Breakpoint Landing
-        }
-
-        return rt;
-    }
-
-    public static Dictionary dcIAssyTbCols(iAssemblyTableColumns ls)
-    {
-        var rt = new Dictionary();
-
-        foreach (iAssemblyTableColumn it in ls)
-        {
-            rt.Add(it.DisplayHeading, it.Index);
-            if (!Information.Err().Number) continue;
-            rt.Add(it.FormattedHeading, it.Index);
-            Information.Err().Clear();
-        }
-
-        return rt;
-    }
-
-    public static Dictionary dcIAssyTbRows(iAssemblyTableRows ls)
-    {
-        var rt = new Dictionary();
-
-        // REV[2022.08.05.1003]
-        // added error trap code to more gracefully handle
-        // errors accessing iPart/iAssembly factory table
-        // (replicated from dcIPartTbRows)
-        long ck = ls.Count; // to trigger potential error
-
-        if (Information.Err().Number == 0)
-        {
-            foreach (iAssemblyTableRow it in ls)
-            {
-                rt.Add(it.MemberName, it.Index);
-                rt.Add(it.DocumentName, it.Index);
-                Debug.Print(""); // debug landing
-            }
-        }
-        else
-        {
-            Debug.Print(
-                "ERROR " + Convert.ToHexString(Information.Err().Number) + " (" + Hex(Information.Err().Number) + ")" +
-                Constants.vbCrLf + Information.Err().Description);
-            Debug.Print(Join(new[]
-            {
-                "Could not access Table Rows", "for member of iAssembly factory."
-            }, Constants.vbCrLf));
-            Debugger.Break();
-        }
-
-        return rt;
-    }
-
-    public static iPartTableColumn m1g1f2(dynamic vr)
-    {
-        return vr;
-    }
-
-    public static long m1g1f3(AssemblyDocument ad)
-    {
-        long rt = 0;
-        foreach (ComponentOccurrence oc in ad.ComponentDefinition.Occurrences) // (1)
-        {
-            {
-                var withBlock = oc.Definition;
-                // Debug.Print Hex$(aiDocument(.Document).Type)
-                // Stop
-                if (aiDocument(withBlock.Document).DocumentType == kPartDocumentObject)
-                    rt = rt + iSyncPartFactory(aiDocPart(withBlock.Document));
-            }
-        }
-
-        return rt;
-    }
-
-    public static long m1g1f4()
-    {
-        return m1g1f3(aiDocAssy(ThisApplication.ActiveDocument));
-    }
-
-    public static Dictionary m1g1f5(PartDocument pd)
-    {
-        //Retrieve Dictionary of Custom Properties
-        // '
-        // Dim dcMember As Scripting.Dictionary
-
-        var rt = new Dictionary();
-        {
-            var psMember = pd.PropertySets.get_Item(gnCustom);
-            {
-                var withBlock1 = pd.ComponentDefinition;
-                if (!withBlock1.iPartMember == null)
-                {
-                    {
-                        var withBlock2 = withBlock1.iPartMember;
-                        Dictionary dcFactry;
-                        PropertySet psFactry;
-                        {
-                            var withBlock3 = aiDocument(withBlock2.ParentFactory.Parent);
-                            psFactry = withBlock3.PropertySets.get_Item(gnCustom);
-                            dcFactry = dcAiPropsInSet(psFactry);
-                        }
-
-                        foreach (Property pr in psMember)
-                        {
-                            if (!dcFactry.Exists(pr.Name))
-                                // rt.Add pr.Name, pr
-                                rt = dcWithProp(psFactry, pr.Name, pr.Value, rt);
-                        }
-                    }
-                }
-            }
-        }
-        return rt;
-    }
-
-    public static string m1g1f5t0()
-    {
-        return Join(
-            m1g1f5(aiDocPart(aiDocAssy(ThisApplication.ActiveDocument).ComponentDefinition.Occurrences.get_Item(1)
-                .Definition.Document)).Keys, Constants.vbCrLf);
-    }
-}

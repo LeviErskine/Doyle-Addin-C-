@@ -1,266 +1,265 @@
-﻿using Microsoft.VisualBasic;
+VERSION 5.00
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} fmTest2 
+   Caption         =   "Please Review Item #"
+   ClientHeight    =   5895
+   ClientLeft      =   120
+   ClientTop       =   450
+   ClientWidth     =   3990
+   OleObjectBlob   =   "fmTest2.frx":0000
+   StartUpPosition =   1  'CenterOwner
+End
+Attribute VB_Name = "fmTest2"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Explicit
 
-class fmTest2 : Form
-{
-    private var VB_Name = "fmTest2";
+Private ad As Inventor.Document
 
-    private var VB_GlobalNameSpace = false;
+Private psDsn As Inventor.PropertySet
+Private psUsr As Inventor.PropertySet
 
-    private var VB_Creatable = false;
+Private dcDsn As Scripting.Dictionary
+Private dcUsr As Scripting.Dictionary
 
-    private var VB_PredeclaredId = true;
+Private prFam As Inventor.Property
+Private prStk As Inventor.Property
 
-    private var VB_Exposed = false;
+'Private dmFmHt As Long
+'Private dmFmWd As Long
+''Private dmLbMsHt As Long
+Private dmLbMsWd As Long
+''Private dmDfFmMsHt As Long
+''Private dmDfFmMsWd As Long
+Private dmFmHt2cmdTop As Long
 
-    private Document ad;
+Private rtAnswer As VbMsgBoxResult
 
-    private PropertySet psDsn;
-    private PropertySet psUsr;
+Public Function AskAbout( _
+    Optional AiDoc As Inventor.Document = Nothing, _
+    Optional txPre As String = "", _
+    Optional txPost As String = "" _
+) As VbMsgBoxResult
+    '''
+    ''' AskAbout -- prompt User for action
+    '''     to take on supplied Document
+    ''' UPDATE[2021.12.13]
+    '''     Document parameter now Optional.
+    '''     will attempt to use previously
+    '''     registered Document when none
+    '''     supplied. Warning/error message
+    '''     will be presented if no Document
+    '''     is registered OR supplied.
+    '''
+    Dim pc As stdole.IPictureDisp
+    Dim pn As String
+    Dim sn As String
+    Dim pd As String
+    Dim dj As Single 'use to adjust
+    '   form height and positions
+    '   of command buttons
+    
+    rtAnswer = vbCancel
+    If Not AiDoc Is Nothing Then
+        ad = AiDoc
+    End If
 
-    private Dictionary dcDsn;
-    private Dictionary dcUsr;
+    If ad Is Nothing Then
+        MsgBox "Review or Update requested" _
+            & vbNewLine & "but no Document provided!" _
+            & vbNewLine & "" _
+            & vbNewLine & "" _
+        , vbOKOnly, "No Document!"
+        rtAnswer = vbNo
+    ElseIf aiDocPartFromCCtr(ad) Is Nothing Then 'AiDoc
+        ' ad = AiDoc
+        With ad
+            pc = .Thumbnail
+            psDsn = .PropertySets(gnDesign)
+            psUsr = .PropertySets(gnCustom)
 
-    private Property prFam;
-    private Property prStk;
+            dcDsn = dcAiPropsInSet(psDsn)
+            dcUsr = dcAiPropsInSet(psUsr)
 
-    // Private dmFmHt As Long
-    // Private dmFmWd As Long
-    // 'Private dmLbMsHt As Long
-    private long dmLbMsWd;
+            prFam = psDsn.Item(pnFamily)
+            With dcUsr
+                If .Exists(pnRawMaterial) Then
+                    prStk = psUsr.Item(pnRawMaterial)
+                Else
+                    On Error Resume Next
+                    Err.Clear()
+                    prStk = psUsr.Add("", pnRawMaterial)
+                    If Err.Number Then
+                        Debug.Print Err.Number, Err.Description
+                        Stop
+                    Else
+                        .Add pnRawMaterial, prStk
+                    End If
+                    On Error GoTo 0
+                End If
+            End With
 
-    // 'Private dmDfFmMsHt As Long
-    // 'Private dmDfFmMsWd As Long
-    private long dmFmHt2cmdTop;
+            If Not prStk Is Nothing Then sn = prStk.Value
+            pn = psDsn.Item(pnPartNum).Value
+            pd = psDsn.Item(pnDesc).Value
+        End With
 
-    private VbMsgBoxResult rtAnswer;
+        With Me
+            .Caption = "Please Review Item: " & pn
 
-    public VbMsgBoxResult AskAbout(Document AiDoc = null, string txPre = "", string txPost = ""
-    )
-    {
-        // AskAbout -- prompt User for action
-        // to take on supplied Document
-        // UPDATE[2021.12.13]
-        // Document parameter now Optional.
-        // will attempt to use previously
-        // registered Document when none
-        // supplied. Warning/error message
-        // will be presented if no Document
-        // is registered OR supplied.
-        // 
-        string sn;
-        float dj; // use to adjust
-        // form height and positions
-        // of command buttons
+            If pc Is Nothing Then
+            Else
+                .imThmNail.Picture = pc
+            End If
 
-        rtAnswer = Constants.vbCancel;
-        if (!AiDoc == null)
-            ad = AiDoc;
+            dj = fmHtAdjust(lblHtAdjust(.lbMsg,
+                IIf(Len(txPre) > 0,
+                    txPre & vbNewLine & vbNewLine, ""
+                ) & Join(Array(pn & ": " & pd,
+                    pnCatWebLink & ": " & psDsn.Item(pnCatWebLink).Value,
+                    pnMaterial & ": " & psDsn.Item(pnMaterial).Value
+                ), vbNewLine & vbNewLine) _
+                & IIf(Len(txPost) > 0,
+                    vbNewLine & vbNewLine & txPost, ""
+                )
+            ))
+            '.dbFamily.Value = prFam.Value
 
-        if (ad == null)
-        {
-            MessageBox.Show("Review or Update requested"
-                            + Constants.vbCrLf + "but no Document provided!"
-                            + Constants.vbCrLf + ""
-                            + Constants.vbCrLf + ""
-                , Constants.vbOKOnly, "No Document!");
-            rtAnswer = Constants.vbNo;
-        }
-        else if (aiDocPartFromCCtr(ad) == null)
-        {
-            // ad = AiDoc
-            stdole.IPictureDisp pc;
-            string pn;
-            string pd;
-            {
-                var withBlock = ad;
-                pc = withBlock.Thumbnail;
-                psDsn = withBlock.PropertySets(gnDesign);
-                psUsr = withBlock.PropertySets(gnCustom);
+            .Show 1
+        End With
+    Else
+        MsgBox ad.DisplayName _
+            & vbNewLine & "is a Content Center part" _
+            & vbNewLine & "and cannot be updated." _
+            & vbNewLine & "" _
+            & vbNewLine & "" _
+        , vbOKOnly, "Can't Update!" 'AiDoc
+        rtAnswer = vbYes
+    End If
 
-                dcDsn = dcAiPropsInSet(psDsn);
-                dcUsr = dcAiPropsInSet(psUsr);
+    AskAbout = rtAnswer 'vbYes ' = 1
+End Function
 
-                prFam = psDsn.get_Item(pnFamily);
-                {
-                    var withBlock1 = dcUsr;
-                    if (withBlock1.Exists(pnRawMaterial))
-                        prStk = psUsr.get_Item(pnRawMaterial);
-                    else
-                    {
-                        Information.Err().Clear();
-                        prStk = psUsr.Add("", pnRawMaterial);
-                        if (Information.Err().Number)
-                        {
-                            Debug.Print(Information.Err().Number, Information.Err().Description);
-                            Debugger.Break();
-                        }
-                        else
-                            withBlock1.Add(pnRawMaterial, prStk);
-                    }
-                }
+Public Function Using(
+    AiDoc As Inventor.Document
+) As fmTest2
+    '''
+    ''' NEWMETHOD[2021.12.13]
+    ''' Using -- assign supplied Document
+    '''     for use in all subsequent calls
+    '''     to AskAbout without one.
+    '''
+    rtAnswer = vbCancel
 
-                if (!prStk == null)
-                    sn = prStk.Value;
-                pn = psDsn.get_Item(pnPartNum).Value;
-                pd = psDsn.get_Item(pnDesc).Value;
-            }
+    If Not AiDoc Is Nothing Then
+        ad = AiDoc
+    End If
 
-            {
-                var withBlock = this;
-                withBlock.Caption = "Please Review Item: " + pn;
+    Using = Me
+End Function
 
-                if (pc == null)
-                {
-                }
-                else
-                    withBlock.imThmNail.Picture = pc;
+Public Function Document(
+    Optional AiDoc As Inventor.Document = Nothing
+) As Inventor.Document
+    '''
+    ''' NEWMETHOD[2021.12.13]
+    ''' Document -- return currently active Document
+    '''
+    If AiDoc Is Nothing Then
+        Document = ad
+    Else
+        Document = Me.Using(AiDoc).Document
+    End If
+End Function
 
-                dj = fmHtAdjust(lblHtAdjust(withBlock.lbMsg, Interaction.IIf(Strings.Len(txPre) > 0,
-                        txPre + Constants.vbCrLf + Constants.vbCrLf, ""
-                    ) + Join(new[]
-                      {
-                          pn + ": " + pd, pnCatWebLink + ": " + psDsn.get_Item(pnCatWebLink).Value,
-                          pnMaterial + ": " + psDsn.get_Item(pnMaterial).Value
-                      }, Constants.vbCrLf + Constants.vbCrLf)
-                      + Interaction.IIf(Strings.Len(txPost) > 0, Constants.vbCrLf + Constants.vbCrLf + txPost, ""
-                      )
-                ));
-                // .dbFamily.Value = prFam.Value
+Private Function fmHtAdjust(by As Long) As Single
+    Dim cmdTop As Long
 
-                withBlock.Show(1);
-            }
-        }
-        else
-        {
-            MessageBox.Show(ad.DisplayName
-                            + Constants.vbCrLf + "is a Content Center part"
-                            + Constants.vbCrLf + "and cannot be updated."
-                            + Constants.vbCrLf + ""
-                            + Constants.vbCrLf + ""
-                , Constants.vbOKOnly, "Can't Update!");
-            rtAnswer = Constants.vbYes;
-        }
+    With Me
+        .Height = .Height + by
 
-        return rtAnswer; // vbYes ' = 1
-    }
+        .cmdLt.Top = .Height - dmFmHt2cmdTop
+        .cmdCt.Top = .cmdLt.Top
+        .cmdRt.Top = .cmdLt.Top
 
-    public fmTest2 Using(Document AiDoc
-    )
-    {
-        // NEWMETHOD[2021.12.13]
-        // Using -- assign supplied Document
-        // for use in all subsequent calls
-        // to AskAbout without one.
-        // 
-        rtAnswer = Constants.vbCancel;
+        fmHtAdjust = .Height
+    End With
+End Function
 
-        if (!AiDoc == null)
-            ad = AiDoc;
+Private Function lblHtAdjust(
+    lb As MSForms.Label, tx As String
+) As Single
+    Dim ct As MSForms.Control
+    Dim au As Boolean
+    Dim wd As Single
+    Dim ht As Single
 
-        using ( == this);
-        {
-        }
-    }
+    ct = lb
+    With ct
+        wd = .Width
+        ht = .Height
 
-    public Document Document(Document AiDoc = null
-    )
-    {
-        // NEWMETHOD[2021.12.13]
-        // Document -- return currently active Document
-        // 
-        if (AiDoc == null)
-            return ad;
-        return Using(AiDoc).Document;
-    }
+        With lb
+            au = .AutoSize
+            .Caption = tx
+            .AutoSize = True
+            ct.Width = dmLbMsWd
+            .AutoSize = au
+        End With
 
-    private float fmHtAdjust(long by)
-    {
-        long cmdTop;
+        lblHtAdjust = Int(.Height - ht)
+    End With
+End Function
 
-        {
-            var withBlock = this;
-            withBlock.Height = withBlock.Height + by;
+Private Sub cmdCt_Click()
+    rtAnswer = vbNo
+    Me.Hide()
+End Sub
 
-            withBlock.cmdLt.Top = withBlock.Height - dmFmHt2cmdTop;
-            withBlock.cmdCt.Top = withBlock.cmdLt.Top;
-            withBlock.cmdRt.Top = withBlock.cmdLt.Top;
+Private Sub cmdLt_Click()
+    rtAnswer = vbYes
+    Me.Hide()
+End Sub
 
-            return withBlock.Height;
-        }
-    }
+Private Sub cmdRt_Click()
+    rtAnswer = vbCancel
+    Me.Hide()
+End Sub
 
-    private float lblHtAdjust(Label lb, string tx
-    )
-    {
-        Control ct = lb;
-        {
-            float ht = ct.Height;
+Private Sub UserForm_Initialize()
+    '''
+    With Me
+        'dmFmHt = .Height
+        'dmFmWd = .Width
+        With .lbMsg
+            'dmLbMsHt = .Height
+            dmLbMsWd = .Width
+        End With
+        dmFmHt2cmdTop = .Height - .cmdLt.Top
+    End With
+    'dmDfFmMsWd = dmFmWd - dmLbMsWd
+    'dmDfFmMsHt = dmFmHt - dmLbMsHt
+    rtAnswer = vbCancel
+End Sub
 
-            {
-                var au = lb.AutoSize;
-                lb.Caption = tx;
-                lb.AutoSize = true;
-                ct.Width = dmLbMsWd;
-                lb.AutoSize = au;
-            }
+Private Sub UserForm_Click()
+    '''
+End Sub
 
-            return Int(ct.Height - ht);
-        }
-    }
+Private Sub UserForm_Layout()
+    'Stop
+End Sub
 
-    private void cmdCt_Click()
-    {
-        rtAnswer = Constants.vbNo;
-        Hide();
-    }
+Private Sub UserForm_QueryClose(
+    Cancel As Integer, CloseMode As Integer
+)
+    Cancel = 1
+    Me.Hide()
+End Sub
 
-    private void cmdLt_Click()
-    {
-        rtAnswer = Constants.vbYes;
-        Hide();
-    }
+Private Sub UserForm_Terminate()
+    'cn.Close
+    ' cn = Nothing
+End Sub
 
-    private void cmdRt_Click()
-    {
-        rtAnswer = Constants.vbCancel;
-        Hide();
-    }
-
-    private void UserForm_Initialize()
-    {
-        // 
-        {
-            var withBlock = this;
-            // dmFmHt = .Height
-            // dmFmWd = .Width
-            {
-                var withBlock1 = withBlock.lbMsg;
-                // dmLbMsHt = .Height
-                dmLbMsWd = withBlock1.Width;
-            }
-            dmFmHt2cmdTop = withBlock.Height - withBlock.cmdLt.Top;
-        }
-        // dmDfFmMsWd = dmFmWd - dmLbMsWd
-        // dmDfFmMsHt = dmFmHt - dmLbMsHt
-        rtAnswer = Constants.vbCancel;
-    }
-
-    private void UserForm_Click()
-    {
-    }
-
-    private void UserForm_Layout()
-    {
-    }
-
-    private void UserForm_QueryClose(int Cancel, int CloseMode
-    )
-    {
-        Cancel = 1;
-        Hide();
-    }
-
-    private void UserForm_Terminate()
-    {
-    }
-}

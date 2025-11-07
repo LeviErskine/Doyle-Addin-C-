@@ -1,74 +1,93 @@
-﻿using Microsoft.VisualBasic;
 
-namespace Doyle_Addin.Genius.Classes;
 
-public class libFSys
-{
-    public static FileSystemObject nuFso()
-    {
-        return new FileSystemObject();
-    }
+Public Function nuFso() As Scripting.FileSystemObject
+    Set nuFso = New Scripting.FileSystemObject
+End Function
 
-    public static Folder fdUserHome()
-    {
-        return nuFso().GetFolder(Interaction.Environ("AppData")).ParentFolder;
-    }
+Public Function fdUserHome() As Scripting.Folder
+    Set fdUserHome = nuFso.GetFolder(Environ("AppData")).ParentFolder
+End Function
 
-    public static string fnExt(string fn)
-    {
-        var ar = Strings.Split(fn, ".");
-        var mx = ar.Length - 1;
-        return mx < 0 ? "" : ar[mx];
-    }
+Public Function fnExt(fn As String) As String
+    Dim ar As Variant
+    Dim mx As Long
+    
+    ar = Split(fn, ".")
+    mx = UBound(ar)
+    If mx < 0 Then
+        fnExt = ""
+    Else
+        fnExt = ar(mx)
+    End If
+End Function
 
-    public static Folder folderIfPresent(string Path, Folder Base = null)
-    {
-        Folder rt;
+Public Function folderIfPresent(Path As String, _
+    Optional Base As Scripting.Folder = Nothing _
+) As Scripting.Folder
+    Dim rt As Scripting.Folder
+    
+    If Base Is Nothing Then
+        With nuFso()
+            If .FolderExists(Path) Then
+                Set rt = .GetFolder(Path)
+            Else
+                Set rt = Nothing
+            End If
+        End With
+    Else
+        Set rt = folderIfPresent(Base.Path & "\" & Path)
+    End If
+    
+    Set folderIfPresent = rt
+End Function
 
-        if (Base == null)
-        {
-            var withBlock = nuFso();
-            rt = withBlock.FolderExists(Path) ? withBlock.GetFolder(Path) : null;
-        }
-        else
-            rt = folderIfPresent(Base.Path + @"\" + Path);
+Public Function fileIfPresent(Path As String, _
+    Optional Base As Scripting.Folder = Nothing _
+) As Scripting.File
+    Dim rt As Scripting.File
+    
+    If Base Is Nothing Then
+        With nuFso()
+            If .FileExists(Path) Then
+                Set rt = .GetFile(Path)
+            Else
+                Set rt = Nothing
+            End If
+        End With
+    Else
+        Set rt = fileIfPresent(Base.Path & "\" & Path)
+    End If
+    
+    Set fileIfPresent = rt
+End Function
 
-        return rt;
-    }
+Public Function dcFilesIn(fd As Scripting.Folder) As Scripting.Dictionary
+    Dim rt As Scripting.Dictionary
+    Dim fl As Scripting.File
+    
+    Set rt = New Scripting.Dictionary
+    If Not fd Is Nothing Then
+        For Each fl In fd.Files
+            rt.Add fl.Name, fl
+        Next
+    End If
+    Set dcFilesIn = rt
+End Function
+'send2clipBd dcFilesIn(nuFso.GetFolder(""))
+'send2clipBd Join(dcFoldersIn(nuFso.GetFolder("C:\Doyle_Vault\Designs\doyle")).Keys, vbNewLine)
+'send2clipBd Join(dcFilesIn(nuFso.GetFolder("W:\Parts Lists")).Keys, vbNewLine)
 
-    public static Scripting.File fileIfPresent(string Path, Folder Base = null)
-    {
-        Scripting.File rt;
-
-        if (Base == null)
-        {
-            var withBlock = nuFso();
-            rt = withBlock.FileExists(Path) ? withBlock.GetFile(Path) : null;
-        }
-        else
-            rt = fileIfPresent(Base.Path + @"\" + Path);
-
-        return rt;
-    }
-
-    public static Dictionary dcFilesIn(Folder fd)
-    {
-        var rt = new Dictionary();
-        if (fd == null) return rt;
-        foreach (Scripting.File fl in fd.Files)
-            rt.Add(fl.Name, fl);
-        return rt;
-    }
-    // send2clipBd dcFilesIn(nuFso.GetFolder(""))
-    // send2clipBd Join(dcFoldersIn(nuFso.GetFolder("C:\Doyle_Vault\Designs\doyle")).Keys, vbCrLf)
-    // send2clipBd Join(dcFilesIn(nuFso.GetFolder("W:\Parts Lists")).Keys, vbCrLf)
-
-    public static Dictionary dcFoldersIn(Folder fd)
-    {
-        var rt = new Dictionary();
-        if (fd == null) return rt;
-        foreach (Folder fl in fd.SubFolders)
-            rt.Add(fl.Name, fl);
-        return rt;
-    }
-}
+Public Function dcFoldersIn( _
+    fd As Scripting.Folder _
+) As Scripting.Dictionary
+    Dim rt As Scripting.Dictionary
+    Dim fl As Scripting.Folder
+    
+    Set rt = New Scripting.Dictionary
+    If Not fd Is Nothing Then
+        For Each fl In fd.SubFolders
+            rt.Add fl.Name, fl
+        Next
+    End If
+    Set dcFoldersIn = rt
+End Function

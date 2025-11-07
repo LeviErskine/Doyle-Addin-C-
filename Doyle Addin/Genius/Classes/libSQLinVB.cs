@@ -1,26 +1,32 @@
-﻿using Microsoft.VisualBasic;
 
-namespace Doyle_Addin.Genius.Classes;
 
-internal class libSQLinVB
-{
-    private string sqlTextInVBcode(string nm)
-    {
-        dynamic ar = Split(nm, "'''SQL'''");
-        return UBound(ar) < 1
-            ? ""
-            :
-            // sqlTextInVBcode = ar(1)
-            Join(Split(ar(1), Constants.vbCrLf + "'"), Constants.vbCrLf);
-    }
+Public Function sqlTextInVBcode(nm As String) As String
+    Dim ar As Variant
+    
+    ar = Split(nm, "'''SQL'''")
+    If UBound(ar) < 1 Then
+        sqlTextInVBcode = ""
+    Else
+        'sqlTextInVBcode = ar(1)
+        sqlTextInVBcode = Join(Split( _
+            ar(1), vbNewLine & "'" _
+        ), vbNewLine)
+    End If
+End Function
 
-    private string sqlTextInDict(string nm, Dictionary dc)
-    {
-        return sqlTextInVBcode(vbTextOfProcInDict(nm, dc));
-    }
+Public Function sqlTextInDict( _
+    nm As String, dc As Scripting.Dictionary _
+) As String
+    sqlTextInDict = sqlTextInVBcode( _
+        vbTextOfProcInDict(nm, dc) _
+    )
+End Function
 
-    public string sqlTextInProject(string nm, VBIDE.VBProject pj)
-    {
-        return sqlTextInDict(nm, dcOfVbProcsFlat(pj));
-    }
-}
+Public Function sqlTextInProject( _
+    nm As String, pj As VBIDE.VBProject _
+) As String
+    sqlTextInProject = sqlTextInDict( _
+        nm, dcOfVbProcsFlat(pj) _
+    )
+End Function
+

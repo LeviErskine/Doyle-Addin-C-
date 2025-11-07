@@ -1,113 +1,150 @@
-﻿// For DataObject (Clipboard)
 
-using Microsoft.VisualBasic;
-using static Microsoft.VisualBasic.Strings; // VB helper functions: Replace, Space, Mid, Len, Join, StrDup
-// Autodesk Inventor types
-// For kPurchasedBOMStructure
-using VbMsgBoxResult = Microsoft.VisualBasic.MsgBoxResult; // Align VB-style result type
-using MsgBoxStyle = Microsoft.VisualBasic.MsgBoxStyle;
 
-namespace Doyle_Addin.Genius.Classes;
+Public Function Repeat( _
+    Count As Long, Text As String _
+) As String
+    Repeat = Replace(Space$(Count), " ", Text)
+End Function
 
-public class lib1
-{
-    public static string Repeat(long Count, string Text)
-    {
-        return Replace(Space((int)Count), " ", Text);
-    }
+Public Function txBlk( _
+    Lines As Long, Chars As Long, _
+    Optional Use As String = "+" _
+) As String
+    txBlk = Mid$(Repeat( _
+        Lines, vbNewLine _
+        & String$(Chars, "+") _
+    ), 1 + Len(vbNewLine))
+End Function
 
-    public static string txBlk(long Lines, long Chars, string Use = "+")
-    {
-        // Build a block of Lines, each with Chars of the specified symbol, separated by CRLF
-        return Mid(Repeat(Lines, Constants.vbCrLf + StrDup((int)Chars, Use)), 1 + Len(Constants.vbCrLf));
-    }
+Public Sub MakeActivePurchased()
+    Dim md As Inventor.Document
+    Dim ck As VbMsgBoxResult
+    
+    Set md = ThisApplication.ActiveDocument
+    If md Is ThisDocument Then
+        ck = vbNo
+    Else
+        ck = mkAiDocPurchased(md)
+    End If
+        
+    If ck = vbOK Then
+        ck = MsgBox(Join(Array( _
+            "Model BOM Structure", _
+            "now Purchased." _
+        ), vbNewLine), _
+            vbOKOnly + vbInformation, _
+            "Success!" _
+        )
+    ElseIf ck = vbNo Then
+        ck = MsgBox(Join(Array( _
+            "Document is not", _
+            "a valid Model.", _
+            "", _
+            "Please select a", _
+            "Part or Assembly." _
+        ), vbNewLine), _
+            vbOKOnly + vbExclamation, _
+            "No Model" _
+        )
+    ElseIf ck = vbAbort Then
+        ck = MsgBox(Join(Array( _
+            "Failed to update", _
+            "model's BOM Structure!", _
+            "", _
+            "Check for locks", _
+            "or other issues." _
+        ), vbNewLine), _
+            vbOKOnly + vbCritical, _
+            "Change Failed!" _
+        )
+    Else
+        ck = MsgBox(Join(Array( _
+            "Change Operation returned", _
+            "unexpected result code.", _
+            "", _
+            "Please review model status." _
+        ), vbNewLine), _
+            vbOKOnly + vbQuestion, _
+            "Result Unknown" _
+        )
+    End If
+End Sub
 
-    public static void MakeActivePurchased()
-    {
-        Document md = ThisApplication.ActiveDocument;
-        var ck = md == ThisDocument ? Constants.vbNo : mkAiDocPurchased(md);
+Public Function mkAiDocPurchased( _
+    AiDoc As Inventor.Document _
+) As VbMsgBoxResult
+    Dim ck As VbMsgBoxResult
+    
+    If TypeOf AiDoc Is Inventor.PartDocument Then
+        ck = mkAiPartPurchased(AiDoc)
+    ElseIf TypeOf AiDoc Is Inventor.AssemblyDocument Then
+        ck = mkAiAssyPurchased(AiDoc)
+    Else
+        ck = vbNo
+    End If
+    
+    mkAiDocPurchased = ck
+End Function
 
-        switch (ck)
-        {
-            case Constants.vbOK:
-                ck = Interaction.MsgBox(Join(new[]
-                    {
-                        "Model BOM Structure", "now Purchased."
-                    }, Constants.vbCrLf),
-                    Constants.vbOKOnly | Constants.vbInformation, "Success!");
-                break;
-            case Constants.vbNo:
-                ck = Interaction.MsgBox(
-                    Join(new[] { "Document is not", "a valid Model.", "", "Please select a", "Part or Assembly." },
-                        Constants.vbCrLf), Constants.vbOKOnly | Constants.vbExclamation, "No Model");
-                break;
-            case Constants.vbAbort:
-                ck = Interaction.MsgBox(
-                    Join(new[] { "Failed to update", "model's BOM Structure!", "", "Check for locks", "or other issues." },
-                        Constants.vbCrLf), Constants.vbOKOnly | Constants.vbCritical, "Change Failed!");
-                break;
-            case VbMsgBoxResult.Cancel:
-            case VbMsgBoxResult.Retry:
-            case VbMsgBoxResult.Ignore:
-            case VbMsgBoxResult.Yes:
-                break;
-            default:
-                ck = Interaction.MsgBox(
-                    Join(
-                        new[] { "Change Operation returned", "unexpected result code.", "", "Please review model status." },
-                        Constants.vbCrLf), Constants.vbOKOnly | Constants.vbQuestion, "Result Unknown");
-                break;
-        }
-    }
+Public Function mkAiPartPurchased( _
+    AiDoc As Inventor.PartDocument _
+) As VbMsgBoxResult
+    If AiDoc Is Nothing Then
+        mkAiPartPurchased = vbNo
+    Else
+    With AiDoc.ComponentDefinition
+        On Error Resume Next
+        Err.Clear
+        .BOMStructure = kPurchasedBOMStructure
+        If Err.Number = 0 Then
+            mkAiPartPurchased = vbOK
+        Else
+            mkAiPartPurchased = vbAbort
+        End If
+        On Error GoTo 0
+    End With: End If
+End Function
 
-    public static VbMsgBoxResult mkAiDocPurchased(Document AiDoc)
-    {
-        var ck = AiDoc switch
-        {
-            PartDocument p => mkAiPartPurchased(p),
-            AssemblyDocument a => mkAiAssyPurchased(a),
-            _ => Constants.vbNo
-        };
+Public Function mkAiAssyPurchased( _
+    AiDoc As Inventor.AssemblyDocument _
+) As VbMsgBoxResult
+    If AiDoc Is Nothing Then
+        mkAiAssyPurchased = vbNo
+    Else
+    With AiDoc.ComponentDefinition
+        On Error Resume Next
+        Err.Clear
+        .BOMStructure = kPurchasedBOMStructure
+        If Err.Number = 0 Then
+            mkAiAssyPurchased = vbOK
+        Else
+            mkAiAssyPurchased = vbAbort
+        End If
+        On Error GoTo 0
+    End With: End If
+End Function
 
-        return ck;
-    }
+Public Function dcTemplate0A( _
+    Optional dc As Scripting.Dictionary = Nothing _
+) As Scripting.Dictionary
+    Dim rt As Scripting.Dictionary
+    
+    If dc Is Nothing Then
+        Set rt = dcTemplate0A( _
+            New Scripting.Dictionary _
+        )
+    Else
+        Set rt = dc
+    End If
+    
+    Set dcTemplate0A = rt
+End Function
 
-    public static VbMsgBoxResult mkAiPartPurchased(PartDocument AiDoc)
-    {
-        if (AiDoc == null)
-            return Constants.vbNo;
-        var withBlock = AiDoc.ComponentDefinition;
-        // Use VB Err object to detect COM errors
-        Information.Err().Clear();
-        withBlock.BOMStructure = kPurchasedBOMStructure;
-        return Information.Err().Number == 0 ? Constants.vbOK : Constants.vbAbort;
-    }
+Public Function send2clipBd_OBSOLETE(src As Variant) As Variant
+    With New MSForms.DataObject
+        .SetText src
+        .PutInClipboard
+    End With
+    send2clipBd_OBSOLETE = src
+End Function
 
-    public static VbMsgBoxResult mkAiAssyPurchased(AssemblyDocument AiDoc)
-    {
-        if (AiDoc == null)
-            return Constants.vbNo;
-        var withBlock = AiDoc.ComponentDefinition;
-        Information.Err().Clear();
-        withBlock.BOMStructure = kPurchasedBOMStructure;
-        return Information.Err().Number == 0 ? Constants.vbOK : Constants.vbAbort;
-    }
-
-    public static Dictionary dcTemplate0A(Dictionary dc = null)
-    {
-        var rt = dc ?? dcTemplate0A(new Dictionary());
-
-        return rt;
-    }
-
-    public static dynamic send2clipBd_OBSOLETE(dynamic src)
-    {
-        {
-            var withBlock = new DataObject();
-            withBlock.SetText(src);
-            // VB-style DataObject.PutInClipboard is not available in WinForms; use Clipboard API instead
-            Clipboard.SetDataObject(withBlock, true);
-        }
-        return src;
-    }
-}

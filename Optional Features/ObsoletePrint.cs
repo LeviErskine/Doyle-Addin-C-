@@ -1,6 +1,4 @@
-﻿
-
-namespace Doyle_Addin;
+﻿namespace Doyle_Addin;
 
 internal static class ObsoletePrint
 {
@@ -8,26 +6,17 @@ internal static class ObsoletePrint
     public static void ApplyObsoletePrint(Application thisApplication)
     {
         // Get the active drawing document
-        if (thisApplication.ActiveDocument is not DrawingDocument drawingDoc)
-        {
-            return;
-        }
+        if (thisApplication.ActiveDocument is not DrawingDocument drawingDoc) return;
 
         foreach (Sheet sheet in drawingDoc.Sheets)
         {
             // Get the appropriate symbol name for this sheet size
             var symbolName = GetSymbolNameForSheetSize(sheet.Size);
-            if (string.IsNullOrEmpty(symbolName))
-            {
-                continue; // Skip unsupported sheet sizes
-            }
+            if (string.IsNullOrEmpty(symbolName)) continue; // Skip unsupported sheet sizes
 
             // Get or load the symbol definition
             var symbolDefinition = GetSymbolDefinition(symbolName, drawingDoc, thisApplication);
-            if (symbolDefinition is null)
-            {
-                continue; // Skip if the symbol cannot be found or loaded
-            }
+            if (symbolDefinition is null) continue; // Skip if the symbol cannot be found or loaded
 
             // Delete existing instances of this symbol on the sheet
             DeleteExistingSymbolInstances(sheet, symbolName);
@@ -47,12 +36,13 @@ internal static class ObsoletePrint
             DrawingSheetSizeEnum.kCDrawingSheetSize => "OBSOLETE C",
             DrawingSheetSizeEnum.kDDrawingSheetSize => "OBSOLETE D",
             DrawingSheetSizeEnum.kEDrawingSheetSize => "OBSOLETE E",
-            _ => string.Empty
+            _                                       => string.Empty
         };
     }
 
     // Gets the symbol definition from the document or library
-    private static SketchedSymbolDefinition GetSymbolDefinition(string symbolName, DrawingDocument drawingDoc, Application thisApplication)
+    private static SketchedSymbolDefinition GetSymbolDefinition(string symbolName, DrawingDocument drawingDoc,
+        Application thisApplication)
     {
         // Step 1: Try to get the symbol from the active document itself
         SketchedSymbolDefinition symbolDefinition = null;
@@ -65,16 +55,14 @@ internal static class ObsoletePrint
             // Symbol not in the document, need to get it from the library
         }
 
-        if (symbolDefinition is not null)
-        {
-            return symbolDefinition;
-        }
+        if (symbolDefinition is not null) return symbolDefinition;
 
         // Step 2: Search loaded libraries
         SketchedSymbolDefinitionLibrary symbolLibrary;
         try
         {
-            symbolLibrary = FindFromLibraries(symbolName, drawingDoc.SketchedSymbolDefinitions.SketchedSymbolDefinitionLibraries);
+            symbolLibrary = FindFromLibraries(symbolName,
+                drawingDoc.SketchedSymbolDefinitions.SketchedSymbolDefinitionLibraries);
         }
         catch
         {
@@ -87,10 +75,8 @@ internal static class ObsoletePrint
         {
             var libraryPath = CopyObsoleteLibrary();
             if (!string.IsNullOrEmpty(libraryPath))
-            {
                 // Library copied successfully, restart the entire process
                 ApplyObsoletePrint(thisApplication);
-            }
             return null;
         }
 
@@ -117,10 +103,7 @@ internal static class ObsoletePrint
             for (var i = sheet.SketchedSymbols.Count; i >= 1; i -= 1)
             {
                 var sketchedSymbol = sheet.SketchedSymbols[i];
-                if ((sketchedSymbol.Definition.Name ?? "") == (symbolName ?? ""))
-                {
-                    sketchedSymbol.Delete();
-                }
+                if ((sketchedSymbol.Definition.Name ?? "") == (symbolName ?? "")) sketchedSymbol.Delete();
             }
         }
         catch
@@ -149,15 +132,13 @@ internal static class ObsoletePrint
     private static string CopyObsoleteLibrary()
     {
         const string sourcePath = @"C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\Resources\ObsoleteLibrary.idw";
-        const string destinationPath = @"C:\Users\Public\Documents\Autodesk\Inventor 2025\Design Data\Symbol Library\ObsoleteLibrary.idw";
+        const string destinationPath =
+            @"C:\Users\Public\Documents\Autodesk\Inventor 2025\Design Data\Symbol Library\ObsoleteLibrary.idw";
 
         try
         {
             // Check if the source file exists
-            if (!File.Exists(sourcePath))
-            {
-                return string.Empty;
-            }
+            if (!File.Exists(sourcePath)) return string.Empty;
 
             // Ensure destination directory exists
             var destinationDir = Path.GetDirectoryName(destinationPath);
@@ -194,7 +175,6 @@ internal static class ObsoletePrint
     {
         return definitions.Cast<LibrarySketchedSymbolDefinition>().FirstOrDefault(libraryDefinition =>
             (libraryDefinition.Name ?? "") == (searchDefinitionName ?? ""));
-
 
         // If the loop finishes, the definition was not found.
     }

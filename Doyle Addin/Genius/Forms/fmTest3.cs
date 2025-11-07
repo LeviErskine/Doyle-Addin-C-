@@ -1,131 +1,134 @@
-﻿class fmTest3 : Form
-{
-    private var VB_Name = "fmTest3";
 
-    private var VB_GlobalNameSpace = false;
+Attribute VB_Name = "fmTest3"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
 
-    private var VB_Creatable = false;
 
-    private var VB_PredeclaredId = true;
+Private Sub UserForm_Click()
+    '
+End Sub
 
-    private var VB_Exposed = false;
+Private Sub UserForm_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
+    Debug.Print ft3g1f0(frmShp, "QUICK BROWN FOX JUMPED LAZY DOG")
+End Sub
 
-    private void UserForm_Click()
-    {
-    }
+Private Sub UserForm_Initialize()
+    Dim ct As MSForms.Control
+    Dim cb As MSForms.CheckBox
+    Dim dx As Long
+    Dim tp As Long
+    Dim gp As Long
+    Dim cp As String
+    
+    tp = 18
+    gp = 0
+    
+    For dx = 1 To 3
+        cp = "CB" & CStr(dx)
 
-    private void UserForm_DblClick(MSForms.ReturnBoolean Cancel)
-    {
-        Debug.Print(ft3g1f0(frmShp, "QUICK BROWN FOX JUMPED LAZY DOG"));
-    }
+        ct = frmShp.Controls.Add("Forms.CheckBox.1", cp, True) 'Me
+        With ct
+            .Height = 18
+            .Width = 96
+            .Left = 18
+            .Top = tp
 
-    private void UserForm_Initialize()
-    {
-        long dx;
+            tp = tp + .Height + gp
+        End With
 
-        long tp = 18;
-        const long gp = 0;
+        cb = ct
+        With cb
+            .Caption = cp
+        End With
+    Next
+End Sub
 
-        for (dx = 1; dx <= 3; dx++)
-        {
-            var cp = "CB" + Convert.ToString(dx);
+Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
+    Cancel = 1
+    Me.Hide()
 
-            Control ct = frmShp.Controls.Add("Forms.CheckBox.1", cp, true);
-            {
-                var withBlock = ct;
-                withBlock.Height = 18;
-                withBlock.Width = 96;
-                withBlock.Left = 18;
-                withBlock.Top = tp;
+    Debug.Print ft3g0f0(frmShp, "Check")
 
-                tp = tp + withBlock.Height + gp;
-            }
+    Dim cb As MSForms.CheckBox
+    For Each cb In frmShp.Controls
+        'Stop
+        If cb.Value Then
+            Debug.Print cb.Caption
+        End If
+    Next
+End Sub
 
-            CheckBox cb = ct;
-            {
-                var withBlock = cb;
-                withBlock.Caption = cp;
-            }
-        }
-    }
+Private Function ft3g0f0(
+    src As MSForms.Frame, fdName As String
+) As String
+    Dim ct As MSForms.Control
+    Dim cb As MSForms.CheckBox
+    Dim rt As String
 
-    private void UserForm_QueryClose(int Cancel, int CloseMode)
-    {
-        Cancel = 1;
-        this.Hide();
+    For Each ct In src.Controls
+        If TypeOf ct Is MSForms.CheckBox Then
+            cb = ct
+            If cb.Value Then
+                If Len(rt) > 0 Then
+                    'rt = rt & " OR "
+                    rt = rt & ", "
+                End If
+                'rt = rt & fdName & " = '" & cb.Caption & "'"
+                rt = rt & "'" & cb.Caption & "'"
+            End If
+        End If
+    Next
 
-        Debug.Print(ft3g0f0(frmShp, "Check"));
-        CheckBox cb;
-        foreach (var cb in frmShp.Controls)
-        {
-            // Stop
-            if (cb.Value)
-                Debug.Print(cb.Caption);
-        }
-    }
+    'ft3g0f0 = "(" & rt & ")"
+    ft3g0f0 = fdName & " IN (" & rt & ")"
+End Function
 
-    private string ft3g0f0(Frame src, string fdName
-    )
-    {
-        string rt;
+Private Function ft3g1f0(
+    frm As MSForms.Frame, ls As String,
+    Optional bk As String = " "
+) As Long
+    Dim ctrl As MSForms.Control
+    Dim cb As MSForms.CheckBox
+    Dim rt As String
+    Dim cp As Variant
+    Dim ct As Long
 
-        foreach (Control ct in src.Controls)
-        {
-            if (ct is not CheckBox) continue;
-            CheckBox cb = ct;
-            if (!cb.Value) continue;
-            if (Strings.Len(rt) > 0)
-                // rt = rt & " OR "
-                rt = rt + ", ";
-            // rt = rt & fdName & " = '" & cb.Caption & "'"
-            rt = rt + "'" + cb.Caption + "'";
-        }
+    Dim tp As Long
+    Dim gp As Long
 
-        // ft3g0f0 = "(" & rt & ")"
-        return fdName + " IN (" + rt + ")";
-    }
+    tp = 18
+    gp = 0
 
-    private long ft3g1f0(Frame frm, string ls, string bk = " "
-    )
-    {
-        string rt;
-        long ct;
+    With frm.Controls '.Remove
+        Do While .Count > 0
+            .Remove 0
+        Loop
 
-        long tp = 18;
-        const long gp = 0;
+        For Each cp In Split(ls, bk)
+            If Len(cp) > 0 Then
+                ctrl = .Add("Forms.CheckBox.1", cp, True)
+                With ctrl
+                    .Height = 18
+                    .Width = 96
+                    .Left = 18
+                    .Top = tp
 
-        {
-            var withBlock = frm.Controls // .Remove
-                ;
-            while (withBlock.Count > 0)
-                withBlock.Remove(0);
+                    tp = tp + .Height + gp
+                End With
 
-            foreach (var cp in Split(ls, bk))
-            {
-                if (Len(cp) <= 0) continue;
-                Control ctrl = withBlock.Add("Forms.CheckBox.1", cp, true);
-                {
-                    var withBlock1 = ctrl;
-                    withBlock1.Height = 18;
-                    withBlock1.Width = 96;
-                    withBlock1.Left = 18;
-                    withBlock1.Top = tp;
-
-                    tp = tp + withBlock1.Height + gp;
-                }
-
-                CheckBox cb = ctrl;
-                {
-                    var withBlock1 = cb;
-                    withBlock1.Caption = cp;
-                }
-
-                ct = ct + 1;
-            }
-        }
-
-        // ft3g1f0 = "(" & rt & ")"
-        // ft3g1f0 = ls & " IN (" & rt & ")"
-        return ct;
-    }
-}
+                cb = ctrl
+                With cb
+                    .Caption = cp
+                End With
+                
+                ct = ct + 1
+            End If
+        Next
+    End With
+    
+    'ft3g1f0 = "(" & rt & ")"
+    'ft3g1f0 = ls & " IN (" & rt & ")"
+    ft3g1f0 = ct
+End Function

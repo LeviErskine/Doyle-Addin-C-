@@ -1,99 +1,119 @@
-﻿using Microsoft.VisualBasic;
 
-namespace Doyle_Addin.Genius.Classes;
 
-public class libFmSelectors
-{
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="lbx"></param>
-    /// <param name="dlm"></param>
-    /// <returns></returns>
-    public static string lbxPickedStr(ListBox lbx, string dlm = Constants.vbVerticalTab)
-    {
-        long dw = Strings.Len(dlm);
-        {
-            var rt = "";
-            long mx = lbx.Items.Count - 1;
-            for (long dx = 0; dx <= mx; dx++)
-            {
-                if (lbx.GetSelected((int)dx))
-                    rt = rt + dlm + (lbx.Items[(int)dx]?.ToString() ?? "");
-            }
+Public Function lbxPickedStr(lbx As MSForms.ListBox, _
+    Optional dlm As String = vbVerticalTab _
+) As String
+    Dim dw As Long
+    Dim mx As Long
+    Dim dx As Long
+    Dim rt As String
+    
+    dw = Len(dlm)
+    With lbx
+        rt = ""
+        mx = .ListCount - 1
+        For dx = 0 To mx
+            If .Selected(dx) Then
+                rt = rt & dlm _
+                & CStr(.List(dx, 0))
+            End If
+        Next
+        lbxPickedStr = Mid$(rt, 1 + dw)
+    End With
+End Function
 
-            return Strings.Mid(rt, (int)(1 + dw));
-        }
-    }
+Public Function lbxPicked(lbx As MSForms.ListBox, _
+    Optional dlm As String = vbVerticalTab _
+) As Variant
+    lbxPicked = Split(lbxPickedStr(lbx, dlm), dlm)
+End Function
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="lbx"></param>
-    /// <param name="dlm"></param>
-    /// <returns></returns>
-    public static dynamic lbxPicked(ListBox lbx, string dlm = Constants.vbVerticalTab)
-    {
-        return Strings.Split(lbxPickedStr(lbx, dlm), dlm);
-    }
+Public Function nuSelector() As fmSelectorList
+    Set nuSelector = New fmSelectorList
+End Function
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
-    public static fmSelectorList nuSelector()
-    {
-        return new fmSelectorList();
-    }
+Public Function nuSelectorV2() As fmSelectorV2
+    Set nuSelectorV2 = New fmSelectorV2
+End Function
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
-    public static fmSelectorV2 nuSelectorV2()
-    {
-        return new fmSelectorV2();
-    }
+Public Function nuSelFromDict(dc As Scripting.Dictionary, _
+    Optional hOhKay As String = "", Optional mOhKay As String = "", _
+    Optional hCancl As String = "", Optional mCancl As String = "", _
+    Optional hNoSel As String = "", Optional mNoSel As String = "" _
+) As fmSelectorList
+    Set nuSelFromDict = nuSelector( _
+    ).SetHdrOK(IIf(Len(hOhKay) > 0, hOhKay, "Confirm Selection" _
+    )).SetMsgOK(IIf(Len(mOhKay) > 0, mOhKay, Join(Array( _
+            "Action will proceed using", "%%%", _
+            "(Click CANCEL to quit with no action)" _
+        ), vbNewLine) _
+    )).SetHdrCancel(IIf(Len(hCancl) > 0, hCancl, "Cancel Operation?" _
+    )).SetMsgCancel(IIf(Len(mCancl) > 0, mCancl, Join(Array( _
+            "No action will be taken on", "%%%" _
+        ), vbNewLine) _
+    )).SetHdrNoSelection(IIf(Len(hNoSel) > 0, hNoSel, "No Item Selected!" _
+    )).SetMsgNoSelection(IIf(Len(mNoSel) > 0, mNoSel, Join(Array( _
+            "Do you wish to cancel the operation?", _
+            "(Click NO to return to list)" _
+        ), vbNewLine) _
+    )).WithList( _
+        dc.Keys _
+    )
+End Function
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="dc"></param>
-    /// <param name="hOhKay"></param>
-    /// <param name="mOhKay"></param>
-    /// <param name="hCancl"></param>
-    /// <param name="mCancl"></param>
-    /// <param name="hNoSel"></param>
-    /// <param name="mNoSel"></param>
-    /// <returns></returns>
-    public static fmSelectorList nuSelFromDict(System.Collections.IDictionary dc, string hOhKay = "",
-        string mOhKay = "",
-        string hCancl = "",
-        string mCancl = "", string hNoSel = "", string mNoSel = "")
-    {
-        return nuSelector().SetHdrOK((string)Interaction.IIf(Strings.Len(hOhKay) > 0, hOhKay, "Confirm Selection"))
-            .SetMsgOK(
-                (string)Interaction.IIf(Strings.Len(mOhKay) > 0, mOhKay, Strings.Join([
-                        "Action will proceed using",
-                        "%%%",
-                        "(Click CANCEL to quit with no action)"
-                    ],
-                    Constants.vbCrLf))).SetHdrCancel((string)Interaction.IIf(Strings.Len(hCancl) > 0,
-                hCancl,
-                "Cancel Operation?")).SetMsgCancel((string)Interaction.IIf(Strings.Len(mCancl) > 0,
-                mCancl,
-                Strings.Join([
-                        "No action will be taken on",
-                        "%%%"
-                    ],
-                    Constants.vbCrLf))).SetHdrNoSelection((string)Interaction.IIf(Strings.Len(hNoSel) > 0,
-                hNoSel,
-                "No Item Selected!")).SetMsgNoSelection((string)Interaction.IIf(Strings.Len(mNoSel) > 0,
-                mNoSel,
-                Strings.Join([
-                        "Do you wish to cancel the operation?",
-                        "(Click NO to return to list)"
-                    ],
-                    Constants.vbCrLf))).WithList(dc.Keys);
-    }
-}
+#If False Then '
+
+Public Function nuSelWkBk( _
+    Optional hOhKay As String = "", Optional mOhKay As String = "", _
+    Optional hCancl As String = "", Optional mCancl As String = "", _
+    Optional hNoSel As String = "", Optional mNoSel As String = "" _
+) As fmSelectorList
+    Set nuSelWkBk = nuSelector( _
+    ).SetHdrOK(IIf(Len(hOhKay) > 0, hOhKay, "Proceed With Update?" _
+    )).SetMsgOK(IIf(Len(mOhKay) > 0, mOhKay, Join(Array( _
+        "The following workbook will be affected: ", _
+        "%%%", "(Click CANCEL to quit with no changes)" _
+        ), vbNewLine) _
+    )).SetHdrCancel(IIf(Len(hCancl) > 0, hCancl, "Cancel Operation?" _
+    )).SetMsgCancel(IIf(Len(mCancl) > 0, mCancl, Join(Array( _
+        "No changes will be applied", _
+        "to any open workbook." _
+        ), vbNewLine) _
+    )).SetHdrNoSelection(IIf(Len(hNoSel) > 0, hNoSel, "No Workbook Selected!" _
+    )).SetMsgNoSelection(IIf(Len(mNoSel) > 0, mNoSel, Join(Array( _
+        "Do you wish to cancel the operation?", _
+        "(Click NO to return to list)" _
+        ), vbNewLine) _
+    )).WithList( _
+        lsWorkbooks() _
+    )
+End Function
+
+Public Function nuSelWkSht(inWkBk As Excel.Workbook, _
+    Optional hOhKay As String = "", Optional mOhKay As String = "", _
+    Optional hCancl As String = "", Optional mCancl As String = "", _
+    Optional hNoSel As String = "", Optional mNoSel As String = "" _
+) As fmSelectorList
+    Set nuSelWkSht = nuSelector( _
+    ).SetHdrOK(IIf(Len(hOhKay) > 0, hOhKay, "Confirm Selection" _
+    )).SetMsgOK(IIf(Len(mOhKay) > 0, mOhKay, Join(Array( _
+            "Action will proceed using Workwheet: ", "%%%", _
+            "(Click CANCEL to quit with no action)" _
+        ), vbNewLine) _
+    )).SetHdrCancel(IIf(Len(hCancl) > 0, hCancl, "Cancel Operation?" _
+    )).SetMsgCancel(IIf(Len(mCancl) > 0, mCancl, Join(Array( _
+            "No action will be taken", _
+            "to any open workbook." _
+        ), vbNewLine) _
+    )).SetHdrNoSelection(IIf(Len(hNoSel) > 0, hNoSel, "No Workbook Selected!" _
+    )).SetMsgNoSelection(IIf(Len(mNoSel) > 0, mNoSel, Join(Array( _
+            "Do you wish to cancel the operation?", _
+            "(Click NO to return to list)" _
+        ), vbNewLine) _
+    )).WithList( _
+        dcWkSheets(inWkBk).Keys _
+    )
+End Function
+
+#End If
+

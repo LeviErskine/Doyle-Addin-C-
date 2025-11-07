@@ -1,36 +1,35 @@
-﻿namespace Doyle_Addin.Genius.Classes;
 
-class aiPropLink
-{
-    private Dictionary dc;
 
-    private void Class_Initialize()
-    {
-        dc = new Dictionary();
-    }
+Private dc As Scripting.Dictionary
 
-    private void Class_Terminate()
-    {
-        dc.RemoveAll();
-        dc = null;
-    }
+Private Sub Class_Initialize()
+    Set dc = New Scripting.Dictionary
+End Sub
 
-    public aiPropLink PrepFrom(Document AiDoc)
-    {
-        {
-            foreach (PropertySet ps in AiDoc.PropertySets)
-            {
-                var psName = ps.Name;
-                foreach (var prName in from Property pr in ps select pr.Name)
-                {
-                    if (dc.Exists(prName))
-                        Debugger.Break();
-                    else
-                        dc.Add(prName, psName);
-                }
-            }
-        }
+Private Sub Class_Terminate()
+    dc.RemoveAll
+    Set dc = Nothing
+End Sub
 
-        return this;
-    }
-}
+Public Function PrepFrom(AiDoc As Inventor.Document) As aiPropLink
+    Dim ps As Inventor.PropertySet
+    Dim pr As Inventor.Property
+    Dim psName As String
+    Dim prName As String
+    
+    With AiDoc
+        For Each ps In .PropertySets
+            psName = ps.Name
+            For Each pr In ps
+                prName = pr.Name
+                If dc.Exists(prName) Then
+                    Stop
+                Else
+                    dc.Add prName, psName
+                End If
+            Next
+        Next
+    End With
+    
+    Set PrepFrom = Me
+End Function

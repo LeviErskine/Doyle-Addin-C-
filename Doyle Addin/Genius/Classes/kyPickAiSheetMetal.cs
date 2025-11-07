@@ -1,144 +1,168 @@
-﻿namespace Doyle_Addin.Genius.Classes;
 
-class kyPickAiSheetMetal : kyPick
-{
-    private kyPick pk;
-    private const string txVersion = "kyPickAiSheetMetal v0.0.0.1 [2022.03.08.1332]";
-    // prior Versions
 
-    // ""
+Implements kyPick
 
-    // 
+Private pk As kyPick
+Private Const txVersion As String = "kyPickAiSheetMetal v0.0.0.1 [2022.03.08.1332]"
+''' prior Versions
+'''     ""
+'''
+''' kyPick Implementation code follows
+'''
 
-    // kyPick Implementation code follows
+Private Function kyPick_Itself() As kyPick
+    Set kyPick_Itself = Me
+End Function
 
-    // 
 
-    private kyPick kyPick_Itself()
-    {
-        return this;
-    }
+Private Function kyPick_WithInDc( _
+    Dict As Scripting.IDictionary _
+) As kyPick
+    Set pk = pk.WithInDc(Dict)
+    Set kyPick_WithInDc = Me
+End Function
 
-    private kyPick kyPick_WithInDc(IDictionary Dict)
-    {
-        pk = pk.WithInDc(Dict);
-        return this;
-    }
+Private Function kyPick_WithOutDc( _
+    Dict As Scripting.IDictionary _
+) As kyPick
+    Set pk = pk.WithOutDc(Dict)
+    Set kyPick_WithOutDc = Me
+End Function
 
-    private kyPick kyPick_WithOutDc(IDictionary Dict)
-    {
-        pk = pk.WithOutDc(Dict);
-        return this;
-    }
 
-    private kyPick kyPick_AfterScanning(IDictionary dSrc)
-    {
-        {
-            foreach (var ky in dSrc.Keys)
-            {
-                {
-                    var withBlock1 = kyPick_DcFor(dSrc.get_Item(ky));
-                    if (withBlock1.Exists(ky))
-                        Debugger.Break();
-                    else
-                        withBlock1.Add(ky, dSrc.get_Item(ky));
-                }
-            }
-        }
-        return this;
-    }
+Private Function kyPick_AfterScanning( _
+    dSrc As Scripting.IDictionary _
+) As kyPick
+    Dim ky As Variant
+    
+    With dSrc: For Each ky In .Keys
+        With kyPick_DcFor(.Item(ky))
+        If .Exists(ky) Then
+            Stop
+        Else
+            .Add ky, dSrc.Item(ky)
+        End If
+        End With
+    Next: End With
+    Set kyPick_AfterScanning = Me
+End Function
 
-    private IDictionary kyPick_DcIn()
-    {
-        return dcIn();
-    }
 
-    private IDictionary kyPick_DcOut()
-    {
-        return dcOut();
-    }
+Private Function kyPick_DcIn() As Scripting.IDictionary
+    Set kyPick_DcIn = dcIn()
+End Function
 
-    private IDictionary kyPick_DcFor(dynamic Item)
-    {
-        PartDocument ob = // .Document
-            aiDocPart(aiDocument(obOf(Item)));
-        return ob == null ? pk.dcFor(0) : g0f1(ob.ComponentDefinition);
-    }
-    // 
+Private Function kyPick_DcOut() As Scripting.IDictionary
+    Set kyPick_DcOut = dcOut()
+End Function
 
-    // General Class handling code follows
 
-    // 
+Private Function kyPick_DcFor( _
+    Item As Variant _
+) As Scripting.IDictionary
+    Dim ob As Inventor.PartDocument '.Document
+    
+    Set ob = aiDocPart(aiDocument(obOf(Item)))
+    If ob Is Nothing Then
+        Set kyPick_DcFor = pk.dcFor(0)
+    Else
+        Set kyPick_DcFor = g0f1( _
+            ob.ComponentDefinition _
+        )
+        'If ob.DocumentType = kPartDocumentObject Then
+        '    If aiDocPart(ob).SubType = guidSheetMetal Then
+        '        Set kyPick_DcFor = pk.dcFor(ob)
+        '    Else
+        '        Set kyPick_DcFor = pk.dcFor(0)
+        '    End If
+        'Else
+        '    Set kyPick_DcFor = pk.dcFor(0)
+        'End If
+    End If
+End Function
+'''
+'''
+''' General Class handling code follows
+'''
 
-    private void Class_Initialize()
-    {
-        pk = new kyPick();
-    }
-    // 
+Private Sub Class_Initialize()
+    Set pk = New kyPick
+End Sub
+'''
+'''
+''' kyPickAiSheetMetal Class
+''' implementation code follows
+'''
 
-    // kyPickAiSheetMetal Class
+Public Function Itself() As kyPick
+    Set Itself = Me
+End Function
 
-    // implementation code follows
 
-    // 
+Public Function WithInDc( _
+    Dict As Scripting.Dictionary _
+) As kyPick
+    Set WithInDc = kyPick_WithInDc(Dict)
+End Function
 
-    public kyPick Itself()
-    {
-        return this;
-    }
+Public Function WithOutDc( _
+    Dict As Scripting.Dictionary _
+) As kyPick
+    Set WithOutDc = kyPick_WithOutDc(Dict)
+End Function
 
-    public kyPick WithInDc(Dictionary Dict)
-    {
-        return kyPick_WithInDc(Dict);
-    }
 
-    public kyPick WithOutDc(Dictionary Dict)
-    {
-        return kyPick_WithOutDc(Dict);
-    }
+Public Function dcIn() As Scripting.Dictionary
+    Set dcIn = pk.dcIn
+End Function
 
-    public Dictionary dcIn()
-    {
-        return pk.dcIn;
-    }
+Public Function dcOut() As Scripting.Dictionary
+    Set dcOut = pk.dcOut
+End Function
 
-    public Dictionary dcOut()
-    {
-        return pk.dcOut;
-    }
 
-    public kyPick AfterScanning(Dictionary dSrc)
-    {
-        return kyPick_AfterScanning(dSrc);
-    }
+Public Function AfterScanning( _
+    dSrc As Scripting.Dictionary _
+) As kyPick
+    Set AfterScanning = kyPick_AfterScanning(dSrc)
+End Function
 
-    public IDictionary dcFor(dynamic Item)
-    {
-        return kyPick_DcFor(Item);
-    }
-    // 
 
-    // Internal support code follows
+Public Function dcFor(Item As Variant) As Scripting.IDictionary
+    Set dcFor = kyPick_DcFor(Item)
+End Function
+'''
+'''
+''' Internal support code follows
+'''
 
-    // 
+Private Function g0f0( _
+    ob As Inventor.PartDocument _
+) As Scripting.Dictionary
+    If ob Is Nothing Then
+        Set g0f0 = pk.dcFor(0)
+    Else
+        Set g0f0 = g0f1(ob.ComponentDefinition)
+    End If
+End Function
 
-    private Dictionary g0f0(PartDocument ob)
-    {
-        return ob == null ? pk.dcFor(0) : g0f1(ob.ComponentDefinition);
-    }
+Private Function g0f1( _
+    ob As Inventor.PartComponentDefinition _
+) As Scripting.Dictionary
+    If TypeOf ob Is Inventor.SheetMetalComponentDefinition Then
+        Set g0f1 = pk.dcFor(ob.Document)
+    Else
+        Set g0f1 = pk.dcFor(0)
+    End If
+End Function
+'''
+'''
+''' Version code follows
+'''
 
-    private Dictionary g0f1(PartComponentDefinition ob)
-    {
-        return pk.dcFor(ob is SheetMetalComponentDefinition ? ob.Document : 0);
-    }
-    // 
-
-    // Version code follows
-
-    // 
-
-    public string Version()
-    {
-        return txVersion;
-    }
-}
+Public Function Version() As String
+    Version = txVersion
+End Function
+'''
+''' End of Module
+'''

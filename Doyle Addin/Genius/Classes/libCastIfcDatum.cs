@@ -1,43 +1,25 @@
-﻿namespace Doyle_Addin.Genius.Classes;
 
-public class libCastIfcDatum
-{
-    private const string txVersion = "module libCastIfcDatum REV[2022.03.18.1136]";
-    // 
 
-    // 
+Private Const txVersion As String = "module libCastIfcDatum REV[2022.03.18.1136]"
+'''
+'''
+'''
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="ob"></param>
-    /// <returns></returns>
-    public static ifcDatum obIfcDatum(dynamic ob)
-    {
-        if (ob is Property)
-        {
-            {
-                var withBlock = new ifcAiProperty();
-                var caster = new libCastOb();
-                return withBlock.Connect(caster.obAiProp(ob));
-            }
-        }
+Public Function obIfcDatum(ob As Object) As ifcDatum
+    If TypeOf ob Is Inventor.Property Then
+        With New ifcAiProperty
+        Set obIfcDatum = .Connect(obAiProp(ob))
+        End With
+    Else
+        With New ifcDatum
+        Set obIfcDatum = .Connect(ob)
+        End With
+    End If
+End Function
 
-        {
-            var withBlock = new ifcDatum();
-            return withBlock.Connect(ob);
-        }
-    }
-
-    // END of Module libCastIfcDatum
-
-    // 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
-    public static string Version()
-    {
-        return txVersion;
-    }
-}
+'''
+''' END of Module libCastIfcDatum
+'''
+Public Function libCastIfcDatum() As String
+    libCastIfcDatum = txVersion
+End Function

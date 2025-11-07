@@ -1,31 +1,32 @@
-﻿using System;
-using System.ComponentModel;
-using System.IO;
+﻿#region
 
+using System.ComponentModel;
+
+#endregion
 
 namespace Doyle_Addin.Options;
 
 /// <summary>
-/// Represents a collection of user-configurable options and preferences related to
-/// the Doyle Add-in. This class provides methods to save and load these options
-/// as an XML file in the user's application data directory.
+///     Represents a collection of user-configurable options and preferences related to
+///     the Doyle Add-in. This class provides methods to save and load these options
+///     as an XML file in the user's application data directory.
 /// </summary>
 public class UserOptions : INotifyPropertyChanged
 {
     /// <summary>
-    /// Raised when a property value changes; used by WPF data binding (INotifyPropertyChanged).
+    ///     The file path where the user options data is stored.
+    ///     This file contains serialized user settings and preferences.
     /// </summary>
-    public event PropertyChangedEventHandler PropertyChanged;
+    public static readonly string OptionsFilePath =
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DoyleAddinOptions.xml");
 
-    private void OnPropertyChanged(string propertyName) =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    private readonly string dxfExportLocation = "";
 
     private readonly string printExportLocation = "";
-    private readonly string dxfExportLocation = "";
     private bool enableObsoletePrint = true;
 
     /// <summary>
-    /// Specifies the directory path where PDF files will be exported during the print update process.
+    ///     Specifies the directory path where PDF files will be exported during the print update process.
     /// </summary>
     public string PrintExportLocation
     {
@@ -37,8 +38,9 @@ public class UserOptions : INotifyPropertyChanged
             OnPropertyChanged(nameof(PrintExportLocation));
         }
     }
+
     /// <summary>
-    /// Specifies the file system path where generated DXF files will be exported.
+    ///     Specifies the file system path where generated DXF files will be exported.
     /// </summary>
     public string DxfExportLocation
     {
@@ -50,8 +52,9 @@ public class UserOptions : INotifyPropertyChanged
             OnPropertyChanged(nameof(DxfExportLocation));
         }
     }
+
     /// <summary>
-    /// Feature toggles
+    ///     Feature toggles
     /// </summary>
     public bool EnableObsoletePrint
     {
@@ -65,17 +68,19 @@ public class UserOptions : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// The file path where the user options data is stored.
-    /// This file contains serialized user settings and preferences.
+    ///     Raised when a property value changes; used by WPF data binding (INotifyPropertyChanged).
     /// </summary>
-    public static readonly string OptionsFilePath =
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DoyleAddinOptions.xml");
+    public event PropertyChangedEventHandler PropertyChanged;
 
+    private void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 
     /// <summary>
-    /// Saves the current configuration values of the <see cref="UserOptions"/> object
-    /// to a file in XML format. The file is written to a predefined path within the user's
-    /// application data directory, overwriting any existing file.
+    ///     Saves the current configuration values of the <see cref="UserOptions" /> object
+    ///     to a file in XML format. The file is written to a predefined path within the user's
+    ///     application data directory, overwriting any existing file.
     /// </summary>
     public void Save()
     {
@@ -91,11 +96,15 @@ public class UserOptions : INotifyPropertyChanged
             // In a future change we could log this to a telemetry sink or show a user-facing message.
         }
     }
+
     /// <summary>
-    /// Loads the user options settings from a file if it exists. If the file is not found,
-    /// a new instance of the UserOptions class is returned with default values.
+    ///     Loads the user options settings from a file if it exists. If the file is not found,
+    ///     a new instance of the UserOptions class is returned with default values.
     /// </summary>
-    /// <returns>A <see cref="UserOptions"/> instance containing the loaded settings or default values if no file exists or on error.</returns>
+    /// <returns>
+    ///     A <see cref="UserOptions" /> instance containing the loaded settings or default values if no file exists or on
+    ///     error.
+    /// </returns>
     public static UserOptions Load()
     {
         try
@@ -111,6 +120,5 @@ public class UserOptions : INotifyPropertyChanged
             // return default options to keep the application usable.
             return new UserOptions();
         }
-
     }
 }

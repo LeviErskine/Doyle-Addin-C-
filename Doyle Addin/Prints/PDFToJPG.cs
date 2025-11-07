@@ -1,19 +1,14 @@
-﻿
-
-
-
-
-namespace Doyle_Addin.Prints;
+﻿namespace Doyle_Addin.Prints;
 
 /// <summary>
-/// Provides functionality to convert a PDF file to an image file.
-/// This utility is primarily focused on exporting the first page of a PDF
-/// as an image for various processing or usage purposes.
+///     Provides functionality to convert a PDF file to an image file.
+///     This utility is primarily focused on exporting the first page of a PDF
+///     as an image for various processing or usage purposes.
 /// </summary>
 public static class PdfToImage
 {
     /// <summary>
-    /// Exports the first page of a PDF file as an image in JPG format.
+    ///     Exports the first page of a PDF file as an image in JPG format.
     /// </summary>
     /// <param name="pdfFilePath">The file path of the input PDF.</param>
     /// <param name="imageFilePath">The file path where the generated image will be saved.</param>
@@ -76,10 +71,7 @@ public static class PdfToImage
         finally
         {
             // Restore the full original PATH
-            if (!string.IsNullOrEmpty(fullOriginalPath))
-            {
-                Environment.SetEnvironmentVariable("PATH", fullOriginalPath);
-            }
+            if (!string.IsNullOrEmpty(fullOriginalPath)) Environment.SetEnvironmentVariable("PATH", fullOriginalPath);
         }
     }
 }

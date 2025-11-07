@@ -1,187 +1,214 @@
-﻿namespace Doyle_Addin.Genius.Classes;
 
-class kyPickAiShMtl4sure : kyPick
-{
-    private kyPick pk;
-    private const string txVersion = "kyPickAiShMtl4sure v0.0.0.1 [2022.03.08.1336]";
-    // prior Versions
 
-    // ""
+Implements kyPick
 
-    // 
+Private pk As kyPick
+Private Const txVersion As String = "kyPickAiShMtl4sure v0.0.0.1 [2022.03.08.1336]"
+''' prior Versions
+'''     ""
+'''
+''' kyPick Implementation code follows
+'''
 
-    // kyPick Implementation code follows
+Private Function kyPick_Itself() As kyPick
+    Set kyPick_Itself = Me
+End Function
 
-    // 
 
-    private kyPick kyPick_Itself()
-    {
-        return this;
-    }
+Private Function kyPick_WithInDc( _
+    Dict As Scripting.IDictionary _
+) As kyPick
+    Set pk = pk.WithInDc(Dict)
+    Set kyPick_WithInDc = Me
+End Function
 
-    private kyPick kyPick_WithInDc(Dictionary Dict)
-    {
-        pk = pk.WithInDc(Dict);
-        return this;
-    }
+Private Function kyPick_WithOutDc( _
+    Dict As Scripting.IDictionary _
+) As kyPick
+    Set pk = pk.WithOutDc(Dict)
+    Set kyPick_WithOutDc = Me
+End Function
 
-    private kyPick kyPick_WithOutDc(Dictionary Dict)
-    {
-        pk = pk.WithOutDc(Dict);
-        return this;
-    }
 
-    private kyPick kyPick_AfterScanning(Dictionary dSrc)
-    {
-        Dictionary dcI;
-        Dictionary dcO;
+Private Function kyPick_AfterScanning( _
+    dSrc As Scripting.IDictionary _
+) As kyPick
+    Dim dcI As Scripting.Dictionary
+    Dim dcO As Scripting.Dictionary
+    Dim dCk As Scripting.Dictionary
+    Dim ky As Variant
+    
+    With pk.AfterScanning(dSrc)
+        Set dcI = .dcIn
+        Set dcO = .dcOut
+    End With
+    
+    With dcI: For Each ky In .Keys
+        Set dCk = kyPick_DcFor(.Item(ky))
+        If dCk Is dcI Then 'should be okay
+            'don't need to do anything here
+            Debug.Print ; 'Breakpoint Landing
+        Else
+            With dCk
+            If .Exists(ky) Then
+                Stop
+            Else
+                .Add ky, dcI.Item(ky)
+            End If: End With
+        End If
+    Next: End With
+    Set pk = pk.WithInDc(dcKeysMissing(dcI, dcO))
+    
+    Set kyPick_AfterScanning = Me
+End Function
 
-        {
-            var withBlock = pk.AfterScanning(dSrc);
-            dcI = withBlock.dcIn;
-            dcO = withBlock.dcOut;
-        }
 
-        {
-            foreach (var ky in dcI.Keys)
-            {
-                Dictionary dCk = kyPick_DcFor(dcI.get_Item(ky));
-                if (dCk == dcI)
-                    // don't need to do anything here
-                    Debug.Print(""); // Breakpoint Landing
-                else
-                {
-                    if (dCk.Exists(ky))
-                        Debugger.Break();
-                    else
-                        dCk.Add(ky, dcI.get_Item(ky));
-                }
-            }
-        }
-        pk = pk.WithInDc(dcKeysMissing(dcI, dcO));
+Private Function kyPick_DcIn() As Scripting.IDictionary
+    Set kyPick_DcIn = dcIn()
+End Function
 
-        return this;
-    }
+Private Function kyPick_DcOut() As Scripting.IDictionary
+    Set kyPick_DcOut = dcOut()
+End Function
 
-    private IDictionary kyPick_DcIn()
-    {
-        return dcIn();
-    }
 
-    private IDictionary kyPick_DcOut()
-    {
-        return dcOut();
-    }
+Private Function kyPick_DcFor( _
+    Item As Variant _
+) As Scripting.IDictionary
+    Dim ob As Inventor.PartDocument '.Document
+    
+    Set ob = aiDocPart(aiDocument(obOf(Item)))
+    If ob Is Nothing Then
+        Set kyPick_DcFor = pk.dcFor(0)
+    Else
+        Set kyPick_DcFor = g0f1( _
+            ob.ComponentDefinition _
+        )
+    End If
+End Function
+'''
+'''
+''' General Class handling code follows
+'''
 
-    private IDictionary kyPick_DcFor(dynamic Item)
-    {
-        PartDocument ob = // .Document
-            aiDocPart(aiDocument(obOf(Item)));
-        return ob == null ? pk.dcFor(0) : g0f1(ob.ComponentDefinition);
-    }
-    // 
+Private Sub Class_Initialize()
+    Set pk = New kyPickAiSheetMetal 'kyPick
+End Sub
+'''
+'''
+''' kyPickAiShMtl4sure Class
+''' implementation code follows
+'''
 
-    // General Class handling code follows
+Public Function Itself() As kyPick
+    Set Itself = Me
+End Function
 
-    // 
 
-    private void Class_Initialize()
-    {
-        pk = new kyPickAiSheetMetal(); // kyPick
-    }
-    // 
+Public Function WithInDc( _
+    Dict As Scripting.Dictionary _
+) As kyPick
+    Set WithInDc = kyPick_WithInDc(Dict)
+End Function
 
-    // kyPickAiShMtl4sure Class
+Public Function WithOutDc( _
+    Dict As Scripting.Dictionary _
+) As kyPick
+    Set WithOutDc = kyPick_WithOutDc(Dict)
+End Function
 
-    // implementation code follows
 
-    // 
+Public Function dcIn() As Scripting.Dictionary
+    Set dcIn = pk.dcIn
+End Function
 
-    public kyPick Itself()
-    {
-        return this;
-    }
+Public Function dcOut() As Scripting.Dictionary
+    Set dcOut = pk.dcOut
+End Function
 
-    public kyPick WithInDc(Dictionary Dict)
-    {
-        return kyPick_WithInDc(Dict);
-    }
 
-    public kyPick WithOutDc(Dictionary Dict)
-    {
-        return kyPick_WithOutDc(Dict);
-    }
+Public Function AfterScanning( _
+    dSrc As Scripting.Dictionary _
+) As kyPick
+    Set AfterScanning = kyPick_AfterScanning(dSrc)
+End Function
 
-    public Dictionary dcIn()
-    {
-        return pk.dcIn;
-    }
 
-    public Dictionary dcOut()
-    {
-        return pk.dcOut;
-    }
+Public Function dcFor(Item As Variant) As Scripting.IDictionary
+    Set dcFor = kyPick_DcFor(Item)
+End Function
+'''
+'''
+''' Internal support code follows
+'''
 
-    public kyPick AfterScanning(Dictionary dSrc)
-    {
-        return kyPick_AfterScanning(dSrc);
-    }
+Private Function g0f0( _
+    ob As Inventor.PartDocument _
+) As Scripting.Dictionary
+    If ob Is Nothing Then
+        Set g0f0 = pk.dcFor(0)
+    Else
+        Set g0f0 = g0f1(ob.ComponentDefinition)
+    End If
+End Function
 
-    public IDictionary dcFor(dynamic Item)
-    {
-        return kyPick_DcFor(Item);
-    }
-    // 
+Private Function g0f1( _
+    ob As Inventor.PartComponentDefinition _
+) As Scripting.Dictionary
+    If TypeOf ob Is Inventor.SheetMetalComponentDefinition Then
+        Set g0f1 = g0f2(ob)
+    Else
+        Set g0f1 = pk.dcFor(0)
+    End If
+End Function
 
-    // Internal support code follows
+Private Function g0f2( _
+    ob As Inventor.SheetMetalComponentDefinition _
+) As Scripting.Dictionary
+    Dim smThk As Double
+    Dim fpHgt As Double
+    Dim dfRns As Double
+    
+    If ob Is Nothing Then
+        Set g0f2 = pk.dcFor(0)
+    Else
+        With ob
+        If .HasFlatPattern Then 'MIGHT be
+            ''  check stated thickness...
+            smThk = .Thickness.Value
+            'Debug.Print "Thickness: " & CStr(smThk)
+            
+            ''  against flat pattern height
+            With nuAiBoxData().UsingBox( _
+                .FlatPattern.RangeBox _
+            )
+                'Debug.Print .Dump()
+                Debug.Print ; 'Breakpoint Landing
+                fpHgt = .SpanZ
+            End With
+            
+            dfRns = fpHgt - smThk
+            If Abs(dfRns) < 0.001 Then 'close enough
+                ''  assume it's valid
+                Set g0f2 = pk.dcFor(ob.Document)
+            Else 'something's screwy here
+                ''  assume likely not
+                'Stop
+                Set g0f2 = pk.dcFor(0)
+            End If
+        Else 'likely not
+            Set g0f2 = pk.dcFor(0)
+        End If: End With
+    End If
+End Function
+'''
+'''
+''' Version code follows
+'''
 
-    // 
-
-    private Dictionary g0f0(PartDocument ob)
-    {
-        return ob == null ? pk.dcFor(0) : g0f1(ob.ComponentDefinition);
-    }
-
-    private Dictionary g0f1(PartComponentDefinition ob)
-    {
-        return ob is SheetMetalComponentDefinition ? g0f2(ob) : pk.dcFor(0);
-    }
-
-    private Dictionary g0f2(SheetMetalComponentDefinition ob)
-    {
-        if (ob is not { HasFlatPattern: true })
-            return pk.dcFor(0);
-        // '  check stated thickness...
-        double smThk = ob.Thickness.Value;
-        // Debug.Print "Thickness: " & CStr(smThk)
-
-        // '  against flat pattern height
-        double fpHgt;
-        {
-            var withBlock1 = nuAiBoxData().UsingBox(ob.FlatPattern.RangeBox);
-            // Debug.Print .Dump()
-            Debug.Print(""); // Breakpoint Landing
-            fpHgt = withBlock1.SpanZ;
-        }
-
-        var dfRns = fpHgt - smThk;
-        return pk.dcFor(double.Abs(dfRns) < 0.001
-            ?
-            // '  assume it's valid
-            ob.Document
-            :
-            // '  assume likely not
-            // Stop
-            0);
-    }
-    // 
-
-    // Version code follows
-
-    // 
-
-    public string Version()
-    {
-        return txVersion;
-    }
-}
+Public Function Version() As String
+    Version = txVersion
+End Function
+'''
+''' End of Module
+'''

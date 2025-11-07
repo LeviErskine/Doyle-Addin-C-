@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using File = System.IO.File;
+﻿#region
+
 using System.Net.Http;
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text.Json;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Doyle_Addin.My_Project;
 using Doyle_Addin.Options;
-using Inventor;
+
+#endregion
 
 namespace Doyle_Addin;
 
@@ -20,6 +15,16 @@ namespace Doyle_Addin;
 [Guid("513b9d7e-103e-4569-8eb5-ab3929cd33ad")]
 public class StandardAddInServer : ApplicationAddInServer
 {
+    private ButtonDefinition dxfUpdate;
+
+    // New Genius Properties button definition and property
+    private ButtonDefinition geniusPropertiesButton;
+
+    private ButtonDefinition obsoleteButton;
+
+    private ButtonDefinition optionsButton;
+
+    private ButtonDefinition printUpdate;
     private UserInterfaceEvents uiEvents;
 
     private UserInterfaceEvents UiEvents
@@ -27,20 +32,12 @@ public class StandardAddInServer : ApplicationAddInServer
         [MethodImpl(MethodImplOptions.Synchronized)]
         set
         {
-            if (uiEvents != null)
-            {
-                uiEvents.OnResetRibbonInterface -= UiEvents_OnResetRibbonInterface;
-            }
+            if (uiEvents != null) uiEvents.OnResetRibbonInterface -= UiEvents_OnResetRibbonInterface;
 
             uiEvents = value;
-            if (uiEvents != null)
-            {
-                uiEvents.OnResetRibbonInterface += UiEvents_OnResetRibbonInterface;
-            }
+            if (uiEvents != null) uiEvents.OnResetRibbonInterface += UiEvents_OnResetRibbonInterface;
         }
     }
-
-    private ButtonDefinition dxfUpdate;
 
     private ButtonDefinition DxfUpdate
     {
@@ -50,20 +47,12 @@ public class StandardAddInServer : ApplicationAddInServer
         [MethodImpl(MethodImplOptions.Synchronized)]
         set
         {
-            if (dxfUpdate != null)
-            {
-                dxfUpdate.OnExecute -= DXFUpdate_OnExecute;
-            }
+            if (dxfUpdate != null) dxfUpdate.OnExecute -= DXFUpdate_OnExecute;
 
             dxfUpdate = value;
-            if (dxfUpdate != null)
-            {
-                dxfUpdate.OnExecute += DXFUpdate_OnExecute;
-            }
+            if (dxfUpdate != null) dxfUpdate.OnExecute += DXFUpdate_OnExecute;
         }
     }
-
-    private ButtonDefinition printUpdate;
 
     private ButtonDefinition PrintUpdate
     {
@@ -73,20 +62,12 @@ public class StandardAddInServer : ApplicationAddInServer
         [MethodImpl(MethodImplOptions.Synchronized)]
         set
         {
-            if (printUpdate != null)
-            {
-                printUpdate.OnExecute -= PrintUpdate_OnExecute;
-            }
+            if (printUpdate != null) printUpdate.OnExecute -= PrintUpdate_OnExecute;
 
             printUpdate = value;
-            if (printUpdate != null)
-            {
-                printUpdate.OnExecute += PrintUpdate_OnExecute;
-            }
+            if (printUpdate != null) printUpdate.OnExecute += PrintUpdate_OnExecute;
         }
     }
-
-    private ButtonDefinition optionsButton;
 
     private ButtonDefinition OptionsButton
     {
@@ -96,20 +77,12 @@ public class StandardAddInServer : ApplicationAddInServer
         [MethodImpl(MethodImplOptions.Synchronized)]
         set
         {
-            if (optionsButton != null)
-            {
-                optionsButton.OnExecute -= OptionsButton_OnExecute;
-            }
+            if (optionsButton != null) optionsButton.OnExecute -= OptionsButton_OnExecute;
 
             optionsButton = value;
-            if (optionsButton != null)
-            {
-                optionsButton.OnExecute += OptionsButton_OnExecute;
-            }
+            if (optionsButton != null) optionsButton.OnExecute += OptionsButton_OnExecute;
         }
     }
-
-    private ButtonDefinition obsoleteButton;
 
     private ButtonDefinition ObsoleteButton
     {
@@ -119,16 +92,25 @@ public class StandardAddInServer : ApplicationAddInServer
         [MethodImpl(MethodImplOptions.Synchronized)]
         set
         {
-            if (obsoleteButton != null)
-            {
-                obsoleteButton.OnExecute -= ObsoleteButton_OnExecute;
-            }
+            if (obsoleteButton != null) obsoleteButton.OnExecute -= ObsoleteButton_OnExecute;
 
             obsoleteButton = value;
-            if (obsoleteButton != null)
-            {
-                obsoleteButton.OnExecute += ObsoleteButton_OnExecute;
-            }
+            if (obsoleteButton != null) obsoleteButton.OnExecute += ObsoleteButton_OnExecute;
+        }
+    }
+
+    private ButtonDefinition GeniusPropertiesButton
+    {
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        get => geniusPropertiesButton;
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        set
+        {
+            if (geniusPropertiesButton != null) geniusPropertiesButton.OnExecute -= GeniusProperties_OnExecute;
+
+            geniusPropertiesButton = value;
+            if (geniusPropertiesButton != null) geniusPropertiesButton.OnExecute += GeniusProperties_OnExecute;
         }
     }
 
@@ -145,11 +127,11 @@ public class StandardAddInServer : ApplicationAddInServer
             CheckForUpdateAndDownloadAsync();
 
             // Initialize AddIn members.
-            GlobalsHelpers.ThisApplication = addInSiteObject.Application;
+            ThisApplication = addInSiteObject.Application;
 
             // Get a reference to the ControlDefinitions object. 
-            var controlDefs = GlobalsHelpers.ThisApplication.CommandManager.ControlDefinitions;
-            var oThemeManager = GlobalsHelpers.ThisApplication.ThemeManager;
+            var controlDefs = ThisApplication.CommandManager.ControlDefinitions;
+            var oThemeManager = ThisApplication.ThemeManager;
 
             var oTheme = oThemeManager.ActiveTheme;
 
@@ -181,6 +163,11 @@ public class StandardAddInServer : ApplicationAddInServer
                         {
                             Name = "ObsoletePrint", Icon = "Doyle_Addin.Resources.ObsoletePrint.svg",
                             InternalName = "ObsoletePrint"
+                        },
+                        new
+                        {
+                            Name = "Genius Properties", Icon = "Doyle_Addin.Resources.SettingsIcon.svg",
+                            InternalName = "geniusProps"
                         }
                     };
 
@@ -234,6 +221,14 @@ public class StandardAddInServer : ApplicationAddInServer
                                     StandardIcon: smallIcon, LargeIcon: largeIcon);
                                 break;
                             }
+                            case "Genius Properties":
+                            {
+                                // Place as a non-shape-edit command; it operates on the active document
+                                GeniusPropertiesButton = controlDefs.AddButtonDefinition("Genius" + '\n' + "Properties",
+                                    "geniusProps", CommandTypesEnum.kNonShapeEditCmdType, Globals.AddInClientId(),
+                                    StandardIcon: smallIcon, LargeIcon: largeIcon);
+                                break;
+                            }
                         }
                     }
 
@@ -246,11 +241,11 @@ public class StandardAddInServer : ApplicationAddInServer
             AddToUserInterface();
 
             // Connect to the user-interface events to handle a ribbon reset.
-            UiEvents = GlobalsHelpers.ThisApplication.UserInterfaceManager.UserInterfaceEvents;
+            UiEvents = ThisApplication.UserInterfaceManager.UserInterfaceEvents;
 
             // Ensure the option file exists with default values if it doesn't exist
             if (File.Exists(UserOptions.OptionsFilePath)) return;
-            var defaultOptions = new UserOptions()
+            var defaultOptions = new UserOptions
             {
                 PrintExportLocation = @"P:\",
                 DxfExportLocation = @"X:\"
@@ -272,10 +267,8 @@ public class StandardAddInServer : ApplicationAddInServer
 
             var releaseNullable = await GetLatestReleaseFromGitHub();
             if (!releaseNullable.HasValue)
-            {
                 // System.Windows.Forms.MessageBox.Show("Could not fetch release info from GitHub.", "Debug")
                 return;
-            }
 
             var release = releaseNullable.Value;
 
@@ -296,7 +289,7 @@ public class StandardAddInServer : ApplicationAddInServer
                 {
                     await File.WriteAllTextAsync(
                         @"C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt", "update");
-                    GlobalsHelpers.ThisApplication.Quit();
+                    ThisApplication.Quit();
                 }
                 else
                 {
@@ -306,10 +299,7 @@ public class StandardAddInServer : ApplicationAddInServer
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
-            else
-            {
-                // System.Windows.Forms.MessageBox.Show("You are running the latest version.", "Debug")
-            }
+            // System.Windows.Forms.MessageBox.Show("You are running the latest version.", "Debug")
         }
         catch (Exception ex)
         {
@@ -326,14 +316,10 @@ public class StandardAddInServer : ApplicationAddInServer
         var json = await client.GetStringAsync(url);
         var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
-        if (root.ValueKind == JsonValueKind.Array && root.GetArrayLength() > 0)
-        {
-            return root[0]; // Use the first release (most recent)
-        }
-        else
-        {
-            return null;
-        }
+        if (root.ValueKind == JsonValueKind.Array &&
+            root.GetArrayLength() > 0) return root[0]; // Use the first release (most recent)
+
+        return null;
     }
 
     // Inventor calls this method when the AddIn is unloaded. The AddIn will be
@@ -383,6 +369,19 @@ public class StandardAddInServer : ApplicationAddInServer
 
         try
         {
+            if (GeniusPropertiesButton is not null)
+            {
+                GeniusPropertiesButton.Delete();
+                GeniusPropertiesButton = null;
+            }
+        }
+        catch
+        {
+            // ignored
+        }
+
+        try
+        {
             if (ObsoleteButton is not null)
             {
                 ObsoleteButton.Delete();
@@ -396,7 +395,7 @@ public class StandardAddInServer : ApplicationAddInServer
 
         // Release objects.
         UiEvents = null;
-        GlobalsHelpers.ThisApplication = null;
+        ThisApplication = null;
 
         // Check for pending update marker
         const string updateMarker = @"C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin\pending_update.txt";
@@ -406,7 +405,7 @@ public class StandardAddInServer : ApplicationAddInServer
             try
             {
                 // Start Updater.bat in a detached process
-                var psi = new ProcessStartInfo()
+                var psi = new ProcessStartInfo
                 {
                     FileName = updaterBat,
                     WindowStyle = ProcessWindowStyle.Normal,
@@ -458,10 +457,10 @@ public class StandardAddInServer : ApplicationAddInServer
         var options = UserOptions.Load();
 
         // Cache frequently used objects
-        var uiManager = GlobalsHelpers.ThisApplication.UserInterfaceManager;
+        var uiManager = ThisApplication.UserInterfaceManager;
 
         // Define ribbon mappings for each document type
-        var ribbonMappings = new Dictionary<string, Ribbon>()
+        var ribbonMappings = new Dictionary<string, Ribbon>
         {
             { "Part", uiManager.Ribbons["Part"] }, { "Assembly", uiManager.Ribbons["Assembly"] },
             { "Drawing", uiManager.Ribbons["Drawing"] }, { "ZeroDoc", uiManager.Ribbons["ZeroDoc"] }
@@ -469,15 +468,23 @@ public class StandardAddInServer : ApplicationAddInServer
 
         // Define button configurations with document type specificity
         // DXF button only appears on Part documents
-        var dxfButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>()
+        var dxfButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
         {
             Tuple.Create("id_TabSheetMetal", "dxfUpdate", DxfUpdate, Item4),
             Tuple.Create("id_TabFlatPattern", "dxfUpdate", DxfUpdate, Item4Array3),
             Tuple.Create("id_TabTools", "dxfUpdate", DxfUpdate, Item4Array2)
         };
 
+        // Genius Properties button - add to ribbons where appropriate (we'll add to PlaceViews/Annotate/Tools as fallback)
+        var geniusButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
+        {
+            Tuple.Create("id_TabPlaceViews", "geniusProps", GeniusPropertiesButton, Item4Array0),
+            Tuple.Create("id_TabAnnotate", "geniusProps", GeniusPropertiesButton, Item4Array0),
+            Tuple.Create("id_TabTools", "geniusProps", GeniusPropertiesButton, Item4Array2)
+        };
+
         // Option button appears on all document types
-        var optionsButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>()
+        var optionsButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
         {
             Tuple.Create("id_TabPlaceViews", "printUpdate", PrintUpdate, Item4Array0),
             Tuple.Create("id_TabAnnotate", "printUpdate", PrintUpdate, Item4Array0),
@@ -487,35 +494,29 @@ public class StandardAddInServer : ApplicationAddInServer
         // Obsolete Print button - only add if feature is enabled
         var obsoletePrintConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>();
         if (options.EnableObsoletePrint)
-        {
             obsoletePrintConfigs.Add(Tuple.Create("id_TabAnnotate", "ObsoletePrint", ObsoleteButton, Item4Array4));
-        }
 
         // Add buttons to appropriate ribbons based on document context
         foreach (var (ribbonName, ribbon) in ribbonMappings)
         {
             // Add the DXF button only to Part ribbon
             if (ribbonName == "Part")
-            {
                 foreach (var (tabName, panelName, buttonDef, fallbackPanels) in dxfButtonConfigs)
-                {
                     AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels);
-                }
-            }
 
             // Add Options buttons to all ribbons
             foreach (var (tabName, panelName, buttonDef, fallbackPanels) in optionsButtonConfigs)
-            {
                 AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels);
-            }
+
+            // Add Genius Properties buttons to all ribbons
+            foreach (var (tabName, panelName, buttonDef, fallbackPanels) in geniusButtonConfigs)
+                AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels);
 
             // Add the Obsolete Print button to Drawing ribbon only if enabled
             if (ribbonName != "Drawing") continue;
             {
                 foreach (var (tabName, panelName, buttonDef, fallbackPanels) in obsoletePrintConfigs)
-                {
                     AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels);
-                }
             }
         }
     }
@@ -541,7 +542,6 @@ public class StandardAddInServer : ApplicationAddInServer
             {
                 // Try fallback panels
                 foreach (var fallbackPanel in fallbackPanels)
-                {
                     try
                     {
                         if (fallbackPanel == "Add-Ins")
@@ -550,25 +550,21 @@ public class StandardAddInServer : ApplicationAddInServer
                             panel = tab.RibbonPanels.Add("Add-Ins", panelName, Globals.AddInClientId());
                             break;
                         }
-                        else
-                        {
-                            panel = tab.RibbonPanels[fallbackPanel];
-                            if (panel is not null)
-                                break;
-                        }
+
+                        panel = tab.RibbonPanels[fallbackPanel];
+                        if (panel is not null)
+                            break;
                     }
                     catch
                     {
                         // ignored
                     }
-                }
             }
 
             // Check if the button already exists in this panel
             if (panel is null) return;
             var buttonExists = false;
             foreach (CommandControl ctrl in panel.CommandControls)
-            {
                 try
                 {
                     // Add null checks before accessing properties
@@ -581,13 +577,9 @@ public class StandardAddInServer : ApplicationAddInServer
                 {
                     // Skip this control if there's any issue
                 }
-            }
 
             // Add the button only if it doesn't already exist
-            if (!buttonExists)
-            {
-                panel.CommandControls.AddButton(buttonDef, true);
-            }
+            if (!buttonExists) panel.CommandControls.AddButton(buttonDef, true);
         }
 
         catch (Exception ex)
@@ -605,12 +597,25 @@ public class StandardAddInServer : ApplicationAddInServer
 
     private static void DXFUpdate_OnExecute(NameValueMap context)
     {
-        new Action(() => DXFs.DxfUpdate.RunDxfUpdate(GlobalsHelpers.ThisApplication))();
+        new Action(() => DXFs.DxfUpdate.RunDxfUpdate(ThisApplication))();
     }
 
     private static void PrintUpdate_OnExecute(NameValueMap context)
     {
-        new Action(() => Prints.PrintUpdate.RunPrintUpdate(GlobalsHelpers.ThisApplication))();
+        Prints.PrintUpdate.RunPrintUpdate();
+    }
+
+    private static void GeniusProperties_OnExecute(NameValueMap context)
+    {
+        /*try
+        {
+            // Use the new wrapper which handles confirmation, errors and summary dialog
+            Genius_Update.Run(ThisApplication);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Genius Properties Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }*/
     }
 
     private void OptionsButton_OnExecute(NameValueMap context)
@@ -619,15 +624,12 @@ public class StandardAddInServer : ApplicationAddInServer
         var result = optionsForm.ShowDialog();
 
         // Refresh the ribbon after options are saved
-        if (result is true)
-        {
-            RefreshRibbon();
-        }
+        if (result is true) RefreshRibbon();
     }
 
     private static void ObsoleteButton_OnExecute(NameValueMap context)
     {
-        new Action(() => ObsoletePrint.ApplyObsoletePrint(GlobalsHelpers.ThisApplication))();
+        new Action(() => ObsoletePrint.ApplyObsoletePrint(ThisApplication))();
     }
 
     // Helper method to refresh the ribbon UI
@@ -658,7 +660,7 @@ public class StandardAddInServer : ApplicationAddInServer
     {
         try
         {
-            var uiManager = GlobalsHelpers.ThisApplication.UserInterfaceManager;
+            var uiManager = ThisApplication.UserInterfaceManager;
             var ribbon = uiManager.Ribbons["Drawing"];
 
             if (ribbon is null) return;
@@ -673,23 +675,18 @@ public class StandardAddInServer : ApplicationAddInServer
 
                     // Collect controls to remove (with null checks)
                     foreach (CommandControl ctrl in panel.CommandControls)
-                    {
                         try
                         {
                             if (ctrl?.ControlDefinition is { InternalName: "ObsoletePrint" })
-                            {
                                 controlsToRemove.Add(ctrl);
-                            }
                         }
                         catch
                         {
                             // Skip this control if there's any issue accessing it
                         }
-                    }
 
                     // Remove collected controls
                     foreach (var ctrl in controlsToRemove)
-                    {
                         try
                         {
                             ctrl.Delete();
@@ -698,7 +695,6 @@ public class StandardAddInServer : ApplicationAddInServer
                         {
                             Debug.Print($"Failed to delete control: {ex.Message}");
                         }
-                    }
                 }
             }
             catch (Exception ex)
@@ -718,14 +714,13 @@ public class StandardAddInServer : ApplicationAddInServer
 }
 
 /// <summary>
-/// 
 /// </summary>
 public static class Globals
 {
     #region Function to get the add-in client ID.
 
     /// <summary>
-    /// This function uses reflection to get the GuidAttribute associated with the add-in. 
+    ///     This function uses reflection to get the GuidAttribute associated with the add-in.
     /// </summary>
     /// <returns></returns>
     public static string AddInClientId()
@@ -756,7 +751,6 @@ public static class Globals
     public class WindowWrapper : IWin32Window
     {
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="handle"></param>
         public WindowWrapper(nint handle)
@@ -765,7 +759,7 @@ public static class Globals
         }
 
         /// <inheritdoc />
-        public nint Handle { get; private set; }
+        public nint Handle { get; }
     }
 
     #endregion

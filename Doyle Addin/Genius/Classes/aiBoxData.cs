@@ -1,198 +1,221 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.VisualBasic;
-using Inventor;
 
-namespace Doyle_Addin.Genius.Classes
-{
-    // Safe C# rewrite of aiBoxData.
-    // Where external dependencies were unclear or unavailable, code is commented rather than removed.
-    class aiBoxData
-    {
-        private const string f01 = "#,##0.000";
 
-        private Inventor.Point mn;
-        private Inventor.Point mx;
+Private Const f01 As String = "#,##0.000"
+'Private Const f02 As String = "#,##0.0000 '"
 
-        private double sc = 1;
+Private bx As Inventor.Box
+Private mn As Inventor.Point
+Private mx As Inventor.Point
 
-        private Box Box { get; set; }
+Private sc As Double
 
-        private void SetBox(Box thisBox)
-        {
-            Box = thisBox;
-            if (Box != null)
-            {
-                mn = Box.MinPoint;
-                mx = Box.MaxPoint;
-            }
-            else
-            {
-                mn = null;
-                mx = null;
-            }
-        }
+Private Sub Class_Initialize()
+    sc = 1#
+End Sub
 
-        public aiBoxData UsingBox(Box ThisOne)
-        {
-            SetBox(ThisOne);
-            return this;
-        }
+Public Property Set Box(ThisBox As Inventor.Box)
+    Set bx = ThisBox
+    Set mn = bx.MinPoint
+    Set mx = bx.MaxPoint
+End Property
 
-        public aiBoxData UsingOrBox(OrientedBox ThisOne)
-        {
-            Box = ThisApplication.TransientGeometry.CreateBox();
+Public Property Get Box() As Inventor.Box
+    Set Box = bx
+End Property
 
-            {
-                Box.Extend(ThisApplication.TransientGeometry.CreatePoint(ThisOne.DirectionOne.Length,
-                    ThisOne.DirectionTwo.Length, ThisOne.DirectionThree.Length));
-            }
+Public Function UsingBox( _
+    ThisOne As Inventor.Box _
+) As aiBoxData
+    Set Me.Box = ThisOne
+    Set UsingBox = Me
+End Function
 
-            // Me.Box = ThisOne
-            return UsingBox(Box);
-        }
+Public Function UsingOrBox( _
+    ThisOne As Inventor.OrientedBox _
+) As aiBoxData
+    Set bx = ThisApplication.TransientGeometry.CreateBox()
+    
+    With ThisOne
+    bx.Extend ThisApplication.TransientGeometry.CreatePoint( _
+        .DirectionOne.length, _
+        .DirectionTwo.length, _
+        .DirectionThree.length _
+    )
+    End With
+    
+    'Set Me.Box = ThisOne
+    Set UsingOrBox = Me.UsingBox(bx)
+'Debug.Print nuAiBoxData().UsingInches.UsingOrBox(aiDocAssy(aiDocActive()).ComponentDefinition.Occurrences.Item(1).OrientedMinimumRangeBox).Dump()
+End Function
 
-        public aiBoxData UsingBoxOb(object ThisOne)
-        {
-            return ThisOne switch
-            {
-                null => this,
-                Box b => UsingBox(b),
-                OrientedBox ob => UsingOrBox(ob),
-                _ => this
-            };
-        }
+Public Function UsingBoxOb( _
+    ThisOne As Object _
+) As aiBoxData
+    If ThisOne Is Nothing Then
+        Set UsingBoxOb = Me
+    ElseIf TypeOf ThisOne Is Inventor.Box Then
+        Set UsingBoxOb = UsingBox(ThisOne)
+    ElseIf TypeOf ThisOne Is Inventor.OrientedBox Then
+        Set UsingBoxOb = UsingOrBox(ThisOne)
+    Else
+        Set UsingBoxOb = Me
+    End If
+End Function
 
-        public aiBoxData UsingModel(Document ThisOne, long Oriented = 0)
-        {
-            return UsingPart(aiDocPart(ThisOne), Oriented).UsingAssy(aiDocAssy(ThisOne), Oriented);
-        }
+Public Function UsingModel( _
+   ThisOne As Inventor.Document, _
+   Optional Oriented As Long = 0 _
+) As aiBoxData
+    Set UsingModel _
+        = UsingPart(aiDocPart(ThisOne), Oriented _
+        ).UsingAssy(aiDocAssy(ThisOne), Oriented _
+    )
+End Function
 
-        private aiBoxData UsingPart(PartDocument ThisOne, long Oriented = 0)
-        {
-            if (ThisOne == null) return this;
-            var withBlock = ThisOne.ComponentDefinition;
-            return UsingBoxOb(Oriented == 0 ? withBlock.RangeBox : withBlock.OrientedMinimumRangeBox);
-        }
+Public Function UsingPart( _
+   ThisOne As Inventor.PartDocument, _
+   Optional Oriented As Long = 0 _
+) As aiBoxData
+    If ThisOne Is Nothing Then
+        Set UsingPart = Me
+    Else
+        With ThisOne.ComponentDefinition
+        Set UsingPart = UsingBoxOb(IIf(Oriented = 0, _
+            .RangeBox, .OrientedMinimumRangeBox _
+        ))
+        End With
+    End If
+End Function
 
-        private aiBoxData UsingAssy(AssemblyDocument ThisOne, long Oriented = 0)
-        {
-            if (ThisOne == null) return this;
-            var withBlock = ThisOne.ComponentDefinition;
-            return UsingBoxOb(Oriented == 0 ? withBlock.RangeBox : withBlock.OrientedMinimumRangeBox);
-        }
+Public Function UsingAssy( _
+   ThisOne As Inventor.AssemblyDocument, _
+   Optional Oriented As Long = 0 _
+) As aiBoxData
+    If ThisOne Is Nothing Then
+        Set UsingAssy = Me
+    Else
+        With ThisOne.ComponentDefinition
+        Set UsingAssy = UsingBoxOb(IIf(Oriented = 0, _
+            .RangeBox, .OrientedMinimumRangeBox _
+        ))
+        End With
+        'Set UsingAssy = UsingBox( _
+        ThisOne.ComponentDefinition.RangeBox _
+        )
+    End If
+End Function
 
-        public aiBoxData SortingDims(Box ThisBox = null)
-        {
-            while (true)
-            {
-                if (ThisBox == null)
-                {
-                    if (Box == null) return this;
-                    ThisBox = Box;
-                    continue;
-                }
+Public Function SortingDims( _
+    Optional ThisBox As Inventor.Box = Nothing _
+) As aiBoxData
+    If ThisBox Is Nothing Then
+        If bx Is Nothing Then
+            Set SortingDims = Me
+        Else
+            Set SortingDims = SortingDims(bx)
+        End If
+    Else
+        Set Me.Box = aiBoxSortDown(ThisBox)
+        Set SortingDims = Me
+    End If
+End Function
 
-                // Original called aiBoxSortDown(ThisBox) which is not available here.
-                // Keeping the incoming box as-is; comment left for later implementation.
-                // SetBox(aiBoxSortDown(ThisBox));
-                SetBox(ThisBox);
-                return this;
-                break;
-            }
-        }
+Private Function Span( _
+    ptMin As Double, _
+    ptMax As Double _
+) As Double
+    Span = sc * (ptMax - ptMin)
+End Function
 
-        private double Span(double ptMin, double ptMax)
-        {
-            return sc * (ptMax - ptMin);
-        }
+Public Function SpanX() As Double
+    SpanX = Span(mn.X, mx.X)
+End Function
 
-        public double SpanX()
-        {
-            return mn == null || mx == null ? 0 : Span(mn.X, mx.X);
-        }
+Public Function SpanY() As Double
+    SpanY = Span(mn.Y, mx.Y)
+End Function
 
-        public double SpanY()
-        {
-            return mn == null || mx == null ? 0 : Span(mn.Y, mx.Y);
-        }
+Public Function SpanZ() As Double
+    SpanZ = Span(mn.Z, mx.Z)
+End Function
 
-        public double SpanZ()
-        {
-            return mn == null || mx == null ? 0 : Span(mn.Z, mx.Z);
-        }
+Public Function SpansXYZ() As Double()
+    Dim rt(2) As Double
+    
+    rt(0) = SpanX
+    rt(1) = SpanY
+    rt(2) = SpanZ
+    
+    SpansXYZ = rt
+End Function
 
-        public double[] SpansXYZ()
-        {
-            return new[] { SpanX(), SpanY(), SpanZ() };
-        }
+Public Function SpansOrdered() As Double()
+    SpansOrdered = sort3dimsUp(SpanX, SpanY, SpanZ)
+End Function
 
-        public double[] SpansOrdered()
-        {
-            var arr = SpansXYZ();
-            Array.Sort(arr); // ascending
-            return arr;
-        }
+Public Function UsingInches(Optional Yes As Long = 1) As aiBoxData
+    If Yes Then sc = 1 / 2.54 Else sc = 1
+    Set UsingInches = Me
+End Function
 
-        public aiBoxData UsingInches(long Yes = 1)
-        {
-            if (Yes != 0)
-                sc = 1 / 2.54;
-            else
-                sc = 1;
-            return this;
-        }
+Public Function Dump(Optional Form As Long = 0) As String
+    Dump = ""
+    'ConvertToJson(nuDcPopulator().Setting("X SPAN", Format$(me.SpanX, "#,##0.0000 '")).Setting("Y SPAN", Format$(me.SpanY, "#,##0.0000 '")).Setting("Z SPAN", Format$(me.SpanZ, "#,##0.0000 '")).Dictionary,vbTab)
+    'ConvertToJson(nuDcPopulator().Setting("X SPAN", Round(me.SpanX,4)).Setting("Y SPAN", Round(me.SpanY,4)).Setting("Z SPAN", Round(me.SpanZ,4)).Dictionary,vbTab)
+    Select Case Form
+    Case 67518582
+        With nuDcPopulator().Setting("X SPAN", Format$(Me.SpanX, "#,##0.0000 '")).Setting("Y SPAN", Format$(Me.SpanY, "#,##0.0000 '")).Setting("Z SPAN", Format$(Me.SpanZ, "#,##0.0000 '")).Dictionary
+            '''
+        End With
+    Case Else
+        Dump = "X SPAN" & vbTab & "Y SPAN" & vbTab & "Z SPAN" _
+            & vbNewLine & Format(Me.SpanX, f01) _
+            & vbTab & Format(Me.SpanY, f01) _
+            & vbTab & Format(Me.SpanZ, f01)
+    End Select
+End Function
 
-        public string Dump(long Form = 0)
-        {
-            // JSON and nuDcPopulator path kept for future work.
-            // switch (Form)
-            // {
-            //     case 67518582:
-            //         var _ = nuDcPopulator().Setting("X SPAN", Format(SpanX(), "#,##0.0000 '"))
-            //             .Setting("Y SPAN", Format(SpanY(), "#,##0.0000 '"))
-            //             .Setting("Z SPAN", Format(SpanZ(), "#,##0.0000 '"));
-            //         break;
-            //     default:
-            //         break;
-            // }
-            return "X SPAN" + Constants.vbTab + "Y SPAN" + Constants.vbTab + "Z SPAN" + Constants.vbCrLf +
-                   Strings.Format(SpanX(), f01) + Constants.vbTab + Strings.Format(SpanY(), f01) + Constants.vbTab +
-                   Strings.Format(SpanZ(), f01);
-        }
+Public Function Dictionary( _
+    Optional Form As Long = 3 _
+) As Scripting.Dictionary
+    '''
+    ''' Dictionary -- return Dictionary of dimensions
+    '''     keyed according to Form, a sum of:
+    '''     1 - "X", "Y", "Z", per Model
+    '''     2 - magnitudes "Min", "Mid", "Max"
+    '''         (note that sorting keys in descending order
+    '''          produces values sorted in ascending order)
+    '''     3 - BOTH sets of keys (1 + 2)
+    '''
+    ''' REV[2022.08.31.1444] Method Dictionary
+    ''' added to Class to support extraction
+    ''' of Dictionary Object for data export
+    ''' (see dcGnsPtProps_Rev20220830_inProg)
+    '''
+    Dim rt As Scripting.Dictionary
+    Dim dm() As Double
+    
+    If (Form And 3) = 0 Then
+        Set rt = Dictionary(3)
+    Else
+        Set rt = New Scripting.Dictionary
+        
+        With rt
+            If Form And 1 Then 'add XYZ entries
+                .Add "X", SpanX()
+                .Add "Y", SpanY()
+                .Add "Z", SpanZ()
+            End If
+            
+            If Form And 2 Then 'add Min, Mid, Max entries
+                dm = SpansOrdered()
+                .Add "Min", dm(0)
+                .Add "Mid", dm(1)
+                .Add "Max", dm(2)
+            End If
+        End With
+    End If
+    
+    Set Dictionary = rt
+End Function
 
-        public Dictionary<string, double> Dictionary(long Form = 3)
-        {
-            while (true)
-            {
-                // Dictionary -- return Dictionary of dimensions
-                // keyed according to Form, a sum of:
-                // 1 - "X", "Y", "Z", per Model
-                // 2 - magnitudes "Min", "Mid", "Max"
-                // 3 - BOTH sets of keys (1 + 2)
-                var rt = new Dictionary<string, double>();
-
-                if ((Form & 1) != 0)
-                {
-                    rt["X"] = SpanX();
-                    rt["Y"] = SpanY();
-                    rt["Z"] = SpanZ();
-                }
-
-                if ((Form & 2) != 0)
-                {
-                    var dm = SpansOrdered();
-                    if (dm.Length >= 3)
-                    {
-                        rt["Min"] = dm[0];
-                        rt["Mid"] = dm[1];
-                        rt["Max"] = dm[2];
-                    }
-                }
-
-                if (rt.Count != 0) return rt;
-                Form = 3;
-            }
-        }
-    }
-}

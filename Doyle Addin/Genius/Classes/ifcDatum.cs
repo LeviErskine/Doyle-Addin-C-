@@ -1,62 +1,49 @@
-﻿namespace Doyle_Addin.Genius.Classes;
 
-public class ifcDatum
-{
-    private dynamic obNow;
-    private dynamic valNow;
-    private dynamic valWas;
-    // 
 
-    // 
+Private obNow As Object
+Private valNow As Variant
+Private valWas As Variant
+'''
+'''
+'''
 
-    public ifcDatum Connect(dynamic This)
-    {
-        switch (This)
-        {
-            case null:
-                return this;
-            case ifcDatum:
-                return This;
-            default:
-            {
-                if (false)
-                {
-                }
+Public Function Connect(This As Object) As ifcDatum
+    If This Is Nothing Then
+        Set Connect = Me
+    ElseIf TypeOf This Is ifcDatum Then
+        Set Connect = This
+    ElseIf False Then
+    Else
+        Set Connect = obIfcDatum(This)
+    End If
+End Function
 
-                return obIfcDatum(This);
-            }
-        }
-    }
+Public Function MakeValue(This As Variant) As ifcDatum
+    Set MakeValue = Me
+End Function
 
-    public ifcDatum MakeValue(dynamic This)
-    {
-        return this;
-    }
+Public Function Commit() As ifcDatum
+    Set Commit = Me
+End Function
 
-    public ifcDatum Commit()
-    {
-        return this;
-    }
+Public Function Itself() As ifcDatum
+    Set Itself = Me
+End Function
 
-    public ifcDatum Itself()
-    {
-        return this;
-    }
+Public Function Connected( _
+    Optional ToThis As Object = Nothing _
+) As Boolean
+    If ToThis Is Nothing Then
+        Connected = Not obNow Is Nothing
+    Else
+        Connected = obNow Is ToThis
+    End If
+End Function
 
-    public bool Connected(dynamic ToThis = null)
-    {
-        if (ToThis == null)
-            return false;
-        return obNow == ToThis;
-    }
+Public Function Value() As Variant
+    Value = valNow
+End Function
 
-    public dynamic Value()
-    {
-        return valNow;
-    }
-
-    private void Class_Initialize()
-    {
-        valNow = "";
-    }
-}
+Private Sub Class_Initialize()
+    valNow = ""
+End Sub

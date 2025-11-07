@@ -1,125 +1,48 @@
-﻿using System;
-using System.Runtime.InteropServices;
 
-namespace Doyle_Addin.Genius.Classes;
 
-public static class libClipboardAPI
-{
-    // Global memory flags
-    /// <summary>
-    /// 
-    /// </summary>
-    public const uint GMEM_MOVEABLE = 0x0002;
-    /// <summary>
-    /// 
-    /// </summary>
-    public const uint GMEM_ZEROINIT = 0x0040;
-    public const uint GHND = GMEM_MOVEABLE | GMEM_ZEROINIT;
+Public Const GHND = &H42
+Public Const MAXSIZE = 4096
+Public Const GMEM_MOVEABLE As Long = &H2
+Public Const GMEM_ZEROINIT As Long = &H40
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public const int MAXSIZE = 4096;
+Public Const CF_TEXT = 1
+Public Const CF_UNICODETEXT As Long = 13
 
-    
-    /// <summary>
-    /// Clipboard formats
-    /// </summary>
-    public const uint CF_TEXT = 1;
-    /// <summary>
-    /// 
-    /// </summary>
-    public const uint CF_UNICODETEXT = 13;
+#If Mac Then
+    ' ignore
+#Else
+#If VBA7 Then
 
-    // user32.dll
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="hWndNewOwner"></param>
-    /// <returns></returns>
-    [DllImport("user32.dll", SetLastError = true)]
-    public static extern bool OpenClipboard(IntPtr hWndNewOwner);
+Public Declare PtrSafe Function OpenClipboard Lib "user32.dll" (ByVal hwnd As LongPtr) As LongPtr
+Public Declare PtrSafe Function CloseClipboard Lib "user32.dll" () As Long
+Public Declare PtrSafe Function IsClipboardFormatAvailable Lib "user32.dll" (ByVal wFormat As Long) As LongPtr
+Public Declare PtrSafe Function GetClipboardData Lib "user32.dll" (ByVal wFormat As Long) As LongPtr
+Public Declare PtrSafe Function SetClipboardData Lib "user32.dll" (ByVal wFormat As Long, ByVal hMem As LongPtr) As LongPtr
+Public Declare PtrSafe Function EmptyClipboard Lib "user32.dll" () As Long
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
-    [DllImport("user32.dll", SetLastError = true)]
-    public static extern bool CloseClipboard();
+Public Declare PtrSafe Function GlobalAlloc Lib "kernel32.dll" (ByVal wFlags As Long, ByVal dwBytes As LongPtr) As LongPtr
+Public Declare PtrSafe Function GlobalLock Lib "kernel32.dll" (ByVal hMem As LongPtr) As LongPtr
+Public Declare PtrSafe Function GlobalSize Lib "kernel32.dll" (ByVal hMem As LongPtr) As LongPtr
+Public Declare PtrSafe Function GlobalUnlock Lib "kernel32.dll" (ByVal hMem As LongPtr) As LongPtr
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="format"></param>
-    /// <returns></returns>
-    [DllImport("user32.dll", SetLastError = true)]
-    public static extern bool IsClipboardFormatAvailable(uint format);
+Public Declare PtrSafe Function lstrcpy Lib "kernel32.dll" Alias "lstrcpyW" (ByVal lpString1 As Any, ByVal lpString2 As Any) As LongPtr
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="uFormat"></param>
-    /// <returns></returns>
-    [DllImport("user32.dll", SetLastError = true)]
-    public static extern IntPtr GetClipboardData(uint uFormat);
+#Else
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="uFormat"></param>
-    /// <param name="hMem"></param>
-    /// <returns></returns>
-    [DllImport("user32.dll", SetLastError = true)]
-    public static extern IntPtr SetClipboardData(uint uFormat, IntPtr hMem);
+Public Declare Function OpenClipboard Lib "user32.dll" (ByVal hwnd As Long) As Long
+Public Declare Function CloseClipboard Lib "user32.dll" () As Long
+Public Declare Function IsClipboardFormatAvailable Lib "user32.dll" (ByVal wFormat As Long) As Long
+Public Declare Function GetClipboardData Lib "user32.dll" (ByVal wFormat As Long) As Long
+Public Declare Function SetClipboardData Lib "user32.dll" (ByVal wFormat As Long, ByVal hMem As Long) As Long
+Public Declare Function EmptyClipboard Lib "user32.dll" () As Long
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
-    [DllImport("user32.dll", SetLastError = true)]
-    public static extern bool EmptyClipboard();
+Public Declare Function GlobalAlloc Lib "kernel32.dll" (ByVal wFlags As Long, ByVal dwBytes As Long) As Long
+Public Declare Function GlobalLock Lib "kernel32.dll" (ByVal hMem As Long) As Long
+Public Declare Function GlobalUnlock Lib "kernel32.dll" (ByVal hMem As Long) As Long
+Public Declare Function GlobalSize Lib "kernel32.dll" (ByVal hMem As Long) As Long
 
-    // kernel32.dll
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="uFlags"></param>
-    /// <param name="dwBytes"></param>
-    /// <returns></returns>
-    [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
+Public Declare Function lstrcpy Lib "kernel32.dll" Alias "lstrcpyW" (ByVal lpString1 As Any, ByVal lpString2 As Any) As Long
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="hMem"></param>
-    /// <returns></returns>
-    [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern IntPtr GlobalLock(IntPtr hMem);
+#End If
+#End If
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="hMem"></param>
-    /// <returns></returns>
-    [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern bool GlobalUnlock(IntPtr hMem);
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="hMem"></param>
-    /// <returns></returns>
-    [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern UIntPtr GlobalSize(IntPtr hMem);
-
-    // String copy (Unicode)
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="lpString1"></param>
-    /// <param name="lpString2"></param>
-    /// <returns></returns>
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "lstrcpyW")]
-    public static extern IntPtr lstrcpy(IntPtr lpString1, string lpString2);
-}

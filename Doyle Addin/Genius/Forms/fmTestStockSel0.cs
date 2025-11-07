@@ -1,48 +1,39 @@
-﻿namespace Doyle_Addin.Genius.Forms;
 
-class fmTestStockSel0 : Form
-{
-    private var VB_Name = "fmTestStockSel0";
+Attribute VB_Name = "fmTestStockSel0"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
 
-    private var VB_GlobalNameSpace = false;
 
-    private var VB_Creatable = false;
 
-    private var VB_PredeclaredId = true;
+Private cn As ADODB.Connection
+Private rsFam As ADODB.Recordset
+Private rsItm As ADODB.Recordset
 
-    private var VB_Exposed = false;
+Private Sub lbxFamily_Change()
+    With Me
+        rsItm.Filter = "Family = '" & .lbxFamily.Value & "'"
+        .lbxItem.List = m0g3f1(rsItm)
+    End With
+End Sub
 
-    private ADODB.Connection cn;
-    private ADODB.Recordset rsFam;
-    private ADODB.Recordset rsItm;
-
-    private void lbxFamily_Change()
-    {
-        {
-            var withBlock = this;
-            rsItm.Filter = "Family = '" + withBlock.lbxFamily.Value + "'";
-            withBlock.lbxItem.List = m0g3f1(rsItm);
-        }
-    }
-
-    private void InitializeComponent()
-    {
-        cn = cnGnsDoyle();
-        {
-            var withBlock = cn;
-            rsFam = withBlock.Execute(Join(new[]
-            {
-                "select Family, Description1", "from vgMfiFamilies",
-                "where FamilyGroup = 'RAW'"
-            }, " "));
-            rsItm = withBlock.Execute(Join(new[]
-            {
-                "Select I.Family, I.Item, I.Description1",
-                "From vgMfiItems as I",
-                "Inner Join vgMfiFamilies as F", "On I.Family = F.Family", "Where F.FamilyGroup = 'RAW'"
-            }, " "));
-        }
-
-        this.lbxFamily.List = m0g3f1(rsFam);
-    }
-}
+Private Sub UserForm_Initialize()
+    cn = cnGnsDoyle()
+    With cn
+        rsFam = .Execute(Join(Array(
+            "select Family, Description1",
+            "from vgMfiFamilies",
+            "where FamilyGroup = 'RAW'"
+        ), " "))
+        rsItm = .Execute(Join(Array(
+            "Select I.Family, I.Item, I.Description1",
+            "From vgMfiItems as I",
+            "Inner Join vgMfiFamilies as F",
+            "On I.Family = F.Family",
+            "Where F.FamilyGroup = 'RAW'"
+        ), " "))
+    End With
+    
+    Me.lbxFamily.List = m0g3f1(rsFam)
+End Sub

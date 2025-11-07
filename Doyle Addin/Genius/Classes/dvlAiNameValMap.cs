@@ -1,200 +1,199 @@
-﻿using Microsoft.VisualBasic;
 
-namespace Doyle_Addin.Genius.Classes;
+'''
+''' dvlAiNameValMap -- functions to streamline
+'''     translation of data from Dictionary
+'''     Objects to Inventor NameValueMap
+'''     Objects, and vice-versa.
+'''
+''' NOTE: these functions MIGHT be supplanted by
+'''     their addition to or implementation in
+'''     Class Module dcPopulator
+'''
 
-public class dvlAiNameValMap
-{
-    // dvlAiNameValMap -- functions to streamline
+Public Function dc2aiNameValMap(dc As Scripting.Dictionary, _
+    Optional mp As Inventor.NameValueMap = Nothing _
+) As Inventor.NameValueMap
+    Dim rt As Inventor.NameValueMap
+    Dim ky As Variant
+    Dim it As Variant
+    Dim nm As String
+    Dim ck As VbMsgBoxResult
+    
+    If mp Is Nothing Then
+        With ThisApplication.TransientObjects
+        Set rt = dc2aiNameValMap( _
+            dc, .CreateNameValueMap _
+        )   'NameValueMap cannot
+            'be created with New
+        End With
+    Else
+        Set rt = mp
+        With dc: For Each ky In .Keys
+            nm = CStr(ky)
+            it = Array(.Item(ky))
+            
+            If IsObject(it(0)) Then
+                ''' Object handling not
+                ''' implemented as yet.
+                ''' A general solution is
+                ''' not likely possible.
+                
+                ''' UPDATE[2022.07.05.1319]
+                ''' it appears that a NameValueMap
+                ''' CAN include another NameValueMap
+                ''' as a Value, thus enabling multi-
+                ''' level NameValueMaps. Whether
+                ''' other Objects can be so contained
+                ''' is likely a question best left
+                ''' unexplored for now, but it seems
+                ''' at least sub-Dictionaries and
+                ''' NameValueMaps can be processed.
+                If TypeOf it(0) Is Scripting.Dictionary Then
+                    rt.Add nm, dc2aiNameValMap(obOf(it(0)))
+                ElseIf TypeOf it(0) Is Inventor.NameValueMap Then
+                    rt.Add nm, it(0)
+                Else
+                End If
+            Else
+                On Error Resume Next
+                
+                Err.Clear
+                rt.Add nm, it(0)
+                
+                If Err.Number Then
+                    ck = MsgBox(Join(Array( _
+                        "Key """ & nm, _
+                        """ Value (" & CStr(it(0)) & ")", _
+                        "could not be set.", _
+                        "The Key will not", _
+                        "be assigned.", _
+                        "", _
+                        "Click OK to continue", _
+                        "(Cancel to debug)" _
+                    ), vbNewLine), _
+                        vbOKCancel + vbExclamation, _
+                        "Assignment Error!" _
+                    )
+                    If ck = vbCancel Then
+                        Stop 'to Debug
+                    End If
+                End If
+                
+                On Error GoTo 0
+            End If
+        Next: End With
+    End If
+    
+    Set dc2aiNameValMap = rt
+End Function
 
-    // translation of data from Dictionary
+Public Function dcFromAiNameValMap( _
+    mp As Inventor.NameValueMap, _
+    Optional dc As Scripting.Dictionary = Nothing _
+) As Scripting.Dictionary
+    Dim rt As Scripting.Dictionary
+    Dim nm As String
+    Dim mx As Long
+    Dim dx As Long
+    
+    If dc Is Nothing Then
+        Set rt = dcFromAiNameValMap( _
+            mp, New Scripting.Dictionary _
+        )
+    Else
+        Set rt = dc 'mp
+        With mp 'dc
+            mx = .Count
+            For dx = 1 To mx
+                nm = .Name(dx)
+                
+                rt.Add nm, itemForDcOr(.Item(nm))
+            Next
+        End With
+    End If
+    
+    Set dcFromAiNameValMap = rt
+End Function
 
-    // Objects to Inventor NameValueMap
+Public Function itemForDcOr(it As Variant, _
+    Optional tp As Long = 0 _
+) As Variant
+    '''
+    ''' itemForDcOr -- given item it, return
+    '''     transformation according to type,
+    '''     and type of result desired for
+    '''     Dictionary and NameValueMap Objects,
+    '''     according to value of tp:
+    '''         NameValueMap for tp = 1
+    '''         Dictionary for any other
+    '''         value, including default 0
+    '''     all other types of item are returned
+    '''     as is, including Objects other than
+    '''     Dictionary and NameValueMap
+    '''
+    Dim rt As Variant
+    Dim ck As Variant
+    Dim mx As Long
+    Dim dx As Long
+    Dim dc As Scripting.Dictionary
+    
+    If IsArray(it) Then
+        mx = UBound(it)
+        If mx < LBound(it) Then
+            rt = Array()
+        Else
+            ReDim rt(mx)
+            
+            For dx = 0 To mx
+                ck = Array(itemForDcOr(it(dx), tp))
+                If IsObject(ck(0)) Then
+                    Set rt(dx) = ck(0)
+                Else
+                    rt(dx) = ck(0)
+                End If
+            Next
+        End If
+    ElseIf IsObject(it) Then
+        If TypeOf it Is Inventor.NameValueMap Then
+            Set rt = dcFromAiNameValMap(obOf(it))
+        ElseIf TypeOf it Is Scripting.Dictionary Then
+            Set dc = it
+            With New dcPopulator
+                For Each ck In dc.Keys
+                .Setting ck, itemForDcOr(dc.Item(ck), tp)
+                Next
+                
+                If tp = 1 Then 'NameValMap wanted
+                    Set rt = .NameValMap()
+                Else 'assume Dictionary
+                    Set rt = .Dictionary()
+                End If
+            End With
+        Else
+            Set rt = it
+        End If
+    Else
+        rt = it
+    End If
+    
+    If IsObject(rt) Then
+        Set itemForDcOr = rt
+    Else
+        itemForDcOr = rt
+    End If
+End Function
 
-    // Objects, and vice-versa.
-
-    // 
-
-    // NOTE: these functions MIGHT be supplanted by
-
-    // their addition to or implementation in
-
-    // Class Module dcPopulator
-
-    // 
-
-    public static Func<NameValueMap> dc2aiNameValMap(Dictionary dc, Func<NameValueMap> mp = null)
-    {
-        Func<NameValueMap> rt;
-
-        if (mp == null)
-        {
-            {
-                var withBlock = ThisApplication.TransientObjects;
-                rt = dc2aiNameValMap(dc, withBlock.CreateNameValueMap); // NameValueMap cannot
-            }
-        }
-        else
-        {
-            rt = mp;
-            {
-                foreach (var ky in dc.Keys)
-                {
-                    var nm = Convert.ToString(ky as string);
-                    var it = new[] { dc.get_Item(ky) };
-
-                    if (IsObject(it(0)))
-                    {
-                        // dynamic handling not
-                        // implemented as yet.
-                        // A general solution is
-                        // not likely possible.
-
-                        // UPDATE[2022.07.05.1319]
-                        // it appears that a NameValueMap
-                        // CAN include another NameValueMap
-                        // as a Value, thus enabling multi-
-                        // level NameValueMaps. Whether
-                        // other Objects can be so contained
-                        // is likely a question best left
-                        // unexplored for now, but it seems
-                        // at least sub-Dictionaries and
-                        // NameValueMaps can be processed.
-                        if (it(0) is Dictionary)
-                            rt.Add(nm, dc2aiNameValMap(obOf(it(0))));
-                        else if (it(0) is NameValueMap)
-                            rt.Add(nm, it(0));
-                    }
-                    else
-                    {
-                        Information.Err.Clear();
-                        rt.Add(nm, it(0));
-                        if (!Information.Err.Number) continue;
-                        VbMsgBoxResult ck = MessageBox.Show(
-                            Join(
-                                new[]
-                                {
-                                    "Key \"" + nm, "\" Value (" + Convert.ToHexString(it(0)) + ")",
-                                    "could not be set.", "The Key will not", "be assigned.", "",
-                                    "Click OK to continue", "(Cancel to debug)"
-                                }, Constants.vbCrLf),
-                            Constants.vbOKCancel & Constants.vbExclamation, "Assignment Error!");
-                        if (ck == Constants.vbCancel)
-                            Debugger.Break(); // to Debug
-                    }
-                }
-            }
-        }
-
-        return rt;
-    }
-
-    public static Dictionary dcFromAiNameValMap(NameValueMap mp, Dictionary dc = null)
-    {
-        Dictionary rt;
-
-        if (dc == null)
-            rt = dcFromAiNameValMap(mp, new Dictionary());
-        else
-        {
-            rt = dc; // mp
-            {
-                long mx = mp.Count;
-                for (long dx = 1; dx <= mx; dx++)
-                {
-                    string nm = mp.Name(dx);
-
-                    rt.Add(nm, itemForDcOr(mp.get_Item(nm)));
-                }
-            }
-        }
-
-        return rt;
-    }
-
-    public static dynamic itemForDcOr(dynamic it, bool tp = false)
-    {
-        // itemForDcOr -- given item it, return
-        // transformation according to type,
-        // and type of result desired for
-        // Dictionary and NameValueMap Objects,
-        // according to value of tp:
-        // NameValueMap for tp = 1
-        // Dictionary for any other
-        // value, including default 0
-        // all other types of item are returned
-        // as is, including Objects other than
-        // Dictionary and NameValueMap
-        // 
-
-        switch (it)
-        {
-            case Array:
-            {
-                long mx = UBound(it);
-                dynamic rt;
-                if (mx < LBound(it))
-                    rt = Array.Empty<dynamic>();
-                else
-                {
-                    rt(mx);
-                    for (long dx = 0; dx <= mx; dx++)
-                    {
-                        dynamic ck = new[] { itemForDcOr(it(dx), tp) };
-                        ;
-                        if (IsObject(ck(0)))
-                            rt(dx) = ck(0);
-                        else
-                            rt(dx) = ck(0);
-                    }
-                }
-
-                break;
-            }
-            case not null:
-                switch (it)
-                {
-                    case NameValueMap:
-                        rt = dcFromAiNameValMap(obOf(it));
-                        break;
-                    case Dictionary:
-                    {
-                        Dictionary dc = it;
-                        {
-                            var withBlock = new dcPopulator();
-                            foreach (var ck in dc.Keys)
-                                withBlock.Setting(ck, itemForDcOr(dc.get_Item(ck), tp));
-
-                            if (tp == 1)
-                                rt = withBlock.NameValMap();
-                            else
-                                rt = withBlock.Dictionary();
-                        }
-                        break;
-                    }
-                    default:
-                        rt = it;
-                        break;
-                }
-
-                break;
-            default:
-                rt = it;
-                break;
-        }
-
-        return rt;
-    }
-
-    public static NameValueMap nuAiNameValMap(Document Using = null)
-    {
-        if ()
-        {
-            {
-                var withBlock = ThisApplication.TransientObjects;
-                return withBlock.CreateNameValueMap;
-            }
-        }
-
-        return dc2aiNameValMap;
-    }
-}
+Public Function nuAiNameValMap( _
+    Optional Using As Inventor.Document = Nothing _
+) As Inventor.NameValueMap
+    If Using Is Nothing Then
+        With ThisApplication.TransientObjects
+        Set nuAiNameValMap = .CreateNameValueMap
+        End With
+    Else
+        Set nuAiNameValMap = dc2aiNameValMap(Using)
+    End If
+End Function
+'''
+'''
+'''

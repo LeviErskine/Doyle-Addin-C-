@@ -1,110 +1,107 @@
-﻿namespace Doyle_Addin.Genius.Classes;
 
-class kyPickAiDocWithRM : kyPick
-{
-    private kyPick pk;
 
-    private void Class_Initialize()
-    {
-        pk = new kyPick();
-    }
+Implements kyPick
 
-    public IDictionary dcFor(dynamic Item)
-    {
-        Document ob = aiDocument(obOf(Item));
-        if (ob == null)
-            return pk.dcFor(0);
-        if (ob.DocumentType == kPartDocumentObject)
-        {
-            {
-                var withBlock = dcAiPropsInSet(ob.PropertySets.get_Item(gnCustom));
-                return withBlock.Exists("RM") ? pk.dcFor(ob) : pk.dcFor(0);
-            }
-        }
+Private pk As kyPick
 
-        return pk.dcFor(0);
-    }
+Private Sub Class_Initialize()
+    Set pk = New kyPick
+End Sub
 
-    public kyPick WithInDc(Dictionary Dict)
-    {
-        pk = pk.WithInDc(Dict);
-        return this;
-    }
+Public Function dcFor(Item As Variant) As Scripting.IDictionary
+    Dim ob As Inventor.Document
+    
+    Set ob = aiDocument(obOf(Item))
+    If ob Is Nothing Then
+        Set dcFor = pk.dcFor(0)
+    Else
+        If ob.DocumentType = kPartDocumentObject Then
+            With dcAiPropsInSet(ob.PropertySets.Item(gnCustom))
+                If .Exists("RM") Then
+                    Set dcFor = pk.dcFor(ob)
+                Else
+                    Set dcFor = pk.dcFor(0)
+                End If
+            End With
+        Else
+            Set dcFor = pk.dcFor(0)
+        End If
+    End If
+End Function
 
-    public kyPick WithOutDc(Dictionary Dict)
-    {
-        pk = pk.WithOutDc(Dict);
-        return this;
-    }
+Public Function WithInDc( _
+    Dict As Scripting.Dictionary _
+) As kyPick
+    Set pk = pk.WithInDc(Dict)
+    Set WithInDc = Me
+End Function
 
-    public Dictionary dcIn()
-    {
-        return pk.dcIn;
-    }
+Public Function WithOutDc( _
+    Dict As Scripting.Dictionary _
+) As kyPick
+    Set pk = pk.WithOutDc(Dict)
+    Set WithOutDc = Me
+End Function
 
-    public Dictionary dcOut()
-    {
-        return pk.dcOut;
-    }
+Public Function dcIn() As Scripting.Dictionary
+    Set dcIn = pk.dcIn
+End Function
 
-    public kyPick AfterScanning(Dictionary dSrc)
-    {
-        return kyPick_AfterScanning(dSrc);
-    }
+Public Function dcOut() As Scripting.Dictionary
+    Set dcOut = pk.dcOut
+End Function
 
-    private kyPick kyPick_AfterScanning(IDictionary dSrc)
-    {
-        {
-            foreach (var ky in dSrc.Keys)
-            {
-                {
-                    var withBlock1 = dcFor(dSrc.get_Item(ky));
-                    if (withBlock1.Exists(ky))
-                        Debugger.Break();
-                    else
-                        withBlock1.Add(ky, dSrc.get_Item(ky));
-                }
-            }
-        }
+Public Function AfterScanning( _
+    dSrc As Scripting.Dictionary _
+) As kyPick
+    Set AfterScanning = kyPick_AfterScanning(dSrc)
+End Function
 
-        return this;
-    }
+Private Function kyPick_AfterScanning(dSrc As Scripting.IDictionary) As kyPick
+    Dim ky As Variant
+    
+    With dSrc
+        For Each ky In .Keys
+            With dcFor(.Item(ky))
+                If .Exists(ky) Then
+                    Stop
+                Else
+                    .Add ky, dSrc.Item(ky)
+                End If
+            End With
+        Next
+    End With
+    
+    Set kyPick_AfterScanning = Me
+End Function
 
-    // kyPick Implementation code follows
+'''
+''' kyPick Implementation code follows
+'''
+Private Function kyPick_DcFor(Item As Variant) As Scripting.IDictionary
+    Set kyPick_DcFor = dcFor(Item)
+End Function
 
-    // 
-    private IDictionary kyPick_DcFor(dynamic Item)
-    {
-        return dcFor(Item);
-    }
+Private Function kyPick_DcIn() As Scripting.IDictionary
+    Set kyPick_DcIn = dcIn()
+End Function
 
-    private IDictionary kyPick_DcIn()
-    {
-        return dcIn();
-    }
+Private Function kyPick_DcOut() As Scripting.IDictionary
+    Set kyPick_DcOut = dcOut()
+End Function
 
-    private IDictionary kyPick_DcOut()
-    {
-        return dcOut();
-    }
+Public Function Itself() As kyPick
+    Set Itself = Me
+End Function
 
-    public kyPick Itself()
-    {
-        return this;
-    }
+Private Function kyPick_Itself() As kyPick
+    Set kyPick_Itself = Me.Itself
+End Function
 
-    private kyPick kyPick_Itself()
-    {
-        return Itself();
-    }
+Private Function kyPick_WithInDc(Dict As Scripting.IDictionary) As kyPick
+    Set kyPick_WithInDc = WithInDc(Dict)
+End Function
 
-    private kyPick kyPick_WithInDc(IDictionary Dict)
-    {
-        return WithInDc(Dict);
-    }
-
-    private kyPick kyPick_WithOutDc(IDictionary Dict)
-    {
-        return WithOutDc(Dict);
-    }
-}
+Private Function kyPick_WithOutDc(Dict As Scripting.IDictionary) As kyPick
+    Set kyPick_WithOutDc = WithOutDc(Dict)
+End Function
