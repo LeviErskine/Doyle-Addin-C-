@@ -5,61 +5,68 @@
 internal static class SVGconvert
 
 {
-    private static IPictureDisp ImageToPictureDisp(Image image)
-    {
-        // Use reflection to access AxHost.GetIPictureDispFromPicture without inheriting from AxHost
-        var axHostType = typeof(AxHost);
-        var method = axHostType.GetMethod("GetIPictureDispFromPicture",
-            BindingFlags.Static | BindingFlags.NonPublic);
+	private static IPictureDisp ImageToPictureDisp(Image image)
+	{
+		return (IPictureDisp)AxHostConverter.GetIPictureDispFromPicture(image);
+	}
 
-        if (method == null)
-            throw new NotSupportedException("GetIPictureDispFromPicture method not found.");
+	// Find a group by "name" or "inkscape:label" attribute
+	public static IPictureDisp SvgResourceToPictureDisp(string resourceName, int width, int height,
+		string layerName)
+	{
+		using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
+		if (stream is null)
+			throw new FileNotFoundException($"Resource '{resourceName}' not found.");
 
-        return (IPictureDisp)method.Invoke(null, [image]);
-    }
+		var svgDoc = SvgDocument.Open<SvgDocument>(stream);
+		// Search for <g> with name or inkscape:label
+		var layer = svgDoc.Descendants().OfType<SvgGroup>().FirstOrDefault(g =>
+			(g.CustomAttributes.ContainsKey("inkscape:label") &&
+			 (g.CustomAttributes["inkscape:label"] ?? "") == (layerName ?? "")) ||
+			(g.CustomAttributes.ContainsKey("http://www.inkscape.org/namespaces/inkscape:label") &&
+			 (g.CustomAttributes["http://www.inkscape.org/namespaces/inkscape:label"] ?? "") ==
+			 (layerName ?? "")));
 
-    // Find a group by "name" or "inkscape:label" attribute
-    public static IPictureDisp SvgResourceToPictureDisp(string resourceName, int width, int height,
-        string layerName)
-    {
-        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
-        if (stream is null)
-            throw new FileNotFoundException($"Resource '{resourceName}' not found.");
+		if (layer is null) throw new ArgumentException($"Layer '{layerName}' not found in SVG.");
 
-        var svgDoc = SvgDocument.Open<SvgDocument>(stream);
-        // Search for <g> with name or inkscape:label
-        var layer = svgDoc.Descendants().OfType<SvgGroup>().FirstOrDefault(g =>
-            (g.CustomAttributes.ContainsKey("inkscape:label") &&
-             (g.CustomAttributes["inkscape:label"] ?? "") == (layerName ?? "")) ||
-            (g.CustomAttributes.ContainsKey("http://www.inkscape.org/namespaces/inkscape:label") &&
-             (g.CustomAttributes["http://www.inkscape.org/namespaces/inkscape:label"] ?? "") ==
-             (layerName ?? "")));
+		// Create a new SVG document with just the selected layer
+		var newDoc = new SvgDocument
+		{
+			Width  = svgDoc.Width,
+			Height = svgDoc.Height
+		};
+		newDoc.Children.Add(layer.DeepCopy());
 
-        if (layer is null) throw new ArgumentException($"Layer '{layerName}' not found in SVG.");
+		// Calculate scaling
+		var scale     = Math.Min(width / newDoc.Width.Value, height / newDoc.Height.Value);
+		var newWidth  = (int)Math.Round(newDoc.Width.Value * scale);
+		var newHeight = (int)Math.Round(newDoc.Height.Value * scale);
 
-        // Create a new SVG document with just the selected layer
-        var newDoc = new SvgDocument
-        {
-            Width = svgDoc.Width,
-            Height = svgDoc.Height
-        };
-        newDoc.Children.Add(layer.DeepCopy());
+		using var finalBitmap = new Bitmap(width, height);
+		using (var g = Graphics.FromImage(finalBitmap))
+		{
+			g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+			g.Clear(Color.Transparent);
+			var x = (width - newWidth) / 2d;
+			var y = (height - newHeight) / 2d;
+			g.DrawImage(newDoc.Draw(newWidth, newHeight), (int)Math.Round(x), (int)Math.Round(y));
+		}
 
-        // Calculate scaling
-        var scale = Math.Min(width / newDoc.Width.Value, height / newDoc.Height.Value);
-        var newWidth = (int)Math.Round(newDoc.Width.Value * scale);
-        var newHeight = (int)Math.Round(newDoc.Height.Value * scale);
+		return ImageToPictureDisp(finalBitmap);
+	}
 
-        using var finalBitmap = new Bitmap(width, height);
-        using (var g = Graphics.FromImage(finalBitmap))
-        {
-            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            g.Clear(Color.Transparent);
-            var x = (width - newWidth) / 2d;
-            var y = (height - newHeight) / 2d;
-            g.DrawImage(newDoc.Draw(newWidth, newHeight), (int)Math.Round(x), (int)Math.Round(y));
-        }
+	/// <summary>
+	///     Helper class to convert .NET Image to COM IPictureDisp
+	/// </summary>
+	private sealed class AxHostConverter : AxHost
+	{
+		private AxHostConverter() : base("")
+		{
+		}
 
-        return ImageToPictureDisp(finalBitmap);
-    }
+		public new static stdole.IPictureDisp GetIPictureDispFromPicture(Image image)
+		{
+			return (stdole.IPictureDisp)AxHost.GetIPictureDispFromPicture(image);
+		}
+	}
 }

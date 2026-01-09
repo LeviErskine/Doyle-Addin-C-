@@ -8,93 +8,93 @@ namespace Doyle_Addin.Prints;
 
 internal static class PrintUpdate
 {
-    public static void RunPrintUpdate()
-    {
-        // Check if the current document is a drawing, show error if not
-        if (ThisApplication.ActiveDocument.DocumentType != kDrawingDocumentObject)
-        {
-            MessageBox.Show(@"ONLY FOR USE IN DRAWING DOCUMENTS", @"Ilogic", MessageBoxButtons.OK,
-                MessageBoxIcon.Warning);
-            return;
-        }
+	public static void RunPrintUpdate()
+	{
+		// Check if the current document is a drawing, show error if not
+		if (ThisApplication.ActiveDocument.DocumentType != kDrawingDocumentObject)
+		{
+			MessageBox.Show(@"ONLY FOR USE IN DRAWING DOCUMENTS", @"Ilogic", MessageBoxButtons.OK,
+				MessageBoxIcon.Warning);
+			return;
+		}
 
-        // Set reference to active document
-        var oDDoc = (DrawingDocument)ThisApplication.ActiveDocument;
+		// Set reference to active document
 
-        // Gets referenced model document type (part or assembly)
-        var refDocType = oDDoc.ReferencedDocuments[1].DocumentType;
+		// Gets referenced model document type (part or assembly)
+		if (ThisApplication.ActiveDocument is not DrawingDocument oDDoc) return;
+		var refDocType = oDDoc.ReferencedDocuments[1].DocumentType;
 
-        var oFilePath = UserOptions.Load().PrintExportLocation;
-        var pn = oDDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString();
+		var oFilePath = UserOptions.Load().PrintExportLocation;
+		var pn        = oDDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString();
 
-        // Always export PDF
-        if (string.IsNullOrEmpty(oFilePath))
-        {
-            MessageBox.Show(
-                @"This file has not been saved yet or save location cannot be found" + Environment.NewLine,
-                @"Save error", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            return;
-        }
+		// Always export PDF
+		if (string.IsNullOrEmpty(oFilePath))
+		{
+			MessageBox.Show(
+				@"This file has not been saved yet or save location cannot be found" + Environment.NewLine,
+				@"Save error", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			return;
+		}
 
-        var fileName = pn + ".pdf";
-        var pdfPath = oFilePath + @"\" + fileName;
-        var oPdfAddin =
-            (TranslatorAddIn)ThisApplication.ApplicationAddIns.ItemById["{0AC6FD96-2F4D-42CE-8BE0-8AEA580399E4}"];
-        Document oDocument = ThisApplication.ActiveDocument;
-        var oContext = ThisApplication.TransientObjects.CreateTranslationContext();
-        oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism;
-        var oOptions = ThisApplication.TransientObjects.CreateNameValueMap();
-        var oDataMedium = ThisApplication.TransientObjects.CreateDataMedium();
+		var fileName = pn + ".pdf";
+		var pdfPath  = Path.Combine(oFilePath, fileName);
+		var oPdfAddin =
+			(TranslatorAddIn)ThisApplication.ApplicationAddIns.ItemById["{0AC6FD96-2F4D-42CE-8BE0-8AEA580399E4}"];
+		Document oDocument = ThisApplication.ActiveDocument;
+		var      oContext  = ThisApplication.TransientObjects.CreateTranslationContext();
+		oContext.Type = IOMechanismEnum.kFileBrowseIOMechanism;
+		var oOptions    = ThisApplication.TransientObjects.CreateNameValueMap();
+		var oDataMedium = ThisApplication.TransientObjects.CreateDataMedium();
 
-        // Set PDF options
-        oOptions.Value["All_Color_AS_Black"] = 0;
-        oOptions.Value["Remove_Line_Weights"] = 0;
-        oOptions.Value["Vector_Resolution"] = 4800;
-        oOptions.Value["Sheet_Range"] = PrintRangeEnum.kPrintAllSheets;
+		// Set PDF options
+		oOptions.Value["All_Color_AS_Black"]  = 0;
+		oOptions.Value["Remove_Line_Weights"] = 0;
+		oOptions.Value["Vector_Resolution"]   = 4800;
+		oOptions.Value["Sheet_Range"]         = PrintRangeEnum.kPrintAllSheets;
 
-        // Set a PDF target file name
-        oDataMedium.FileName = pdfPath;
-        try
-        {
-            // Publish document
-            oPdfAddin.SaveCopyAs(oDocument, oContext, oOptions, oDataMedium);
-            PdfToImage.ExportFirstPageAsImage(pdfPath, oFilePath + @"\" + pn + ".jpg");
-        }
-        catch
-        {
-            MessageBox.Show(@"Failed to Export PDF (Someone might have this file open)", @"Export failed",
-                MessageBoxButtons.OK, MessageBoxIcon.Error);
-            return;
-        }
+		// Set a PDF target file name
+		oDataMedium.FileName = pdfPath;
+		try
+		{
+			// Publish document
+			oPdfAddin.SaveCopyAs(oDocument, oContext, oOptions, oDataMedium);
+			PdfToImage.ExportFirstPageAsImage(pdfPath, Path.Combine(oFilePath, pn + ".jpg"));
+		}
+		catch
+		{
+			MessageBox.Show(@"Failed to Export PDF (Someone might have this file open)", @"Export failed",
+				MessageBoxButtons.OK, MessageBoxIcon.Error);
+			return;
+		}
 
-        // If the referenced document is a part, convert PDF to JPG
-        if (refDocType != kPartDocumentObject) return;
-        try
-        {
-            const int dpi = 3200;
-            int pageCount;
-            try
-            {
-                using var docReader = DocLib.Instance.GetDocReader(pdfPath, new PageDimensions(dpi, dpi));
-                pageCount = docReader.GetPageCount();
-            }
-            catch
-            {
-                // If we can't determine page count, assume a single page
-                pageCount = 1;
-            }
+		// If the referenced document is a part, convert PDF to JPG
+		if (refDocType != kPartDocumentObject) return;
+		try
+		{
+			const int dpi = 3200;
+			int       pageCount;
+			try
+			{
+				using var docReader = DocLib.Instance.GetDocReader(pdfPath, new PageDimensions(dpi, dpi));
+				pageCount = docReader.GetPageCount();
+			}
+			catch
+			{
+				// If we can't determine page count, assume a single page
+				pageCount = 1;
+			}
 
-            // Only convert and delete if single page
-            if (pageCount != 1) return;
-            PdfToImage.ExportFirstPageAsImage(pdfPath, oFilePath + @"\" + pn + ".jpg");
-            if (File.Exists(pdfPath)) File.Delete(pdfPath);
-            // Optionally, notify the user or handle multipage PDFs as needed
-            // MsgBox("PDF has multiple pages and will not be converted to JPG or deleted.", MsgBoxStyle.Information)
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(@"Failed to convert PDF to JPG: " + ex.Message, @"Conversion failed", MessageBoxButtons.OK,
-                MessageBoxIcon.Error);
-        }
-    }
+			// Only convert and delete if single page
+			if (pageCount != 1) return;
+			PdfToImage.ExportFirstPageAsImage(pdfPath, Path.Combine(oFilePath, pn + ".jpg"));
+			if (File.Exists(pdfPath)) File.Delete(pdfPath);
+			// Optionally, notify the user or handle multipage PDFs as needed
+			// MsgBox("PDF has multiple pages and will not be converted to JPG or deleted.", MsgBoxStyle.Information)
+		}
+		catch (Exception ex)
+		{
+			MessageBox.Show(@"Failed to convert PDF to JPG: " + ex.Message, @"Conversion failed", MessageBoxButtons.OK,
+				MessageBoxIcon.Error);
+		}
+	}
 }

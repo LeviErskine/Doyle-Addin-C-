@@ -1,174 +1,174 @@
-﻿
+﻿#region
+
 using Doyle_Addin.Options;
+
+#endregion
 
 namespace Doyle_Addin.DXFs;
 
 internal static class DxfUpdate
 {
-    public static void RunDxfUpdate(Application thisApplication)
-    {
-        var oPartDoc = (PartDocument)ThisApplication.ActiveDocument;
-        var oDef = (SheetMetalComponentDefinition)oPartDoc.ComponentDefinition;
-        var oFactory = oDef.iPartFactory;
-        var failedExports = new List<string>();
-        var oDoc = thisApplication.Documents;
-        var pn = oPartDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString();
-        var oFileName = UserOptions.Load().DxfExportLocation + pn + ".dxf";
-        
-        // Check if a part is a factory
-        if (!oDef.IsiPartFactory) goto NonIPart;
-        var total = oFactory.TableRows.Count;
-        oDoc.CloseAll(true);
-        oPartDoc.ReleaseReference();
+	private const object DesignTrackingProperties = null;
+	private const object PartNumber = null;
 
-        // Create a flat pattern if missing
-        if (!oDef.HasFlatPattern)
-        {
-            try
-            {
-                oDef.Unfold();
-                oDef.FlatPattern.ExitEdit();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                failedExports.Add("Failed to create flat pattern for: " + pn);
-            }
-        }
+	private static bool CreateFlatPattern(SheetMetalComponentDefinition def, string partName,
+		List<string> failedExports)
+	{
+		if (def.HasFlatPattern) return true;
+		try
+		{
+			def.Unfold();
+			def.FlatPattern.ExitEdit();
+			return true;
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			failedExports.Add("Failed to create flat pattern for: " + partName);
+			return false;
+		}
+	}
 
-        if (!Directory.Exists(oFactory.MemberCacheDir))
-        {
-            Directory.CreateDirectory(oFactory.MemberCacheDir);
-        }
+	private static bool ValidateFlatPattern(SheetMetalComponentDefinition memberDef, string partNumber,
+		List<string> failedExports)
+	{
+		Debug.Assert(memberDef != null, nameof(memberDef) + " != null");
+		if (memberDef.FlatPattern.FlatBendResults.Count != 0 ||
+		    memberDef.FlatPattern.RangeBox.MaxPoint.Z - memberDef.FlatPattern.RangeBox.MinPoint.Z <=
+		    Convert.ToDouble(memberDef.Thickness.Value) + 0.003d) return true;
+		failedExports.Add("Invalid flat pattern for: " + partNumber);
+		return false;
+	}
 
-        var partFiles = Directory.GetFiles(oFactory.MemberCacheDir);
+	private static void ExportDxf(SheetMetalComponentDefinition def, string fileName, string partNumber,
+		List<string> failedExports)
+	{
+		const string oFormat = "FLAT PATTERN DXF?AcadVersion=2018" +
+		                       "&BendDownLayer=DOWN&BendDownLayerColor=255;0;0" +
+		                       "&BendUpLayer=UP&BendUpLayerColor=255;0;0" +
+		                       "&OuterProfileLayer=OUTER&OuterProfileLayerColor=0;0;255" +
+		                       "&InteriorProfilesLayer=INNER&InteriorProfilesLayerColor=0;0;0" +
+		                       "&ArcCentersLayer=POINT&ArcCentersLayerColor=255;0;255" +
+		                       "&TangentLayer=RADIUS&TangentLayerColor=255;255;0";
 
-        if (total > partFiles.Length)
-        {
-            var result =
-                MessageBox.Show(
-                    @"Warning: The factory has " + total + @" members, but " + partFiles.Length +
-                    @" files were found in the folder. Generate files?.", @"Missing Members",
-                    MessageBoxButtons.YesNo);
-            if (result == DialogResult.Yes)
-            {
-                oDoc.CloseAll(true);
-                oPartDoc.ReleaseReference();
-                foreach (var iPartTableRow in oFactory.TableRows)
-                    oFactory.CreateMember(iPartTableRow);
-            }
-            else
-            {
-                return;
-            }
-        }
+		try
+		{
+			def.DataIO.WriteDataToFile(oFormat, fileName);
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			failedExports.Add("DXF failed to generate for: " + partNumber);
+		}
+	}
 
-        foreach (var filepath in Directory.GetFiles(oFactory.MemberCacheDir))
-        {
-            var openedDoc = (PartDocument)oDoc.Open(filepath);
-            var memberDef = openedDoc.ComponentDefinition as SheetMetalComponentDefinition;
-            var partnumber = openedDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value
-                .ToString();
-            var oiFileName = UserOptions.Load().DxfExportLocation + partnumber + ".dxf";
+	private static void GenerateMissingMembers(iPartFactory oFactory, Documents oDoc)
+	{
+		oDoc.CloseAll(true);
+		foreach (var iPartTableRow in oFactory.TableRows)
+			oFactory.CreateMember(iPartTableRow);
+	}
 
+	private static void ProcessIPartMember(string filepath, Documents oDoc, List<string> failedExports)
+	{
+		if (oDoc.Open(filepath) is not PartDocument openedDoc) return;
 
-            // Validate flat pattern
-            Debug.Assert(memberDef != null, nameof(memberDef) + " != null");
-            if (memberDef.FlatPattern.FlatBendResults.Count == 0 &&
-                memberDef.FlatPattern.RangeBox.MaxPoint.Z - memberDef.FlatPattern.RangeBox.MinPoint.Z >
-                Convert.ToDouble(memberDef.Thickness.Value) + 0.003d)
-            {
-                failedExports.Add("Invalid flat pattern for: " + partnumber);
-                continue;
-            }
+		var memberDef  = openedDoc.ComponentDefinition as SheetMetalComponentDefinition;
+		var partNumber = openedDoc.PropertySets[DesignTrackingProperties][PartNumber].Value.ToString();
+		var oiFileName = UserOptions.Load().DxfExportLocation + partNumber + ".dxf";
 
-            // Prepare output path and format
-            const string oFormat = "FLAT PATTERN DXF?AcadVersion=2018" +
-                                   "&BendDownLayer=DOWN&BendDownLayerColor=255;0;0" +
-                                   "&BendUpLayer=UP&BendUpLayerColor=255;0;0" +
-                                   "&OuterProfileLayer=OUTER&OuterProfileLayerColor=0;0;255" +
-                                   "&InteriorProfilesLayer=INNER&InteriorProfilesLayerColor=0;0;0" +
-                                   "&ArcCentersLayer=POINT&ArcCentersLayerColor=255;0;255" +
-                                   "&TangentLayer=RADIUS&TangentLayerColor=255;255;0";
+		if (!ValidateFlatPattern(memberDef, partNumber, failedExports))
+		{
+			openedDoc.Close(true);
+			return;
+		}
 
-            // Export DXF
-            try
-            {
-                memberDef.DataIO.WriteDataToFile(oFormat, oiFileName);
-                if (true)
-                {
-                    openedDoc.Close(true);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                failedExports.Add("DXF failed to generate for: " + partnumber);
-            }
-        }
-        
-        if (failedExports.Count > 0)
-        {
-            MessageBox.Show(failedExports.Count + @" Members have errors and were skipped." +
-                            Environment.NewLine + string.Join(Environment.NewLine, failedExports));
-        }
-        else
-        {
-            MessageBox.Show(@"Created " + total + @" DXFs. All exports succeeded.");
-        }
-        return;
+		ExportDxf(memberDef, oiFileName, partNumber, failedExports);
+		openedDoc.Close(true);
+	}
 
-NonIPart:
-        {
-            // Debug
-            // MsgBox(ThisApplication.ActiveDocument._SickNodesCount.ToString, MsgBoxStyle.OkOnly, "Sick Nodes")
-            // MsgBox(ThisApplication.ActiveDocument._ComatoseNodesCount.ToString, MsgBoxStyle.OkOnly, "Comatose Nodes")
-            // All the same as above, for non-iparts
-            const string oFormat = "FLAT PATTERN DXF?AcadVersion=2018" +
-                                   "&BendDownLayer=DOWN&BendDownLayerColor=255;0;0" +
-                                   "&BendUpLayer=UP&BendUpLayerColor=255;0;0" +
-                                   "&OuterProfileLayer=OUTER&OuterProfileLayerColor=0;0;255" +
-                                   "&InteriorProfilesLayer=INNER&InteriorProfilesLayerColor=0;0;0" +
-                                   "&ArcCentersLayer=POINT&ArcCentersLayerColor=255;0;255" +
-                                   "&TangentLayer=RADIUS&TangentLayerColor=255;255;0";
+	private static void ProcessIPartFactory(Application thisApplication, PartDocument oPartDoc,
+		SheetMetalComponentDefinition oDef, string pn, List<string> failedExports)
+	{
+		var oFactory = oDef.iPartFactory;
+		var oDoc     = thisApplication.Documents;
+		var total    = oFactory.TableRows.Count;
+		oDoc.CloseAll(true);
+		oPartDoc.ReleaseReference();
 
+		if (!CreateFlatPattern(oDef, pn, failedExports)) return;
 
-            // Skip export if comatose nodes exist
-            if (oPartDoc._ComatoseNodesCount > 0 | oPartDoc._SickNodesCount > 0)
-            {
-                MessageBox.Show(oPartDoc.DisplayName + @" has errors, fix before export." + Environment.NewLine +
-                                string.Join(Environment.NewLine, failedExports));
-                return;
-            }
+		if (!Directory.Exists(oFactory.MemberCacheDir)) Directory.CreateDirectory(oFactory.MemberCacheDir);
+		var partFiles = Directory.GetFiles(oFactory.MemberCacheDir);
 
-            if (!oDef.HasFlatPattern)
-            {
-                try
-                {
-                    oDef.Unfold();
-                    oDef.FlatPattern.ExitEdit();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
-                    MessageBox.Show(@"Failed to create flat pattern", @"Error", MessageBoxButtons.OK,
-                        MessageBoxIcon.Error);
-                    return;
-                }
-            }
-            
-            try
-            {
-                oDef.DataIO.WriteDataToFile(oFormat, oFileName);
-                MessageBox.Show(oPartDoc.DisplayName + @" exported successfully.", @"Success", MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    @"DXF failed to generate. Check connection to X drive" + Environment.NewLine + @"Error: " +
-                    ex.Message, @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-    }
+		if (total > partFiles.Length)
+		{
+			var result = MessageBox.Show(
+				@"Warning: The factory has " + total + @" members, but " + partFiles.Length +
+				@" files were found in the folder. Generate files?.", @"Missing Members",
+				MessageBoxButtons.YesNo);
+			if (result == DialogResult.Yes)
+				GenerateMissingMembers(oFactory, oDoc);
+			else
+				return;
+		}
+
+		foreach (var filepath in Directory.GetFiles(oFactory.MemberCacheDir))
+			ProcessIPartMember(filepath, oDoc, failedExports);
+
+		if (failedExports.Count > 0)
+			MessageBox.Show(failedExports.Count + @" Members have errors and were skipped." +
+			                Environment.NewLine + string.Join(Environment.NewLine, failedExports));
+		else
+			MessageBox.Show(@"Created " + total + @" DXFs. All exports succeeded.");
+	}
+
+	private static void ProcessNonIPart(PartDocument oPartDoc, SheetMetalComponentDefinition oDef, string oFileName,
+		List<string> failedExports)
+	{
+		if (oPartDoc._ComatoseNodesCount > 0 || oPartDoc._SickNodesCount > 0)
+		{
+			MessageBox.Show(oPartDoc.DisplayName + @" has errors, fix before export." + Environment.NewLine +
+			                string.Join(Environment.NewLine, failedExports));
+			return;
+		}
+
+		if (!CreateFlatPattern(oDef,
+			    oPartDoc.PropertySets[DesignTrackingProperties][PartNumber].Value.ToString(), failedExports))
+		{
+			MessageBox.Show(@"Failed to create flat pattern", @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			return;
+		}
+
+		try
+		{
+			ExportDxf(oDef, oFileName,
+				oPartDoc.PropertySets[DesignTrackingProperties][PartNumber].Value.ToString(), failedExports);
+			if (failedExports.Count == 0)
+				MessageBox.Show(oPartDoc.DisplayName + @" exported successfully.", @"Success", MessageBoxButtons.OK,
+					MessageBoxIcon.Information);
+		}
+		catch (Exception ex)
+		{
+			MessageBox.Show(
+				@"DXF failed to generate. Check connection to X drive" + Environment.NewLine + @"Error: " +
+				ex.Message, @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+		}
+	}
+
+	public static void RunDxfUpdate(Application thisApplication)
+	{
+		if (ThisApplication.ActiveDocument is not PartDocument oPartDoc) return;
+
+		var oDef          = (SheetMetalComponentDefinition)oPartDoc.ComponentDefinition;
+		var failedExports = new List<string>();
+		var pn            = oPartDoc.PropertySets[DesignTrackingProperties][PartNumber].Value.ToString();
+		var oFileName     = UserOptions.Load().DxfExportLocation + pn + ".dxf";
+
+		// Check if a part is a factory and delegate to the appropriate processor
+		if (oDef.IsiPartFactory)
+			ProcessIPartFactory(thisApplication, oPartDoc, oDef, pn, failedExports);
+		else
+			ProcessNonIPart(oPartDoc, oDef, oFileName, failedExports);
+	}
 }

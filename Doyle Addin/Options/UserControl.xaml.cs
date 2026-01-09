@@ -1,198 +1,211 @@
-﻿using System;
-using Ookii.Dialogs.Wpf; // From the WpfFolderDialog NuGet package
+﻿#region
+
 using System.Windows;
-using System.Windows.Controls;
-using Doyle_Addin.My_Project;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Windows.Markup;
+using Ookii.Dialogs.Wpf;
+using TextBox = Wpf.Ui.Controls.TextBox;
+// From the WpfFolderDialog NuGet package
+
+#endregion
 
 namespace Doyle_Addin.Options;
 
 /// <summary>
-/// 
 /// </summary>
 public partial class UserOptionsWindow
 {
-    private UserOptions options;
+	private const string LightTheme = "LightTheme";
+	private const string DarkTheme = "DarkTheme";
+	private UserOptions options;
 
-    /// <inheritdoc />
-    public UserOptionsWindow()
-    {
-        // Preload theme resources into the window resources so styles resolve during InitializeComponent
-        try
-        {
-            PreloadThemeResources();
-        }
-        catch
-        {
-            // ignore preload failures; ApplyThemeColors will try again on Loaded
-        }
+	/// <inheritdoc />
+	public UserOptionsWindow()
+	{
+		// Preload theme resources into the window resources so styles resolve during InitializeComponent
+		try
+		{
+			PreloadThemeResources();
+		}
+		catch
+		{
+			// ignore preload failures; ApplyThemeColors will try again on Loaded
+		}
 
-        InitializeComponent();
-    }
+		InitializeComponent();
+	}
 
-    // Load the theme dictionary into this window's resources before InitializeComponent runs
-    private void PreloadThemeResources()
-    {
-        try
-        {
-            var oThemeManager = GlobalsHelpers.ThisApplication?.ThemeManager;
-            var oTheme = oThemeManager?.ActiveTheme;
-            var themeName = (oTheme?.Name == "LightTheme") ? "LightTheme" : "DarkTheme";
+	// Load the theme dictionary into this window's resources before InitializeComponent runs
+	private void PreloadThemeResources()
+	{
+		try
+		{
+			var oThemeManager = ThisApplication?.ThemeManager;
+			var oTheme        = oThemeManager?.ActiveTheme;
+			var themeName     = oTheme?.Name == LightTheme ? LightTheme : DarkTheme;
 
-            ResourceDictionary rd = null;
-            try
-            {
-                var asmName = Assembly.GetExecutingAssembly().GetName().Name;
-                var packUri = new Uri($"pack://application:,,,/{asmName};component/Options/Themes/{themeName}.xaml",
-                    UriKind.Absolute);
-                rd = new ResourceDictionary { Source = packUri };
-            }
-            catch
-            {
-                var asmLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? ".";
-                var themePath = Path.Combine(asmLocation, "Options", "Themes", themeName + ".xaml");
-                if (File.Exists(themePath))
-                {
-                    using var fs = File.OpenRead(themePath);
-                    rd = (ResourceDictionary)XamlReader.Load(fs);
-                }
-            }
+			ResourceDictionary rd = null;
+			try
+			{
+				var asmName = Assembly.GetExecutingAssembly().GetName().Name;
+				var packUri = new Uri($"pack://application:,,,/{asmName};component/Options/Themes/{themeName}.xaml",
+					UriKind.Absolute);
+				rd = new ResourceDictionary { Source = packUri };
+			}
+			catch
+			{
+				var asmLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? ".";
+				var themePath   = Path.Combine(asmLocation, "Options", "Themes", themeName + ".xaml");
+				if (File.Exists(themePath))
+				{
+					using var fs = File.OpenRead(themePath);
+					rd = (ResourceDictionary)XamlReader.Load(fs);
+				}
+			}
 
-            if (rd != null)
-            {
-                // Add to window merged dictionaries so InitializeComponent sees resources
-                this.Resources.MergedDictionaries.Add(rd);
-            }
-        }
-        catch
-        {
-            // swallow: fallback will occur in ApplyThemeColors
-        }
-    }
+			if (rd != null)
+				// Add to window merged dictionaries so InitializeComponent sees resources
+				Resources.MergedDictionaries.Add(rd);
+		}
+		catch
+		{
+			// swallow: fallback will occur in ApplyThemeColors
+		}
+	}
 
-    private void UserOptionsWindow_Loaded(object sender, RoutedEventArgs e)
-    {
-        options = UserOptions.Load();
+	private void UserOptionsWindow_Loaded(object sender, RoutedEventArgs e)
+	{
+		options = UserOptions.Load();
 
-        // Set the DataContext for potential data binding
-        this.DataContext = options;
+		// Set the DataContext for potential data binding
+		DataContext = options;
 
-        // Manual property setting for non-bound controls
-        // PexLoc.Text = options.PrintExportLocation;
-        // DxFexLoc.Text = options.DxfExportLocation;
-        // ChkObsoletePrint.IsChecked is now handled by data binding
+		// Manual property setting for non-bound controls
 
-        ApplyThemeColors();
-    }
 
-    private void ApplyThemeColors()
-    {
-        var oThemeManager = GlobalsHelpers.ThisApplication.ThemeManager;
-        var oTheme = oThemeManager.ActiveTheme;
+		// ChkObsoletePrint.IsChecked is now handled by data binding
 
-        // Decide theme file name
-        var themeName = (oTheme?.Name == "LightTheme") ? "LightTheme" : "DarkTheme";
+		ApplyThemeColors();
+	}
 
-        // Load the ResourceDictionary first (pack URI preferred, then disk fallback)
-        ResourceDictionary rd = null;
-        try
-        {
-            var asmName = Assembly.GetExecutingAssembly().GetName().Name;
-            var packUri = new Uri($"pack://application:,,,/{asmName};component/Options/Themes/{themeName}.xaml",
-                UriKind.Absolute);
-            rd = new ResourceDictionary { Source = packUri };
-        }
-        catch
-        {
-            // Fallback: try to load the XAML from disk next to the executing assembly
-            try
-            {
-                var asmLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? ".";
-                var themePath = Path.Combine(asmLocation, "Options", "Themes", themeName + ".xaml");
-                if (File.Exists(themePath))
-                {
-                    using var fs = File.OpenRead(themePath);
-                    rd = (ResourceDictionary)XamlReader.Load(fs);
-                }
-            }
-            catch
-            {
-                // ignore - leave rd as null
-            }
-        }
+	private void ApplyThemeColors()
+	{
+		var themeName          = GetThemeName();
+		var resourceDictionary = LoadThemeResource(themeName);
 
-        if (rd != null)
-        {
-            // If we have an Application-level resources, copy theme resources there so DynamicResource lookups succeed
-            if (System.Windows.Application.Current?.Resources != null)
-            {
-                var appRes = System.Windows.Application.Current.Resources;
-                foreach (var key in rd.Keys)
-                {
-                    appRes[key] = rd[key];
-                }
-            }
-            else
-            {
-                // Replace any existing theme dictionaries in window resources with the new one
-                // Avoid clearing until we have rd to prevent transient missing-resource warnings
-                var toRemove = this.Resources.MergedDictionaries.Where(md =>
-                    md.Source != null && md.Source.OriginalString.Contains("/Options/Themes/")).ToList();
+		if (resourceDictionary != null) ApplyThemeResources(resourceDictionary);
 
-                foreach (var r in toRemove)
-                    this.Resources.MergedDictionaries.Remove(r);
+		SetResourceReference(ForegroundProperty, "ControlForegroundBrush");
+	}
 
-                this.Resources.MergedDictionaries.Add(rd);
-            }
-        }
+	private static string GetThemeName()
+	{
+		var oTheme = ThisApplication.ThemeManager.ActiveTheme;
+		return oTheme?.Name == LightTheme ? LightTheme : DarkTheme;
+	}
 
-        // Ensure the window's Foreground uses the ControlForegroundBrush from the theme
-        this.SetResourceReference(Window.ForegroundProperty, "ControlForegroundBrush");
+	private static ResourceDictionary LoadThemeResource(string themeName)
+	{
+		return LoadFromPackUri(themeName) ?? LoadFromDisk(themeName);
+	}
 
-        // Many visual properties are now driven by DynamicResource in XAML; no per-control assignment required here.
-    }
+	private static ResourceDictionary LoadFromPackUri(string themeName)
+	{
+		try
+		{
+			var asmName = Assembly.GetExecutingAssembly().GetName().Name;
+			var packUri = new Uri($"pack://application:,,,/{asmName};component/Options/Themes/{themeName}.xaml",
+				UriKind.Absolute);
+			return new ResourceDictionary { Source = packUri };
+		}
+		catch
+		{
+			return new ResourceDictionary();
+		}
+	}
 
-    private void BtnSave_Click(object sender, RoutedEventArgs e)
-    {
-        // Bound properties are already in the `options` instance; just persist them.
-        options.Save();
-        DialogResult = true;
-        Close();
-    }
+	private static ResourceDictionary LoadFromDisk(string themeName)
+	{
+		try
+		{
+			var asmLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? ".";
+			var themePath   = Path.Combine(asmLocation, "Options", "Themes", themeName + ".xaml");
 
-    private void PrintExportLocationButton_Click(object sender, RoutedEventArgs e)
-    {
-        SelectFolderPath(PexLoc, "Select Print Export Location");
-    }
+			if (!File.Exists(themePath))
+				return new ResourceDictionary();
 
-    private void DXFExportLocationButton_Click(object sender, RoutedEventArgs e)
-    {
-        SelectFolderPath(DxFexLoc, "Select DXF Export Location");
-    }
+			using var fs = File.OpenRead(themePath);
+			return (ResourceDictionary)XamlReader.Load(fs);
+		}
+		catch
+		{
+			return new ResourceDictionary();
+		}
+	}
 
-    // Helper method using the modern WPF folder browser dialog
-    private void SelectFolderPath(Wpf.Ui.Controls.TextBox targetTextBox, string description)
-    {
-        var folderBrowser = new VistaFolderBrowserDialog
-        {
-            Description = description,
-            UseDescriptionForTitle = true
-        };
+	private void ApplyThemeResources(ResourceDictionary resourceDictionary)
+	{
+		if (System.Windows.Application.Current?.Resources != null)
+			CopyToApplicationResources(resourceDictionary);
+		else
+			AddToWindowResources(resourceDictionary);
+	}
 
-        // When ShowDialog() returns true, the user has selected a folder
-        if (folderBrowser.ShowDialog(this).GetValueOrDefault())
-        {
-            targetTextBox.Text = folderBrowser.SelectedPath;
-        }
-    }
+	private static void CopyToApplicationResources(ResourceDictionary resourceDictionary)
+	{
+		var appRes                                               = System.Windows.Application.Current.Resources;
+		foreach (var key in resourceDictionary.Keys) appRes[key] = resourceDictionary[key];
+	}
 
-    private void BtnCncl_Click(object sender, RoutedEventArgs e)
-    {
-        DialogResult = false;
+	private void AddToWindowResources(ResourceDictionary resourceDictionary)
+	{
+		RemoveExistingThemeDictionaries();
+		Resources.MergedDictionaries.Add(resourceDictionary);
+	}
 
-        Close();
-    }
+	private void RemoveExistingThemeDictionaries()
+	{
+		var toRemove = Resources.MergedDictionaries.Where(md =>
+			md.Source != null && md.Source.OriginalString.Contains("/Options/Themes/")).ToList();
+
+		foreach (var r in toRemove)
+			Resources.MergedDictionaries.Remove(r);
+	}
+
+	private void BtnSave_Click(object sender, RoutedEventArgs e)
+	{
+		// Bound properties are already in the `options` instance; just persist them.
+		options.Save();
+		DialogResult = true;
+		Close();
+	}
+
+	private void PrintExportLocationButton_Click(object sender, RoutedEventArgs e)
+	{
+		SelectFolderPath(PexLoc, "Select Print Export Location");
+	}
+
+	private void DXFExportLocationButton_Click(object sender, RoutedEventArgs e)
+	{
+		SelectFolderPath(DxFexLoc, "Select DXF Export Location");
+	}
+
+	// Helper method using the modern WPF folder browser dialog
+	private void SelectFolderPath(TextBox targetTextBox, string description)
+	{
+		var folderBrowser = new VistaFolderBrowserDialog
+		{
+			Description            = description,
+			UseDescriptionForTitle = true
+		};
+
+		// When ShowDialog() returns true, the user has selected a folder
+		if (folderBrowser.ShowDialog(this).GetValueOrDefault()) targetTextBox.Text = folderBrowser.SelectedPath;
+	}
+
+	private void BtnCncl_Click(object sender, RoutedEventArgs e)
+	{
+		DialogResult = false;
+
+		Close();
+	}
 }
