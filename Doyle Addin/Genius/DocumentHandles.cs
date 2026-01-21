@@ -30,7 +30,7 @@ public static class DocumentHandles
 			// Calculate mass for purchased part
 			var partInfo = new PartInfo();
 
-			// Use appropriate mass calculation based on document type
+			// Use appropriate mass calculation based on the document type
 			var success = doc.DocumentType switch
 			{
 				kPartDocumentObject     => partInfo.CalculateMassOnly(doc),
@@ -40,11 +40,11 @@ public static class DocumentHandles
 
 			if (success)
 			{
-				// Store calculated values in memory (don't update document yet)
+				// Store calculated values in memory (don't update the document yet)
 				calculatedPartInfo  = partInfo;
 				hasCalculatedValues = true;
 
-				// Update Family property from database if available - store in memory only
+				// Update Family property from the database if available - store in memory only
 				if (databaseProperties.TryGetValue("Family", out var familyValue) && !string.IsNullOrEmpty(familyValue))
 				{
 					// Store Family value in memory without modifying the document
@@ -116,7 +116,7 @@ public static class DocumentHandles
 			Debug.WriteLine($"[RM_DEBUG] Error searching for raw stock: {ex.Message}");
 		}
 
-		// Store calculated values in memory (don't update document yet)
+		// Store calculated values in memory (don't update the document yet)
 		var calculatedPartInfo = partInfo;
 		calculatedPartInfo.Thickness = thickness.ToString("F3") + " in";
 		const bool hasCalculatedValues = true;
@@ -131,7 +131,7 @@ public static class DocumentHandles
 
 	public static async Task<(PartInfo? calculatedPartInfo, bool hasCalculatedValues, List<PartInfo> componentParts)>
 		HandleAssembly(
-			AssemblyDocument assyDoc, Application inventorApp, DataGrid geniusPropertiesGrid,
+			AssemblyDocument assyDoc, Application inventorApp, DataGrid? geniusPropertiesGrid,
 			IDictionary<string, string> databaseProperties)
 	{
 		var partInfo       = new PartInfo();
@@ -147,7 +147,7 @@ public static class DocumentHandles
 			return (null, false, componentParts);
 		}
 
-		// Process all assembly occurrences to get correct BOM structure context
+		// Process all assembly occurrences to get the correct BOM structure context
 		try
 		{
 			var occurrences = assyDoc.ComponentDefinition.Occurrences;
@@ -163,7 +163,7 @@ public static class DocumentHandles
 				ErrorMessageBoxTitle, MessageBoxButton.OK, MessageBoxImage.Warning);
 		}
 
-		// Store calculated values in memory (don't update document yet)
+		// Store calculated values in memory (don't update the document yet)
 		var        calculatedPartInfo  = partInfo;
 		const bool hasCalculatedValues = true;
 
@@ -195,7 +195,7 @@ public static class DocumentHandles
 			if (componentInfo == null) continue;
 			componentParts.Add(componentInfo);
 
-			// If this is a sub-assembly, recursively add its components to the main list
+			// If this is a subassembly, recursively add its components to the main list
 			if (componentInfo.SubAssemblyComponents is not { Count: > 0 }) continue;
 			Debug.WriteLine(
 				$"[ASSEMBLY] Adding {componentInfo.SubAssemblyComponents.Count} components from sub-assembly {componentInfo.DocumentName}");
@@ -222,7 +222,7 @@ public static class DocumentHandles
 			Debug.WriteLine(
 				$"[ASSEMBLY] Added component from depth {depth}: {component.DocumentName} ({component.DocumentType})");
 
-			// If this component is also a sub-assembly, recursively flatten its components
+			// If this component is also a subassembly, recursively flatten its components
 			if (component.SubAssemblyComponents is not { Count: > 0 }) continue;
 			Debug.WriteLine(
 				$"[ASSEMBLY] Recursively processing {component.SubAssemblyComponents.Count} components from sub-assembly {component.DocumentName}");
@@ -245,7 +245,7 @@ public static class DocumentHandles
 	{
 		var partInfo = new PartInfo
 		{
-			PartNumber = PartInfo.GetDesignTrackingProperty(partDoc as Document, "Part Number")
+			PartNumber = PartInfo.GetDesignTrackingProperty(partDoc as Document ?? throw new InvalidOperationException(), "Part Number")
 		};
 		try
 		{
@@ -311,7 +311,8 @@ public static class DocumentHandles
 
 	private static async Task<PartInfo?> ProcessAssemblyDocument(AssemblyDocument assyDoc)
 	{
-		var partInfo = new PartInfo { PartNumber = PartInfo.GetDesignTrackingProperty(assyDoc as Document, "Part Number") };
+		var partInfo = new PartInfo
+			{ PartNumber = PartInfo.GetDesignTrackingProperty(assyDoc as Document ?? throw new InvalidOperationException(), "Part Number") };
 
 		try
 		{
@@ -321,18 +322,18 @@ public static class DocumentHandles
 				partInfo.DocumentName = assyDoc.DisplayName;
 				partInfo.DocumentType = "Sub-Assembly";
 
-				// Recursively process sub-assembly components
+				// Recursively process subassembly components
 				try
 				{
 					var subOccurrences = assyDoc.ComponentDefinition.Occurrences;
 					Debug.WriteLine(
 						$"[ASSEMBLY] Processing {subOccurrences.Count} components in sub-assembly {assyDoc.DisplayName}");
 
-					// Create a temporary list to hold sub-assembly components
+					// Create a temporary list to hold subassembly components
 					var subAssemblyComponents = new List<PartInfo>();
 					await ProcessAssemblyOccurrences(subOccurrences, subAssemblyComponents);
 
-					// Store sub-assembly components in the PartInfo for later use
+					// Store subassembly components in the PartInfo for later use
 					partInfo.SubAssemblyComponents = subAssemblyComponents;
 					Debug.WriteLine(
 						$"[ASSEMBLY] Found {subAssemblyComponents.Count} components in sub-assembly {assyDoc.DisplayName}");
@@ -398,7 +399,7 @@ public static class DocumentHandles
 			return (null, false);
 		}
 
-		// Store calculated values in memory (don't update document yet)
+		// Store calculated values in memory (don't update the document yet)
 		var        calculatedPartInfo  = partInfo;
 		const bool hasCalculatedValues = true;
 

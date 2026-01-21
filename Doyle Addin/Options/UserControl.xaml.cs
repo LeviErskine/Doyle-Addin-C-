@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Markup;
 using Ookii.Dialogs.Wpf;
 using TextBox = Wpf.Ui.Controls.TextBox;
+
 // From the WpfFolderDialog NuGet package
 
 #endregion

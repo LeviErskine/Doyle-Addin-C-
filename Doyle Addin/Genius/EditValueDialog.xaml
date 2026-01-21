@@ -82,8 +82,8 @@
         </Style>
     </Window.Resources>
 
-    <Border x:Name="MainWindowBorder"
-            Background="{DynamicResource WindowBackgroundBrush}"
+    <Border
+        Background="{DynamicResource WindowBackgroundBrush}"
             CornerRadius="5"
             BorderBrush="{DynamicResource BorderBrush}"
             BorderThickness="2"

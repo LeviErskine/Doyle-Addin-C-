@@ -419,20 +419,20 @@ public partial class iPartAssemblyPanel
 
 			// Load genius properties from server
 			var isPurchasedPart = IsPurchasedPart(doc);
-			var isAssembly = doc.DocumentType == kAssemblyDocumentObject;
+			var isAssembly      = doc.DocumentType == kAssemblyDocumentObject;
 
 			var calculatedData = new PartInfo.CalculatedData
 			{
 				HasCalculatedValues = hasCalculatedValues,
-				CalculatedPartInfo = calculatedPartInfo,
-				CalculatedRawStock = calculatedRawStock
+				CalculatedPartInfo  = calculatedPartInfo,
+				CalculatedRawStock  = calculatedRawStock
 			};
 			await PartInfo.LoadServerProperties(geniusProperties, doc, databaseProperties, isPurchasedPart, isAssembly,
 				databaseService, calculatedData);
 
 			// Check if part was found in Genius (databaseProperties will be empty if not found)
 			var partFoundInGenius = databaseProperties.Count > 0;
-			
+
 			// Add basic document properties
 			var partNumber = PartInfo.GetDesignTrackingProperty(doc, "Part Number");
 			PartInfo.AddDocumentProperty(documentProperties, "Part Number", partNumber, databaseProperties,

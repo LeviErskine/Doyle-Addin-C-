@@ -9,6 +9,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Microsoft.WindowsAPICodePack.Shell;
+using Brushes = System.Drawing.Brushes;
+using Image = System.Windows.Controls.Image;
 using MessageBox = System.Windows.MessageBox;
 
 #endregion
@@ -509,7 +512,7 @@ public partial class PartInfo
 		};
 	}
 
-	[GeneratedRegex(@"([a-zA-Z^]+.*)$")]
+	[GeneratedRegex("([a-zA-Z^]+.*)$")]
 	private static partial Regex MyRegex();
 
 	[GeneratedRegex(@"^([+-]?\d*\.?\d+)")]
@@ -943,7 +946,8 @@ public partial class PartInfo
 			return doc.DocumentType switch
 			{
 				kPartDocumentObject when doc is PartDocument partDoc => partDoc.ComponentDefinition.IsiPartFactory,
-				kAssemblyDocumentObject when doc is AssemblyDocument assyDoc => assyDoc.ComponentDefinition.IsiAssemblyFactory,
+				kAssemblyDocumentObject when doc is AssemblyDocument assyDoc => assyDoc.ComponentDefinition
+					.IsiAssemblyFactory,
 				_ => false
 			};
 		}
@@ -958,33 +962,34 @@ public partial class PartInfo
 	{
 		try
 		{
-			Debug.WriteLine($"[THUMBNAIL_DEBUG] Getting factory member file for factory: {factoryFileName}, member: {memberName}");
-			
+			Debug.WriteLine(
+				$"[THUMBNAIL_DEBUG] Getting factory member file for factory: {factoryFileName}, member: {memberName}");
+
 			// Get the directory and factory name without extension
-			var factoryDir = Path.GetDirectoryName(factoryFileName);
+			var factoryDir  = Path.GetDirectoryName(factoryFileName);
 			var factoryName = Path.GetFileNameWithoutExtension(factoryFileName);
-			
+
 			if (string.IsNullOrEmpty(factoryDir) || string.IsNullOrEmpty(factoryName))
 			{
 				Debug.WriteLine($"[THUMBNAIL_DEBUG] Invalid factory file path: {factoryFileName}");
 				return null;
 			}
-			
+
 			// Construct the member folder path (same name as factory)
 			var memberFolder = Path.Combine(factoryDir, factoryName);
-			
+
 			// Construct the member file path (using member name as filename)
 			var memberFile = Path.Combine(memberFolder, $"{memberName}.ipt");
-			
+
 			Debug.WriteLine($"[THUMBNAIL_DEBUG] Looking for member file: {memberFile}");
-			
+
 			// Check if the member file exists
 			if (File.Exists(memberFile))
 			{
 				Debug.WriteLine($"[THUMBNAIL_DEBUG] Found member file: {memberFile}");
 				return memberFile;
 			}
-			
+
 			// Try with .iam extension for assembly members
 			var assemblyMemberFile = Path.Combine(memberFolder, $"{memberName}.iam");
 			if (File.Exists(assemblyMemberFile))
@@ -992,7 +997,7 @@ public partial class PartInfo
 				Debug.WriteLine($"[THUMBNAIL_DEBUG] Found assembly member file: {assemblyMemberFile}");
 				return assemblyMemberFile;
 			}
-			
+
 			Debug.WriteLine($"[THUMBNAIL_DEBUG] Member file not found for: {memberName}");
 			return null;
 		}
@@ -1006,7 +1011,7 @@ public partial class PartInfo
 	private static BitmapImage? ConvertBitmapToBitmapImage(Bitmap? thumbnail)
 	{
 		if (thumbnail == null) return null;
-		
+
 		using var stream = new MemoryStream();
 		thumbnail.Save(stream, ImageFormat.Png);
 		stream.Position = 0;
@@ -1014,7 +1019,7 @@ public partial class PartInfo
 		var bitmapImage = new BitmapImage();
 		bitmapImage.BeginInit();
 		bitmapImage.StreamSource = stream;
-		bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+		bitmapImage.CacheOption  = BitmapCacheOption.OnLoad;
 		bitmapImage.EndInit();
 		bitmapImage.Freeze();
 
@@ -1022,15 +1027,15 @@ public partial class PartInfo
 		return bitmapImage;
 	}
 
-	private static bool TryLoadFactoryMemberThumbnail(Document doc, string memberName, System.Windows.Controls.Image thumbnailImage)
+	private static bool TryLoadFactoryMemberThumbnail(Document doc, string memberName, Image thumbnailImage)
 	{
 		if (string.IsNullOrEmpty(memberName) || !IsFactoryDocument(doc))
 			return false;
 
 		Debug.WriteLine($"[THUMBNAIL_DEBUG] Factory document detected, loading thumbnail for member: {memberName}");
-		var fileName = doc.FullFileName;
+		var fileName       = doc.FullFileName;
 		var memberFileName = GetFactoryMemberFileName(fileName, memberName);
-		
+
 		if (string.IsNullOrEmpty(memberFileName) || !File.Exists(memberFileName))
 		{
 			Debug.WriteLine($"[THUMBNAIL_DEBUG] Factory member file not found: {memberFileName}");
@@ -1038,50 +1043,47 @@ public partial class PartInfo
 		}
 
 		var thumbnail = GetThumbnail(memberFileName);
-		Debug.WriteLine($"[THUMBNAIL_DEBUG] GetThumbnail returned: {(thumbnail != null ? $"Bitmap {thumbnail.Width}x{thumbnail.Height}" : "null")}");
-		
-		if (thumbnail == null) return false;
+		Debug.WriteLine($"[THUMBNAIL_DEBUG] GetThumbnail returned: Bitmap {thumbnail.Width}x{thumbnail.Height}");
 
 		var bitmapImage = ConvertBitmapToBitmapImage(thumbnail);
 		if (bitmapImage == null) return false;
 
 		thumbnailImage.Source = bitmapImage;
-		Debug.WriteLine($"[THUMBNAIL_DEBUG] Set thumbnailImage.Source to BitmapImage");
+		Debug.WriteLine("[THUMBNAIL_DEBUG] Set thumbnailImage.Source to BitmapImage");
 		Debug.WriteLine("[THUMBNAIL_DEBUG] Factory member thumbnail loaded successfully");
 		return true;
 	}
 
-	private static bool TryLoadRegularThumbnail(Document doc, System.Windows.Controls.Image thumbnailImage)
+	private static bool TryLoadRegularThumbnail(Document doc, Image thumbnailImage)
 	{
 		var fileName = doc.FullFileName;
 		if (string.IsNullOrEmpty(fileName))
 			return false;
 
 		var thumbnail = GetThumbnail(fileName);
-		Debug.WriteLine($"[THUMBNAIL_DEBUG] GetThumbnail returned: {(thumbnail != null ? $"Bitmap {thumbnail.Width}x{thumbnail.Height}" : "null")}");
-		
-		if (thumbnail == null) return false;
+		Debug.WriteLine($"[THUMBNAIL_DEBUG] GetThumbnail returned: Bitmap {thumbnail.Width}x{thumbnail.Height}");
 
 		var bitmapImage = ConvertBitmapToBitmapImage(thumbnail);
 		if (bitmapImage == null) return false;
 
 		thumbnailImage.Source = bitmapImage;
-		Debug.WriteLine($"[THUMBNAIL_DEBUG] Set thumbnailImage.Source to BitmapImage");
+		Debug.WriteLine("[THUMBNAIL_DEBUG] Set thumbnailImage.Source to BitmapImage");
 		Debug.WriteLine("[THUMBNAIL_DEBUG] Thumbnail loaded successfully");
 		return true;
 	}
 
-	public static void TryLoadThumbnail(Document doc, System.Windows.Controls.Image thumbnailImage, string? memberName)
+	public static void TryLoadThumbnail(Document doc, Image thumbnailImage, string? memberName = null)
 	{
 		try
 		{
 			var fileName = doc.FullFileName;
-			Debug.WriteLine($"[THUMBNAIL_DEBUG] TryLoadThumbnail called for file: {fileName}, memberName: {memberName}");
-			
+			Debug.WriteLine(
+				$"[THUMBNAIL_DEBUG] TryLoadThumbnail called for file: {fileName}, memberName: {memberName}");
+
 			// Try factory member thumbnail first
 			if (!string.IsNullOrEmpty(memberName) && TryLoadFactoryMemberThumbnail(doc, memberName, thumbnailImage))
 				return;
-			
+
 			// Try regular thumbnail
 			if (TryLoadRegularThumbnail(doc, thumbnailImage))
 				return;
@@ -1097,21 +1099,16 @@ public partial class PartInfo
 		}
 	}
 
-	public static void TryLoadThumbnail(Document doc, System.Windows.Controls.Image thumbnailImage)
-	{
-		TryLoadThumbnail(doc, thumbnailImage, null);
-	}
-
-	public static Bitmap? GetThumbnail(string strFullFileName)
+	public static Bitmap GetThumbnail(string strFullFileName)
 	{
 		Bitmap? imgTemp = null;
-		
-		using var shFile = Microsoft.WindowsAPICodePack.Shell.ShellFile.FromFilePath(strFullFileName);
+
+		using var shFile = ShellFile.FromFilePath(strFullFileName);
 		try
 		{
 			imgTemp = shFile.Thumbnail.MediumBitmap;
 		}
-		catch (Microsoft.WindowsAPICodePack.Shell.ShellException)
+		catch (ShellException)
 		{
 			// Handle Shell exception
 		}
@@ -1127,10 +1124,10 @@ public partial class PartInfo
 				imgTemp = new Bitmap(128, 128);
 				using var g = Graphics.FromImage(imgTemp);
 				g.Clear(Color.LightGray);
-				g.DrawString("No Image", new Font("Arial", 8), System.Drawing.Brushes.Black, 5, 40);
+				g.DrawString("No Image", new Font("Arial", 8), Brushes.Black, 5, 40);
 			}
 		}
-		
+
 		return imgTemp;
 	}
 
@@ -1288,10 +1285,13 @@ public partial class PartInfo
 		}
 	}
 
-	public static Task RefreshDataGridsWithCalculatedValues(Application inventorApp, DataGrid geniusPropertiesGrid,
+	public static Task RefreshDataGridsWithCalculatedValues(Application inventorApp, DataGrid? geniusPropertiesGrid,
 		bool hasCalculatedValues, PartInfo? calculatedPartInfo, RawStockInfo? calculatedRawStock,
 		IDictionary<string, string> databaseProperties, Document? targetDocument = null)
 	{
+		// If no DataGrid provided, just return
+		if (geniusPropertiesGrid == null) return Task.CompletedTask;
+
 		// Refresh the data grids to show calculated values (but preserve database properties)
 		var savedDatabaseProperties = new Dictionary<string, string>(databaseProperties);
 		// Clear and restore database properties to force refresh
@@ -1301,7 +1301,7 @@ public partial class PartInfo
 		// Update Genius DataGrid highlighting to reflect new calculated values
 		System.Windows.Application.Current.Dispatcher.Invoke(() =>
 		{
-			if (geniusPropertiesGrid?.ItemsSource is not List<DocumentProperty> geniusItems) return;
+			if (geniusPropertiesGrid.ItemsSource is not List<DocumentProperty> geniusItems) return;
 
 			var documentToUse = targetDocument ?? inventorApp.ActiveDocument;
 			foreach (var geniusProp in geniusItems)
@@ -1426,19 +1426,4 @@ public class RawStockInfo
 	public string? Thickness { get; init; } // Thickness (maps to m.Thickness)
 	public string? Material { get; init; }  // Material type (maps to m.Specification6)
 	public string? RMUNIT { get; init; }    // Raw material unit (maps to b.ConversionUnit)
-}
-
-/// <summary>
-///     Helper Class to convert ActiveX images to .NET Images
-/// </summary>
-internal class AxHostConverter : AxHost
-{
-	private AxHostConverter() : base("")
-	{
-	}
-
-	public static System.Drawing.Image? PictureDispToImage(object pictureDisp)
-	{
-		return GetPictureFromIPicture(pictureDisp);
-	}
 }

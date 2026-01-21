@@ -28,10 +28,10 @@ public sealed class NewGenius : Window, IDisposable
 	// Dockable Window Reference
 	private DockableWindow docWin;
 
-    /// <summary>
-    ///     Private constructor. Use ShowGeniusPanel to instantiate.
-    /// </summary>
-    private NewGenius(Application mInventorApp, string internalName, string windowTitle, UIElement wpfControl,
+	/// <summary>
+	///     Private constructor. Use ShowGeniusPanel to instantiate.
+	/// </summary>
+	private NewGenius(Application mInventorApp, string internalName, string windowTitle, UIElement wpfControl,
 		bool showTitle = true)
 	{
 		InitializeComponent();
@@ -189,9 +189,24 @@ public sealed class NewGenius : Window, IDisposable
 
 				case DocumentType.RegularAssembly:
 					// Use AssemblyPanel for regular assemblies with component parts
+					if (doc is not AssemblyDocument assemblyDoc)
+					{
+						MessageBox.Show("Document is not a valid assembly document.", "Assembly Error",
+							MessageBoxButtons.OK,
+							MessageBoxIcon.Error);
+						return;
+					}
+
 					var (calculatedPartInfo, hasCalculatedValues, componentParts) =
 						await DocumentHandles.HandleAssembly(
-							doc as AssemblyDocument, minventorApp, null, new Dictionary<string, string>());
+							assemblyDoc, minventorApp, null, new Dictionary<string, string>());
+
+					if (calculatedPartInfo == null || componentParts == null)
+					{
+						MessageBox.Show("Failed to process assembly document.", "Assembly Error", MessageBoxButtons.OK,
+							MessageBoxIcon.Error);
+						return;
+					}
 
 					var assemblyPanel = new AssemblyPanel(minventorApp, calculatedPartInfo, null, hasCalculatedValues,
 						componentParts);
@@ -218,9 +233,7 @@ public sealed class NewGenius : Window, IDisposable
 
 			// 4. Create and Host the Window (for iPart/Assembly and Assembly cases)
 			if (documentType is DocumentType.Factory or DocumentType.RegularAssembly)
-			{
-				var _ = new NewGenius(minventorApp, "GeniusWindow", title, content);
-			}
+				_ = new NewGenius(minventorApp, "GeniusWindow", title, content);
 		}
 		catch (Exception ex)
 		{
@@ -274,11 +287,11 @@ public sealed class NewGenius : Window, IDisposable
 		};
 	}
 
-    /// <summary>
-    ///     Extracts the Content of a Window, detaches it, and returns it as a UIElement.
-    ///     Replaces the unwieldy UnWrapWindow methods.
-    /// </summary>
-    private static UIElement ExtractContentFromWindow(Window sourceWindow)
+	/// <summary>
+	///     Extracts the Content of a Window, detaches it, and returns it as a UIElement.
+	///     Replaces the unwieldy UnWrapWindow methods.
+	/// </summary>
+	private static UIElement ExtractContentFromWindow(Window sourceWindow)
 	{
 		if (sourceWindow == null) return null;
 
@@ -334,11 +347,6 @@ public sealed class NewGenius : Window, IDisposable
 	}
 
 	private void NewGenius_Closed(object sender, EventArgs e)
-	{
-		Dispose();
-	}
-
-	public void ForceDispose()
 	{
 		Dispose();
 	}

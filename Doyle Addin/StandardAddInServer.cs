@@ -21,12 +21,44 @@ public class StandardAddInServer : ApplicationAddInServer
 	private const string dxfupdate = "dxfUpdate";
 	private const string geniusprops = "geniusProps";
 
+	// Event handler delegates to ensure proper unsubscription
+	private readonly ButtonDefinitionSink_OnExecuteEventHandler _dxfUpdateHandler;
+	private readonly ButtonDefinitionSink_OnExecuteEventHandler _geniusPropertiesHandler;
+	private readonly ButtonDefinitionSink_OnExecuteEventHandler _obsoleteButtonHandler;
+	private readonly ButtonDefinitionSink_OnExecuteEventHandler _optionsButtonHandler;
+	private readonly ButtonDefinitionSink_OnExecuteEventHandler _printUpdateHandler;
+	private readonly UserInterfaceEventsSink_OnResetRibbonInterfaceEventHandler _uiEventsResetRibbonInterfaceHandler;
+
 	// Instance field to store the Inventor application reference
 	private Application _application;
 
 	// New Genius Properties button definition and property
 
 	private UserInterfaceEvents uiEvents;
+
+	public StandardAddInServer()
+	{
+		_dxfUpdateHandler      = _ => DXFUpdate_OnExecute();
+		_printUpdateHandler    = _ => PrintUpdate_OnExecute();
+		_optionsButtonHandler  = _ => OptionsButton_OnExecute();
+		_obsoleteButtonHandler = _ => ObsoleteButton_OnExecute();
+		_geniusPropertiesHandler = _ =>
+		{
+			Task.Run(async () =>
+			{
+				try
+				{
+					await GeniusProperties_OnExecute();
+				}
+				catch (Exception ex)
+				{
+					// Log the exception but don't let it crash the application
+					Debug.Print($"Error in GeniusProperties_OnExecute: {ex.Message}");
+				}
+			});
+		};
+		_uiEventsResetRibbonInterfaceHandler = UiEvents_OnResetRibbonInterface;
+	}
 
 	private ButtonDefinition DxfUpdate
 	{
@@ -35,10 +67,10 @@ public class StandardAddInServer : ApplicationAddInServer
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		set
 		{
-			if (field != null) field.OnExecute -= _ => DXFUpdate_OnExecute();
+			field?.OnExecute -= _dxfUpdateHandler;
 
-			field = value;
-			if (field != null) field.OnExecute += _ => DXFUpdate_OnExecute();
+			field            =  value;
+			field?.OnExecute += _dxfUpdateHandler;
 		}
 	}
 
@@ -49,10 +81,10 @@ public class StandardAddInServer : ApplicationAddInServer
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		set
 		{
-			if (field != null) field.OnExecute -= _ => PrintUpdate_OnExecute();
+			field?.OnExecute -= _printUpdateHandler;
 
-			field = value;
-			if (field != null) field.OnExecute += _ => PrintUpdate_OnExecute();
+			field            =  value;
+			field?.OnExecute += _printUpdateHandler;
 		}
 	}
 
@@ -63,10 +95,10 @@ public class StandardAddInServer : ApplicationAddInServer
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		set
 		{
-			if (field != null) field.OnExecute -= _ => OptionsButton_OnExecute();
+			field?.OnExecute -= _optionsButtonHandler;
 
-			field = value;
-			if (field != null) field.OnExecute += _ => OptionsButton_OnExecute();
+			field            =  value;
+			field?.OnExecute += _optionsButtonHandler;
 		}
 	}
 
@@ -77,10 +109,10 @@ public class StandardAddInServer : ApplicationAddInServer
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		set
 		{
-			if (field != null) field.OnExecute -= _ => ObsoleteButton_OnExecute();
+			field?.OnExecute -= _obsoleteButtonHandler;
 
-			field = value;
-			if (field != null) field.OnExecute += _ => ObsoleteButton_OnExecute();
+			field            =  value;
+			field?.OnExecute += _obsoleteButtonHandler;
 		}
 	}
 
@@ -91,22 +123,20 @@ public class StandardAddInServer : ApplicationAddInServer
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		set
 		{
-			if (field != null)
-				field.OnExecute -= _ => GeniusProperties_OnExecute();
+			field?.OnExecute -= _geniusPropertiesHandler;
 
-			field = value;
-			if (field != null)
-				field.OnExecute += _ => GeniusProperties_OnExecute();
+			field            =  value;
+			field?.OnExecute += _geniusPropertiesHandler;
 		}
 	}
 
 	[MethodImpl(MethodImplOptions.Synchronized)]
 	private void SetUiEvents(UserInterfaceEvents value)
 	{
-		if (uiEvents != null) uiEvents.OnResetRibbonInterface -= UiEvents_OnResetRibbonInterface;
+		uiEvents?.OnResetRibbonInterface -= _uiEventsResetRibbonInterfaceHandler;
 
-		uiEvents = value;
-		if (uiEvents != null) uiEvents.OnResetRibbonInterface += UiEvents_OnResetRibbonInterface;
+		uiEvents                         =  value;
+		uiEvents?.OnResetRibbonInterface += _uiEventsResetRibbonInterfaceHandler;
 	}
 
 	/// <summary>
@@ -136,7 +166,7 @@ public class StandardAddInServer : ApplicationAddInServer
 			// Initialize the static ThisApplication field for global access
 			Initialize(_application);
 
-			CheckForUpdateAndDownloadAsync(_application).ConfigureAwait(false);
+			_ = CheckForUpdateAndDownloadAsync(_application).ConfigureAwait(false);
 
 			// Get a reference to the ControlDefinitions object. 
 			var controlDefs   = _application.CommandManager.ControlDefinitions;
@@ -291,8 +321,8 @@ public class StandardAddInServer : ApplicationAddInServer
 			if (latestVerObj <= localVerObj) return;
 			var result =
 				MessageBox.Show(
-					$@"A new version of the Doyle AddIn is available ({latestVersion}) . Update now?",
-					@"Update Available", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+					$"A new version of the Doyle AddIn is available ({latestVersion}) . Update now?",
+					"Update Available", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 			if (result == DialogResult.Yes)
 			{
 				await File.WriteAllTextAsync(
@@ -303,7 +333,7 @@ public class StandardAddInServer : ApplicationAddInServer
 			{
 				await File.WriteAllTextAsync(
 					Path.Combine(GetAddInDirectory(), "pending_update.txt"), "update");
-				MessageBox.Show(@"The update will be installed after you close Inventor.", @"Update Scheduled",
+				MessageBox.Show("The update will be installed after you close Inventor.", "Update Scheduled",
 					MessageBoxButtons.OK, MessageBoxIcon.Information);
 			}
 			// System.Windows.Forms.MessageBox.Show("You are running the latest version.", "Debug")
@@ -607,9 +637,9 @@ public class StandardAddInServer : ApplicationAddInServer
 		Prints.PrintUpdate.RunPrintUpdate();
 	}
 
-	private void GeniusProperties_OnExecute()
+	private async Task GeniusProperties_OnExecute()
 	{
-		NewGenius.ShowGeniusPanel(_application);
+		await NewGenius.ShowGeniusPanel(_application);
 	}
 
 	private void OptionsButton_OnExecute()
@@ -727,8 +757,6 @@ public class StandardAddInServer : ApplicationAddInServer
 /// </summary>
 public static class Globals
 {
-	#region Function to get the add-in client ID.
-
 	/// <summary>
 	///     This function uses reflection to get the GuidAttribute associated with the add-in.
 	/// </summary>
@@ -750,27 +778,4 @@ public static class Globals
 
 		return guid;
 	}
-
-	#endregion
-
-	#region hWnd Wrapper Class
-
-	// This class is used to wrap a Win32 hWnd as a .NET IWind32Window class.
-	// This is primarily used for parenting a dialog to the Inventor window.
-	/// <inheritdoc />
-	public class WindowWrapper : IWin32Window
-	{
-		/// <summary>
-		/// </summary>
-		/// <param name="handle"></param>
-		public WindowWrapper(nint handle)
-		{
-			Handle = handle;
-		}
-
-		/// <inheritdoc />
-		public nint Handle { get; }
-	}
-
-	#endregion
 }

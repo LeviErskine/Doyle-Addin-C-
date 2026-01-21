@@ -454,7 +454,7 @@ public partial class GeniusPanel
 			var geniusProperties   = new List<PartInfo.DocumentProperty>();
 			var documentProperties = new List<PartInfo.DocumentProperty>();
 
-			if (!await InitializePropertyLoading(documentProperties))
+			if (!await InitializePropertyLoading())
 				return;
 
 			var doc             = mInventorApp.ActiveDocument;
@@ -484,11 +484,11 @@ public partial class GeniusPanel
 		}
 	}
 
-	private async Task<bool> InitializePropertyLoading(List<PartInfo.DocumentProperty> documentProperties)
+	private async Task<bool> InitializePropertyLoading()
 	{
 		databaseProperties.Clear();
 
-		if (ValidateActiveDocument(out documentProperties)) return true;
+		if (ValidateActiveDocument(out var documentProperties)) return true;
 		await Dispatcher.InvokeAsync(() => { PropertiesDataGrid.ItemsSource = documentProperties; });
 		return true;
 	}

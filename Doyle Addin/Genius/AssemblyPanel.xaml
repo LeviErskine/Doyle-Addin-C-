@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:genius="clr-namespace:Doyle_Addin.Genius"
         mc:Ignorable="d"
         Title="iPart / iAssembly Manager"
         Width="600"
@@ -13,7 +14,8 @@
     <Window.Resources>
         <Style x:Key="HighlightRowStyle" TargetType="DataGridRow">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding HasDifference, UpdateSourceTrigger=PropertyChanged}" Value="True">
+                <DataTrigger Binding="{Binding HasDifference, UpdateSourceTrigger=PropertyChanged}" Value="True"
+                            d:DataContext="{d:DesignInstance Type=genius:PartInfo+DocumentProperty}">
                     <Setter Property="Background" Value="#FFCCCC" />
                 </DataTrigger>
             </Style.Triggers>
@@ -43,7 +45,8 @@
                       BorderThickness="1,1,1,1" SnapsToDevicePixels="True" HeadersVisibility="Column"
                       GridLinesVisibility="Horizontal" SelectionChanged="AssemblyItems_SelectionChanged"
                       CanUserSortColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False"
-                      AutoGenerateColumns="False">
+                      AutoGenerateColumns="False"
+                      d:DataContext="{d:DesignInstance Type={x:Type genius:PartInfo}, IsDesignTimeCreatable=False}">
                 <DataGrid.ContextMenu>
                     <ContextMenu>
                         <MenuItem Header="Open Component" Click="OpenComponent_Click" />
@@ -60,6 +63,7 @@
                 <ui:TextBlock FontWeight="Bold" Text="Properties From Genius:" DockPanel.Dock="Top" />
                 <ui:DataGrid
                     x:Name="GeniusProps"
+                    d:DataContext="{d:DesignInstance Type=genius:PartInfo+DocumentProperty}"
                     RowStyle="{StaticResource HighlightRowStyle}"
                     AutoGenerateColumns="False"
                     CanUserAddRows="False"
@@ -86,6 +90,7 @@
                 <ui:TextBlock Text="Document Properties:" FontWeight="Bold" DockPanel.Dock="Top" />
                 <ui:DataGrid
                     x:Name="DocProps"
+                    d:DataContext="{d:DesignInstance Type=genius:PartInfo+DocumentProperty}"
                     RowStyle="{StaticResource HighlightRowStyle}"
                     AutoGenerateColumns="False"
                     CanUserAddRows="False"

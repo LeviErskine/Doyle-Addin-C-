@@ -133,11 +133,11 @@ public class DatabaseService(string connectionString = null)
 			var rawStockInfos = results as RawStockInfo[] ?? results.ToArray();
 			var fittingSheets = GetFittingSheets(rawStockInfos, partLength, partWidth);
 
-			if (fittingSheets.Count != 0)
-				return GetOptimalSheet(fittingSheets);
-
-			// Fallback: return the first result if no part dimensions or no fitting sheets
-			return rawStockInfos.FirstOrDefault();
+			return fittingSheets.Count != 0
+				? GetOptimalSheet(fittingSheets)
+				:
+				// Fallback: return the first result if no part dimensions or no fitting sheets
+				rawStockInfos.FirstOrDefault();
 		}
 		catch (Exception ex)
 		{

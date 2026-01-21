@@ -13,7 +13,7 @@ internal static class PrintUpdate
 		// Check if the current document is a drawing, show error if not
 		if (ThisApplication.ActiveDocument.DocumentType != kDrawingDocumentObject)
 		{
-			MessageBox.Show(@"ONLY FOR USE IN DRAWING DOCUMENTS", @"Ilogic", MessageBoxButtons.OK,
+			MessageBox.Show("ONLY FOR USE IN DRAWING DOCUMENTS", "Ilogic", MessageBoxButtons.OK,
 				MessageBoxIcon.Warning);
 			return;
 		}
@@ -31,8 +31,8 @@ internal static class PrintUpdate
 		if (string.IsNullOrEmpty(oFilePath))
 		{
 			MessageBox.Show(
-				@"This file has not been saved yet or save location cannot be found" + Environment.NewLine,
-				@"Save error", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				"This file has not been saved yet or save location cannot be found" + Environment.NewLine,
+				"Save error", MessageBoxButtons.OK, MessageBoxIcon.Information);
 			return;
 		}
 
@@ -62,7 +62,7 @@ internal static class PrintUpdate
 		}
 		catch
 		{
-			MessageBox.Show(@"Failed to Export PDF (Someone might have this file open)", @"Export failed",
+			MessageBox.Show("Failed to Export PDF (Someone might have this file open)", "Export failed",
 				MessageBoxButtons.OK, MessageBoxIcon.Error);
 			return;
 		}
@@ -93,7 +93,7 @@ internal static class PrintUpdate
 		}
 		catch (Exception ex)
 		{
-			MessageBox.Show(@"Failed to convert PDF to JPG: " + ex.Message, @"Conversion failed", MessageBoxButtons.OK,
+			MessageBox.Show("Failed to convert PDF to JPG: " + ex.Message, "Conversion failed", MessageBoxButtons.OK,
 				MessageBoxIcon.Error);
 		}
 	}

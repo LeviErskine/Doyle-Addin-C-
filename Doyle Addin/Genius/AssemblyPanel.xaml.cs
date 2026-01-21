@@ -112,9 +112,7 @@ public partial class AssemblyPanel
 
 			// Add assembly components if this is an assembly and we have processed components
 			if (doc.DocumentType == kAssemblyDocumentObject && componentParts.Count > 0)
-			{
 				AddComponentsToMembers(members);
-			}
 
 			AssemblyItems.ItemsSource = members;
 		}
@@ -275,23 +273,18 @@ public partial class AssemblyPanel
 			}
 
 			foreach (var item in items)
-			{
 				try
 				{
-					if (!ValidateSelectedItem(item, showMessage: false))
+					if (!ValidateSelectedItem(item, false))
 						continue;
 
 					var componentDoc = GetComponentDocument(item);
-					if (componentDoc != null)
-					{
-						OpenComponentDocument(componentDoc);
-					}
+					if (componentDoc != null) OpenComponentDocument(componentDoc);
 				}
 				catch (Exception ex)
 				{
 					Debug.WriteLine($"[OPEN_ALL] Error opening item: {ex.Message}");
 				}
-			}
 		}
 		catch (Exception ex)
 		{
@@ -333,41 +326,38 @@ public partial class AssemblyPanel
 
 		Debug.WriteLine($"[CONTEXT_MENU] Selected item: {selectedItem?.GetType().Name ?? "null"}");
 		return selectedItem;
-}
+	}
 
-private static bool ValidateSelectedItem(object selectedItem, bool showMessage = true)
-{
-    var itemType = selectedItem.GetType().GetProperty("Type")?.GetValue(selectedItem)?.ToString();
+	private static bool ValidateSelectedItem(object selectedItem, bool showMessage = true)
+	{
+		var itemType = selectedItem.GetType().GetProperty("Type")?.GetValue(selectedItem)?.ToString();
 
-    // Don't try to open separators or summary items
-    if (itemType is Separator or Summary)
-    {
-        if (showMessage)
-        {
-            MessageBox.Show("Cannot open this item type.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-        return false;
-    }
+		// Don't try to open separators or summary items
+		if (itemType is Separator or Summary)
+		{
+			if (showMessage)
+				MessageBox.Show("Cannot open this item type.", "Info", MessageBoxButton.OK,
+					MessageBoxImage.Information);
+			return false;
+		}
 
-    // Check if it's the assembly itself
-    if (selectedItem.GetType().GetProperty("Document")?.GetValue(selectedItem) is Document assemblyDoc)
-    {
-        // The assembly is already open, just activate it
-        assemblyDoc.Activate();
-        Debug.WriteLine($"[OPEN_COMPONENT] Activated assembly: {assemblyDoc.DisplayName}");
-        return false;
-    }
+		// Check if it's the assembly itself
+		if (selectedItem.GetType().GetProperty("Document")?.GetValue(selectedItem) is Document assemblyDoc)
+		{
+			// The assembly is already open, just activate it
+			assemblyDoc.Activate();
+			Debug.WriteLine($"[OPEN_COMPONENT] Activated assembly: {assemblyDoc.DisplayName}");
+			return false;
+		}
 
-    // Check if it's a component part
-    if (selectedItem.GetType().GetProperty("PartInfo")?.GetValue(selectedItem) is PartInfo partInfo &&
-        !string.IsNullOrEmpty(partInfo.DocumentName)) return true;
-    
-    if (showMessage)
-    {
-        MessageBox.Show("Invalid component selection.", Caption, MessageBoxButton.OK, MessageBoxImage.Error);
-    }
-    return false;
-}
+		// Check if it's a component part
+		if (selectedItem.GetType().GetProperty("PartInfo")?.GetValue(selectedItem) is PartInfo partInfo &&
+		    !string.IsNullOrEmpty(partInfo.DocumentName)) return true;
+
+		if (showMessage)
+			MessageBox.Show("Invalid component selection.", Caption, MessageBoxButton.OK, MessageBoxImage.Error);
+		return false;
+	}
 
 	private Document? GetComponentDocument(object selectedItem)
 	{
@@ -500,18 +490,12 @@ private static bool ValidateSelectedItem(object selectedItem, bool showMessage =
 			// Find the component document by part number or document name from the original assembly
 			Document? componentDoc;
 			if (!string.IsNullOrEmpty(partInfo.PartNumber))
-			{
 				componentDoc = FindComponentDocumentByPartNumber(partInfo.PartNumber);
-			}
 			else if (!string.IsNullOrEmpty(partInfo.DocumentName))
-			{
 				componentDoc = FindComponentDocumentByName(partInfo.DocumentName);
-			}
 			else
-			{
 				return; // Both part number and document name are null
-			}
-			
+
 			if (componentDoc == null) return;
 
 			// Check if this is a Reference BOM component and ignore it
@@ -668,7 +652,7 @@ private static bool ValidateSelectedItem(object selectedItem, bool showMessage =
 				continue;
 
 			var componentInfo = GetComponentDisplayInfo(component);
-			
+
 			// Skip if we've already added this display name or if display name is null
 			if (string.IsNullOrEmpty(componentInfo.Name) || !uniqueDisplayNames.Add(componentInfo.Name))
 			{
@@ -681,7 +665,7 @@ private static bool ValidateSelectedItem(object selectedItem, bool showMessage =
 				componentInfo.Name,
 				Type = component.DocumentType,
 				componentInfo.Status,
-				PartInfo = component,
+				PartInfo   = component,
 				PartNumber = componentInfo.Name
 			});
 		}
@@ -691,7 +675,7 @@ private static bool ValidateSelectedItem(object selectedItem, bool showMessage =
 	{
 		// Get the display name (part number) that will be shown in the grid
 		var displayName = component.PartNumber ?? component.DocumentName;
-		
+
 		// Skip components with null or empty display names
 		if (string.IsNullOrEmpty(displayName))
 			return false;
@@ -700,18 +684,12 @@ private static bool ValidateSelectedItem(object selectedItem, bool showMessage =
 		// Use part number for finding the document, fall back to document name if part number is null
 		Document? componentDoc;
 		if (!string.IsNullOrEmpty(component.PartNumber))
-		{
 			componentDoc = FindComponentDocumentByPartNumber(component.PartNumber);
-		}
 		else if (!string.IsNullOrEmpty(component.DocumentName))
-		{
 			componentDoc = FindComponentDocumentByName(component.DocumentName);
-		}
 		else
-		{
 			return false; // Both part number and document name are null
-		}
-			
+
 		if (componentDoc == null || !ShouldIgnoreReferenceComponent(componentDoc)) return true;
 		Debug.WriteLine($"[REFERENCE_DEBUG] Skipping Reference component: {displayName}");
 		return false; // Skip Reference BOM components
@@ -949,7 +927,8 @@ private static bool ValidateSelectedItem(object selectedItem, bool showMessage =
 
 			if (!ShouldIgnoreReferenceComponentByOccurrence(componentOccurrence))
 				return TryOpenNativePartDocument(partDoc) ?? partDoc;
-			Debug.WriteLine($"[REFERENCE_DEBUG] Component with part number {partNumber} is Reference BOM in assembly context");
+			Debug.WriteLine(
+				$"[REFERENCE_DEBUG] Component with part number {partNumber} is Reference BOM in assembly context");
 			return null;
 		}
 		catch (Exception ex)
@@ -959,20 +938,20 @@ private static bool ValidateSelectedItem(object selectedItem, bool showMessage =
 		}
 	}
 
-	private static ComponentOccurrence? FindComponentOccurrenceByPartNumber(AssemblyDocument assemblyDoc, string partNumber)
+	private static ComponentOccurrence? FindComponentOccurrenceByPartNumber(AssemblyDocument assemblyDoc,
+		string partNumber)
 	{
 		// Search top-level occurrences first
 		var topLevelOccurrence = assemblyDoc.ComponentDefinition.Occurrences
 		                                    .Cast<ComponentOccurrence>()
 		                                    .FirstOrDefault(occ =>
 		                                    {
-		                                    	// Get the part number from the referenced document
-		                                    	if (occ.ReferencedDocumentDescriptor?.ReferencedDocument is Document doc)
-		                                    	{
-		                                    		var docPartNumber = PartInfo.GetDesignTrackingProperty(doc, PartNumberProperty);
-		                                    		return docPartNumber == partNumber;
-		                                    	}
-		                                    	return false;
+			                                    // Get the part number from the referenced document
+			                                    if (occ.ReferencedDocumentDescriptor?.ReferencedDocument is not Document
+			                                        doc) return false;
+			                                    var docPartNumber =
+				                                    PartInfo.GetDesignTrackingProperty(doc, PartNumberProperty);
+			                                    return docPartNumber == partNumber;
 		                                    });
 
 		return topLevelOccurrence ??
@@ -1005,7 +984,8 @@ private static bool ValidateSelectedItem(object selectedItem, bool showMessage =
 			// If this is a sub-assembly, recursively search within it
 			if (occurrence.ReferencedDocumentDescriptor?.ReferencedDocument is not AssemblyDocument subAssemblyDoc)
 				continue;
-			var nestedOccurrence = FindComponentOccurrenceRecursiveByPartNumber(subAssemblyDoc.ComponentDefinition.Occurrences,
+			var nestedOccurrence = FindComponentOccurrenceRecursiveByPartNumber(
+				subAssemblyDoc.ComponentDefinition.Occurrences,
 				partNumber, depth + 1);
 			if (nestedOccurrence != null)
 				return nestedOccurrence;
@@ -1037,7 +1017,6 @@ private static bool ValidateSelectedItem(object selectedItem, bool showMessage =
 				return TryOpenNativePartDocument(partDoc) ?? partDoc;
 			Debug.WriteLine($"[REFERENCE_DEBUG] Component {documentName} is Reference BOM in assembly context");
 			return null;
-
 		}
 		catch (Exception ex)
 		{
