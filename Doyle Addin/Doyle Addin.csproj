@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net8.0-windows</TargetFramework>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -22,17 +22,16 @@
         <UseWPF>true</UseWPF>
         <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
         <Title>Doyle Addin</Title>
-        <Version>$(GitVersion_FullSemVer)</Version>
-        <GetAssemblyVersion>$(GitVersion_AssemblySemVer)</GetAssemblyVersion>
-        <FileVersion>$(GitVersion_AssemblySemFileVer)</FileVersion>
+        <FileVersion>7.0.12.0</FileVersion>
         <Description>Doyle Addin for print and dxf updates</Description>
-        <Company>Autodesk, Inc.</Company>
-        <Product>Autodesk Inventor</Product>
-        <Copyright>Copyright ©2024 Autodesk, Inc.</Copyright>
+        <Company>Doyle MFG.</Company>
+        <Product>Doyle Macro</Product>
+        <Copyright>Copyright ©2025 Autodesk, Inc.</Copyright>
         <DefaultItemExcludes>$(DefaultItemExcludes);$(ProjectDir)**\*.vb</DefaultItemExcludes>
         <LangVersion>latest</LangVersion>
         <IsPackable>false</IsPackable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <AssemblyVersion>7.0.12.0</AssemblyVersion>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <DocumentationFile>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin.xml</DocumentationFile>
@@ -62,33 +61,18 @@
         <PackageReadmeFile>Readme.md</PackageReadmeFile>
         <ImportedNamespaces>Docnet.Core=False,Microsoft.VisualBasic=True,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,System.Xml.Linq=True,System.Threading.Tasks=True,Doyle Addin=True</ImportedNamespaces>
         <NeutralLanguage>en</NeutralLanguage>
-        <RepositoryType>github</RepositoryType>
-        <RepositoryUrl>https://github.com/Bmassner/Doyle-AddIn</RepositoryUrl>
     </PropertyGroup>
     <ItemGroup>
         <Reference Update="System">
             <Name>System</Name>
         </Reference>
-        <Reference Include="InventorRegUtils">
-            <HintPath>..\..\..\..\..\Program Files\Autodesk\Inventor 2025\Redist\inventorregutils.dll</HintPath>
-        </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="..\Optional Features\ObsoletePrint.cs">
-            <Link>Optional Features\ObsoletePrint.cs</Link>
-        </Compile>
         <Compile Include="DXFs\dxfUpdate.cs"/>
-        <Compile Include="Genius\AssemblyPanel.xaml.cs"/>
-        <Compile Include="Genius\DatabaseService.cs"/>
-        <Compile Include="Genius\DocumentHandles.cs"/>
-        <Compile Include="Genius\EditValueDialog.xaml.cs"/>
-        <Compile Include="Genius\iPartAssemblyPanel.xaml.cs"/>
-        <Compile Include="Genius\GeniusPanel.xaml.cs"/>
-        <Compile Include="Genius\NewGenius.cs"/>
-        <Compile Include="Genius\PartInfo.cs"/>
         <Compile Include="My Project\AssemblyInfo.cs"/>
         <Compile Include="My Project\GlobalsHelpers.cs"/>
         <Compile Include="My Project\SVGconvert.cs"/>
+        <Compile Include="Optional Features\ObsoletePrint.cs"/>
         <Compile Include="Options\UserControl.xaml.cs"/>
         <Compile Include="Prints\PDFToJPG.cs"/>
         <Compile Include="Prints\printUpdate.cs"/>
@@ -134,21 +118,16 @@
         </BootstrapperPackage>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Dapper.SqlBuilder" Version="2.1.66"/>
         <PackageReference Include="Docnet.Core" Version="2.7.0-alpha.1"></PackageReference>
         <PackageReference Include="GitInfo" Version="3.6.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="GitVersion.MsBuild" Version="6.5.1">
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
-        <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
-        <PackageReference Include="System.Data.SqlClient" Version="4.9.0"/>
+        <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5"/>
         <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1"/>
         <PackageReference Include="stdole" Version="17.14.40260"/>
         <PackageReference Include="Svg" Version="3.4.7"/>
-        <PackageReference Include="WPF-UI" Version="4.1.0"/>
+        <PackageReference Include="WPF-UI" Version="4.2.0"/>
     </ItemGroup>
     <ItemGroup>
         <Reference Include="Autodesk.Inventor.Interop">
@@ -156,21 +135,11 @@
             <EmbedInteropTypes>False</EmbedInteropTypes>
             <Private>True</Private>
         </Reference>
-        <Reference Include="InvUIModelPropertyPanel">
-            <HintPath>..\..\..\..\..\Program Files\Autodesk\Inventor 2025\Bin\InvUIModelPropertyPanel.dll</HintPath>
-        </Reference>
-        <Reference Include="InvUIModelPropertyPanelRes">
-            <HintPath>..\..\..\..\..\Program Files\Autodesk\Inventor 2025\Bin\InvUIModelPropertyPanelRes.dll</HintPath>
-        </Reference>
     </ItemGroup>
     <ItemGroup>
         <Import Include="Docnet.Core"/>
     </ItemGroup>
     <ItemGroup>
-        <Page Include="Genius\AssemblyPanel.xaml"/>
-        <Page Include="Genius\EditValueDialog.xaml"/>
-        <Page Include="Genius\iPartAssemblyPanel.xaml"/>
-        <Page Include="Genius\GeniusPanel.xaml"/>
         <Page Include="Options\Themes\DarkTheme.xaml"/>
         <Page Include="Options\Themes\LightTheme.xaml"/>
         <Page Include="Options\UserControl.xaml"/>

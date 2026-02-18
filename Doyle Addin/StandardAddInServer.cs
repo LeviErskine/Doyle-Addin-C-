@@ -3,8 +3,8 @@
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Doyle_Addin.Genius;
 using Doyle_Addin.My_Project;
+using Doyle_Addin.Optional_Features;
 using Doyle_Addin.Options;
 
 #endregion
@@ -23,7 +23,6 @@ public class StandardAddInServer : ApplicationAddInServer
 
 	// Event handler delegates to ensure proper unsubscription
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _dxfUpdateHandler;
-	private readonly ButtonDefinitionSink_OnExecuteEventHandler _geniusPropertiesHandler;
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _obsoleteButtonHandler;
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _optionsButtonHandler;
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _printUpdateHandler;
@@ -38,25 +37,10 @@ public class StandardAddInServer : ApplicationAddInServer
 
 	public StandardAddInServer()
 	{
-		_dxfUpdateHandler      = _ => DXFUpdate_OnExecute();
-		_printUpdateHandler    = _ => PrintUpdate_OnExecute();
-		_optionsButtonHandler  = _ => OptionsButton_OnExecute();
-		_obsoleteButtonHandler = _ => ObsoleteButton_OnExecute();
-		_geniusPropertiesHandler = _ =>
-		{
-			Task.Run(async () =>
-			{
-				try
-				{
-					await GeniusProperties_OnExecute();
-				}
-				catch (Exception ex)
-				{
-					// Log the exception but don't let it crash the application
-					Debug.Print($"Error in GeniusProperties_OnExecute: {ex.Message}");
-				}
-			});
-		};
+		_dxfUpdateHandler                    = _ => DXFUpdate_OnExecute();
+		_printUpdateHandler                  = _ => PrintUpdate_OnExecute();
+		_optionsButtonHandler                = _ => OptionsButton_OnExecute();
+		_obsoleteButtonHandler               = _ => ObsoleteButton_OnExecute();
 		_uiEventsResetRibbonInterfaceHandler = UiEvents_OnResetRibbonInterface;
 	}
 
@@ -113,20 +97,6 @@ public class StandardAddInServer : ApplicationAddInServer
 
 			field            =  value;
 			field?.OnExecute += _obsoleteButtonHandler;
-		}
-	}
-
-	private ButtonDefinition GeniusPropertiesButton
-	{
-		[MethodImpl(MethodImplOptions.Synchronized)]
-		get;
-		[MethodImpl(MethodImplOptions.Synchronized)]
-		set
-		{
-			field?.OnExecute -= _geniusPropertiesHandler;
-
-			field            =  value;
-			field?.OnExecute += _geniusPropertiesHandler;
 		}
 	}
 
@@ -257,14 +227,6 @@ public class StandardAddInServer : ApplicationAddInServer
 							{
 								ObsoleteButton = controlDefs.AddButtonDefinition("Obsolete" + '\n' + "Print",
 									obsoleteprint, CommandTypesEnum.kNonShapeEditCmdType, Globals.AddInClientId(),
-									StandardIcon: smallIcon, LargeIcon: largeIcon);
-								break;
-							}
-							case "Genius Properties":
-							{
-								// Place as a non-shape-edit command; it operates on the active document
-								GeniusPropertiesButton = controlDefs.AddButtonDefinition("Genius" + '\n' + "Properties",
-									geniusprops, CommandTypesEnum.kNonShapeEditCmdType, Globals.AddInClientId(),
 									StandardIcon: smallIcon, LargeIcon: largeIcon);
 								break;
 							}
@@ -399,16 +361,6 @@ public class StandardAddInServer : ApplicationAddInServer
 
 		try
 		{
-			GeniusPropertiesButton?.Delete();
-			GeniusPropertiesButton = null;
-		}
-		catch
-		{
-			// ignored
-		}
-
-		try
-		{
 			ObsoleteButton?.Delete();
 			ObsoleteButton = null;
 		}
@@ -497,14 +449,6 @@ public class StandardAddInServer : ApplicationAddInServer
 			Tuple.Create("id_TabTools", dxfupdate, DxfUpdate, Item4Array2)
 		};
 
-		// Genius Properties button - add to ribbons where appropriate (we'll add to PlaceViews/Annotate/Tools as fallback)
-		var geniusButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
-		{
-			Tuple.Create("id_TabPlaceViews", geniusprops, GeniusPropertiesButton, Item4Array0),
-			Tuple.Create(TabAnnotateId, geniusprops, GeniusPropertiesButton, Item4Array0),
-			Tuple.Create("id_TabTools", geniusprops, GeniusPropertiesButton, Item4Array2)
-		};
-
 		// Option button appears on all document types
 		var optionsButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
 		{
@@ -528,10 +472,6 @@ public class StandardAddInServer : ApplicationAddInServer
 
 			// Add Options buttons to all ribbons
 			foreach (var (tabName, panelName, buttonDef, fallbackPanels) in optionsButtonConfigs)
-				AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels);
-
-			// Add Genius Properties buttons to all ribbons
-			foreach (var (tabName, panelName, buttonDef, fallbackPanels) in geniusButtonConfigs)
 				AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels);
 
 			AddObsoletePrintButton(ribbon, ribbonName, obsoletePrintConfigs);
@@ -627,19 +567,14 @@ public class StandardAddInServer : ApplicationAddInServer
 		AddToUserInterface();
 	}
 
-	private void DXFUpdate_OnExecute()
+	private static void DXFUpdate_OnExecute()
 	{
-		new Action(() => DXFs.DxfUpdate.RunDxfUpdate(_application))();
+		DXFs.DxfUpdate.RunDxfUpdate();
 	}
 
 	private static void PrintUpdate_OnExecute()
 	{
 		Prints.PrintUpdate.RunPrintUpdate();
-	}
-
-	private async Task GeniusProperties_OnExecute()
-	{
-		await NewGenius.ShowGeniusPanel(_application);
 	}
 
 	private void OptionsButton_OnExecute()

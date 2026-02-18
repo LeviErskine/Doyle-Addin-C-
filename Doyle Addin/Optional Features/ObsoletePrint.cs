@@ -1,4 +1,4 @@
-﻿namespace Doyle_Addin;
+﻿namespace Doyle_Addin.Optional_Features;
 
 internal static class ObsoletePrint
 {
