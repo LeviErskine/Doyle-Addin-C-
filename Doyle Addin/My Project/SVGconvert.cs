@@ -58,9 +58,9 @@ internal static class SVGconvert
 	/// <summary>
 	///     Helper class to convert .NET Image to COM IPictureDisp
 	/// </summary>
-#pragma warning disable CS0189 // Class is never instantiated
-// ReSharper disable once ClassNeverInstantiated.Local
-private sealed class AxHostConverter : AxHost
+	#pragma warning disable CS0189 // Class is never instantiated
+	// ReSharper disable once ClassNeverInstantiated.Local
+	private sealed class AxHostConverter : AxHost
 	{
 		private AxHostConverter() : base("")
 		{
@@ -71,5 +71,5 @@ private sealed class AxHostConverter : AxHost
 			return (stdole.IPictureDisp)AxHost.GetIPictureDispFromPicture(image);
 		}
 	}
-#pragma warning restore CS0189
+	#pragma warning restore CS0189
 }
