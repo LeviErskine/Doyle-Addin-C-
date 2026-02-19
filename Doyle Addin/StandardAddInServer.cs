@@ -276,11 +276,16 @@ public class StandardAddInServer : ApplicationAddInServer
 			var latestVersion = release.GetProperty("tag_name").GetString()?.TrimStart('v');
 			// System.Windows.Forms.MessageBox.Show($"Latest GitHub version: {latestVersion}", "Debug")
 
-			Debug.Assert(localVersion != null, nameof(localVersion) + " != null");
-			var localVerObj = new Version(localVersion);
-			Debug.Assert(latestVersion != null, nameof(latestVersion) + " != null");
-			var latestVerObj = new Version(latestVersion);
-			if (latestVerObj <= localVerObj) return;
+			if (localVersion != null)
+			{
+				var localVerObj = new Version(localVersion);
+				if (latestVersion != null)
+				{
+					var latestVerObj = new Version(latestVersion);
+					if (latestVerObj <= localVerObj) return;
+				}
+			}
+
 			var result =
 				MessageBox.Show(
 					$"A new version of the Doyle AddIn is available ({latestVersion}) . Update now?",

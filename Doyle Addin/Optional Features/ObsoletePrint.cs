@@ -153,11 +153,7 @@ internal static class ObsoletePrint
 
 			// Ensure destination directory exists
 			var destinationDir = Path.GetDirectoryName(destinationPath);
-			if (!Directory.Exists(destinationDir))
-			{
-				Debug.Assert(destinationDir != null, nameof(destinationDir) + " != null");
-				Directory.CreateDirectory(destinationDir);
-			}
+			if (!Directory.Exists(destinationDir) && destinationDir != null) Directory.CreateDirectory(destinationDir);
 
 			// Copy the file (overwrite if exists)
 			File.Copy(sourcePath, destinationPath, true);
