@@ -8,6 +8,10 @@ namespace Doyle_Addin.DXFs;
 
 internal static class DxfUpdate
 {
+	private const string DesignTrackingProperties = "Design Tracking Properties";
+	private const string PartNumber = "Part Number";
+	private const string Caption = "Error";
+
 	private static bool CreateFlatPattern(SheetMetalComponentDefinition def, string partName,
 		List<string> failedExports)
 	{
@@ -95,7 +99,7 @@ internal static class DxfUpdate
 		if (oDoc.Open(filepath) is not PartDocument openedDoc) return;
 
 		var memberDef  = openedDoc.ComponentDefinition as SheetMetalComponentDefinition;
-		var partNumber = openedDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString();
+		var partNumber = openedDoc.PropertySets[DesignTrackingProperties][PartNumber].Value.ToString();
 		var oiFileName = Path.Combine(UserOptions.Load().DxfExportLocation, partNumber + ".dxf");
 
 		if (!ValidateFlatPattern(memberDef, partNumber, failedExports))
@@ -155,16 +159,16 @@ internal static class DxfUpdate
 		}
 
 		if (!CreateFlatPattern(oDef,
-			    oPartDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString(), failedExports))
+			    oPartDoc.PropertySets[DesignTrackingProperties][PartNumber].Value.ToString(), failedExports))
 		{
-			MessageBox.Show("Failed to create flat pattern", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			MessageBox.Show("Failed to create flat pattern", Caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
 			return;
 		}
 
 		try
 		{
 			ExportDxf(oDef, oFileName,
-				oPartDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString(), failedExports);
+				oPartDoc.PropertySets[DesignTrackingProperties][PartNumber].Value.ToString(), failedExports);
 			if (failedExports.Count == 0)
 				MessageBox.Show(oPartDoc.DisplayName + " exported successfully.", "Success", MessageBoxButtons.OK,
 					MessageBoxIcon.Information);
@@ -173,7 +177,7 @@ internal static class DxfUpdate
 		{
 			MessageBox.Show(
 				"DXF failed to generate. Check connection to X drive" + Environment.NewLine + "Error: " +
-				ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				ex.Message, Caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
 		}
 	}
 
@@ -182,7 +186,7 @@ internal static class DxfUpdate
 		if (ThisApplication.ActiveDocument is not PartDocument oPartDoc)
 		{
 			MessageBox.Show("ActiveDocument is not a PartDocument");
-			MessageBox.Show("DXF Export can only be used on Part documents.", "Error", MessageBoxButtons.OK,
+			MessageBox.Show("DXF Export can only be used on Part documents.", Caption, MessageBoxButtons.OK,
 				MessageBoxIcon.Warning);
 			return;
 		}
@@ -190,13 +194,13 @@ internal static class DxfUpdate
 		if (oPartDoc.ComponentDefinition is not SheetMetalComponentDefinition oDef)
 		{
 			MessageBox.Show("ComponentDefinition is null or not SheetMetalComponentDefinition");
-			MessageBox.Show("This is not a sheet metal part.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+			MessageBox.Show("This is not a sheet metal part.", Caption, MessageBoxButtons.OK, MessageBoxIcon.Warning);
 			return;
 		}
 
 		var failedExports = new List<string>();
-		var propertySets  = oPartDoc.PropertySets["Design Tracking Properties"];
-		var pn            = propertySets["Part Number"].Value.ToString();
+		var propertySets  = oPartDoc.PropertySets[DesignTrackingProperties];
+		var pn            = propertySets[PartNumber].Value.ToString();
 		var userOptions   = UserOptions.Load();
 		var oFileName     = Path.Combine(userOptions.DxfExportLocation, pn + ".dxf");
 
