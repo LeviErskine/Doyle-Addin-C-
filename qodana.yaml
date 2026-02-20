@@ -1,0 +1,9 @@
+version: "1.0"
+linter: jetbrains/qodana-cdnet:latest
+dotnet:
+  solution: DoyleAddin.sln
+  no-build: true
+profile:
+  name: qodana.recommended
+include:
+  - name: CheckDependencyLicenses

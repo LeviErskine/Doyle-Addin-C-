@@ -1,10 +1,13 @@
 ﻿#region
 
+using System;
 using System.ComponentModel;
+using System.IO;
+using System.Xml.Serialization;
 
 #endregion
 
-namespace Doyle_Addin.Options;
+namespace DoyleAddin.Options;
 
 /// <summary>
 ///     Represents a collection of user-configurable options and preferences related to

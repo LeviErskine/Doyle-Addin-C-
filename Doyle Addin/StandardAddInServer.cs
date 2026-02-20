@@ -1,15 +1,24 @@
 ﻿#region
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Doyle_Addin.My_Project;
-using Doyle_Addin.Optional_Features;
-using Doyle_Addin.Options;
+using System.Windows.Forms;
+using DoyleAddin.My_Project;
+using DoyleAddin.Optional_Features;
+using DoyleAddin.Options;
+using Inventor;
 
 #endregion
 
-namespace Doyle_Addin;
+namespace DoyleAddin;
 
 /// <inheritdoc />
 [ProgId("Test2.StandardAddInServer")]
@@ -35,6 +44,15 @@ public class StandardAddInServer : ApplicationAddInServer
 
 	private UserInterfaceEvents uiEvents;
 
+	/// <summary>
+	///     Represents the primary class for the add-in, implementing the core application add-in lifecycle
+	///     and providing custom functionality to extend Inventor's behavior.
+	/// </summary>
+	/// <remarks>
+	///     This class implements the `ApplicationAddInServer` interface, handling the activation,
+	///     deactivation, and execution of the add-in functionality within the Inventor environment.
+	///     It includes event handling for user interface updates and button commands.
+	/// </remarks>
 	public StandardAddInServer()
 	{
 		_dxfUpdateHandler                    = _ => DXFUpdate_OnExecute();

@@ -1,4 +1,14 @@
-﻿namespace Doyle_Addin.Prints;
+﻿using System;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using Docnet.Core;
+using Docnet.Core.Models;
+
+namespace DoyleAddin.Prints;
 
 /// <summary>
 ///     Provides functionality to convert a PDF file to an image file.

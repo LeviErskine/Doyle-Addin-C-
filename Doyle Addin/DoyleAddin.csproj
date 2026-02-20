@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
+        <EnableWindowsTargeting>true</EnableWindowsTargeting>
         <TargetFramework>net8.0-windows</TargetFramework>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <OutputType>Library</OutputType>
@@ -59,7 +60,7 @@
         <EnableDefaultItems>false</EnableDefaultItems>
         <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
         <PackageReadmeFile>Readme.md</PackageReadmeFile>
-        <ImportedNamespaces>Docnet.Core=False,Microsoft.VisualBasic=True,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,System.Xml.Linq=True,System.Threading.Tasks=True,Doyle Addin=True</ImportedNamespaces>
+        <ImportedNamespaces>Docnet.Core=False,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,System.Xml.Linq=True,System.Threading.Tasks=True,Doyle Addin=True</ImportedNamespaces>
         <NeutralLanguage>en</NeutralLanguage>
     </PropertyGroup>
     <ItemGroup>
@@ -118,7 +119,8 @@
         </BootstrapperPackage>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Docnet.Core" Version="2.7.0-alpha.1"></PackageReference>
+        <PackageReference Include="Autodesk.Inventor.Sdk" Version="1.0.3"/>
+        <PackageReference Include="Docnet.Core" Version="2.7.0-alpha.1"/>
         <PackageReference Include="GitInfo" Version="3.6.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -128,13 +130,6 @@
         <PackageReference Include="stdole" Version="17.14.40260"/>
         <PackageReference Include="Svg" Version="3.4.7"/>
         <PackageReference Include="WPF-UI" Version="4.2.0"/>
-    </ItemGroup>
-    <ItemGroup>
-        <Reference Include="Autodesk.Inventor.Interop">
-            <HintPath Condition="Exists('$(programfiles)\Autodesk\Inventor 2025\Bin')">$(programfiles)\Autodesk\Inventor 2025\Bin\Autodesk.Inventor.Interop.dll</HintPath>
-            <EmbedInteropTypes>False</EmbedInteropTypes>
-            <Private>True</Private>
-        </Reference>
     </ItemGroup>
     <ItemGroup>
         <Import Include="Docnet.Core"/>
