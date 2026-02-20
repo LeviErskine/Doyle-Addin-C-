@@ -1,4 +1,11 @@
-﻿namespace Doyle_Addin.Optional_Features;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using Inventor;
+
+namespace DoyleAddin.Optional_Features;
 
 internal static class ObsoletePrint
 {

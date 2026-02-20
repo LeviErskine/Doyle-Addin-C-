@@ -1,18 +1,27 @@
 ﻿#region
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Doyle_Addin.My_Project;
-using Doyle_Addin.Optional_Features;
-using Doyle_Addin.Options;
+using System.Windows.Forms;
+using DoyleAddin.My_Project;
+using DoyleAddin.Optional_Features;
+using DoyleAddin.Options;
+using Inventor;
 
 #endregion
 
-namespace Doyle_Addin;
+namespace DoyleAddin;
 
 /// <inheritdoc />
-[ProgId("Test2.StandardAddInServer")]
+[ProgId("DoyleAddin.StandardAddInServer")]
 [Guid("513b9d7e-103e-4569-8eb5-ab3929cd33ad")]
 public class StandardAddInServer : ApplicationAddInServer
 {
@@ -35,6 +44,15 @@ public class StandardAddInServer : ApplicationAddInServer
 
 	private UserInterfaceEvents uiEvents;
 
+	/// <summary>
+	///     Represents the primary class for the add-in, implementing the core application add-in lifecycle
+	///     and providing custom functionality to extend Inventor's behavior.
+	/// </summary>
+	/// <remarks>
+	///     This class implements the `ApplicationAddInServer` interface, handling the activation,
+	///     deactivation, and execution of the add-in functionality within the Inventor environment.
+	///     It includes event handling for user interface updates and button commands.
+	/// </remarks>
 	public StandardAddInServer()
 	{
 		_dxfUpdateHandler                    = _ => DXFUpdate_OnExecute();
@@ -155,27 +173,27 @@ public class StandardAddInServer : ApplicationAddInServer
 					{
 						new
 						{
-							Name         = "PrintUpdate", Icon = "Doyle_Addin.Resources.PrintUpdateIcon.svg",
+							Name         = "PrintUpdate", Icon = "DoyleAddin.Resources.PrintUpdateIcon.svg",
 							InternalName = printupdate
 						},
 						new
 						{
-							Name         = "DXFUpdate", Icon = "Doyle_Addin.Resources.DXFUpdateIcon.svg",
+							Name         = "DXFUpdate", Icon = "DoyleAddin.Resources.DXFUpdateIcon.svg",
 							InternalName = dxfupdate
 						},
 						new
 						{
-							Name         = "Settings", Icon = "Doyle_Addin.Resources.SettingsIcon.svg",
+							Name         = "Settings", Icon = "DoyleAddin.Resources.SettingsIcon.svg",
 							InternalName = "userOptions"
 						},
 						new
 						{
-							Name         = obsoleteprint, Icon = "Doyle_Addin.Resources.ObsoletePrint.svg",
+							Name         = obsoleteprint, Icon = "DoyleAddin.Resources.ObsoletePrint.svg",
 							InternalName = obsoleteprint
 						},
 						new
 						{
-							Name         = "Genius Properties", Icon = "Doyle_Addin.Resources.SettingsIcon.svg",
+							Name         = "Genius Properties", Icon = "DoyleAddin.Resources.SettingsIcon.svg",
 							InternalName = geniusprops
 						}
 					};
@@ -277,10 +295,17 @@ public class StandardAddInServer : ApplicationAddInServer
 			// System.Windows.Forms.MessageBox.Show($"Latest GitHub version: {latestVersion}", "Debug")
 
 			Debug.Assert(localVersion != null, nameof(localVersion) + " != null");
-			var localVerObj = new Version(localVersion);
-			Debug.Assert(latestVersion != null, nameof(latestVersion) + " != null");
-			var latestVerObj = new Version(latestVersion);
-			if (latestVerObj <= localVerObj) return;
+			if (localVersion != null)
+			{
+				var localVerObj = new Version(localVersion);
+				Debug.Assert(latestVersion != null, nameof(latestVersion) + " != null");
+				if (latestVersion != null)
+				{
+					var latestVerObj = new Version(latestVersion);
+					if (latestVerObj <= localVerObj) return;
+				}
+			}
+
 			var result =
 				MessageBox.Show(
 					$"A new version of the Doyle AddIn is available ({latestVersion}) . Update now?",

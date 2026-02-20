@@ -1,5 +1,8 @@
 ﻿#region
 
+using System;
+using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Markup;
 using Ookii.Dialogs.Wpf;
@@ -9,7 +12,7 @@ using TextBox = Wpf.Ui.Controls.TextBox;
 
 #endregion
 
-namespace Doyle_Addin.Options;
+namespace DoyleAddin.Options;
 
 /// <summary>
 /// </summary>

@@ -1,4 +1,13 @@
-﻿namespace Doyle_Addin.My_Project;
+﻿using System;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Windows.Forms;
+using Svg;
+
+namespace DoyleAddin.My_Project;
 
 // ReSharper disable once IdentifierTypo
 // ReSharper disable once InconsistentNaming

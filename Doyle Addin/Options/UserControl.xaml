@@ -4,7 +4,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    x:Class="Doyle_Addin.Options.UserOptionsWindow"
+    x:Class="DoyleAddin.Options.UserOptionsWindow"
     mc:Ignorable="d"
     Title="Options"
     Height="208" Width="480"
