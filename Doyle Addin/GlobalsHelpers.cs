@@ -1,19 +1,13 @@
-﻿#region
-
-global using static DoyleAddin.My_Project.GlobalsHelpers;
+﻿global using System;
+global using System.IO;
+global using static DoyleAddin.GlobalsHelpers;
 global using static Inventor.DocumentTypeEnum;
 global using Application = Inventor.Application;
-global using Color = System.Drawing.Color;
-global using Document = Inventor.Document;
 global using Environment = System.Environment;
 global using File = System.IO.File;
-global using IPictureDisp = Inventor.IPictureDisp;
 global using Path = System.IO.Path;
-using System;
 
-#endregion
-
-namespace DoyleAddin.My_Project;
+namespace DoyleAddin;
 
 internal static class GlobalsHelpers
 {

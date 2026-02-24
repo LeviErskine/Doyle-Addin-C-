@@ -1,32 +1,35 @@
-﻿using System;
+﻿namespace DoyleAddin.My_Project;
+
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using Svg;
-
-namespace DoyleAddin.My_Project;
 
 // ReSharper disable once IdentifierTypo
 // ReSharper disable once InconsistentNaming
 internal static class SVGconvert
 
 {
-	private static IPictureDisp ImageToPictureDisp(Image image)
+	private static object ImageToPictureDisp(Image image)
 	{
-		return (IPictureDisp)AxHostConverter.GetIPictureDispFromPicture(image);
+		// Use reflection to access the internal AxHost.GetIPictureDispFromPicture method
+		var axHostType = typeof(AxHost);
+		var method = axHostType.GetMethod("GetIPictureDispFromPicture",
+			BindingFlags.Static | BindingFlags.NonPublic);
+
+		if (method == null) throw new InvalidOperationException("Cannot access GetIPictureDispFromPicture method");
+
+		return method.Invoke(null, new object[] { image });
 	}
 
 	// Find a group by "name" or "inkscape:label" attribute
-	public static IPictureDisp SvgResourceToPictureDisp(string resourceName, int width, int height,
+	public static object SvgResourceToPictureDisp(string resourceName, int width, int height,
 		string layerName)
 	{
-		using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
-		if (stream is null)
-			throw new FileNotFoundException($"Resource '{resourceName}' not found.");
-
+		using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName) ??
+		                   throw new FileNotFoundException($"Resource '{resourceName}' not found.");
 		var svgDoc = SvgDocument.Open<SvgDocument>(stream);
 		// Search for <g> with name or inkscape:label
 		var layer = svgDoc.Descendants().OfType<SvgGroup>().FirstOrDefault(g =>
@@ -34,9 +37,7 @@ internal static class SVGconvert
 			 (g.CustomAttributes["inkscape:label"] ?? "") == (layerName ?? "")) ||
 			(g.CustomAttributes.ContainsKey("http://www.inkscape.org/namespaces/inkscape:label") &&
 			 (g.CustomAttributes["http://www.inkscape.org/namespaces/inkscape:label"] ?? "") ==
-			 (layerName ?? "")));
-
-		if (layer is null) throw new ArgumentException($"Layer '{layerName}' not found in SVG.");
+			 (layerName ?? ""))) ?? throw new ArgumentException($"Layer '{layerName}' not found in SVG.");
 
 		// Create a new SVG document with just the selected layer
 		var newDoc = new SvgDocument
@@ -63,22 +64,4 @@ internal static class SVGconvert
 
 		return ImageToPictureDisp(finalBitmap);
 	}
-
-	/// <summary>
-	///     Helper class to convert .NET Image to COM IPictureDisp
-	/// </summary>
-	#pragma warning disable CS0189 // Class is never instantiated
-	// ReSharper disable once ClassNeverInstantiated.Local
-	private sealed class AxHostConverter : AxHost
-	{
-		private AxHostConverter() : base("")
-		{
-		}
-
-		public new static stdole.IPictureDisp GetIPictureDispFromPicture(Image image)
-		{
-			return (stdole.IPictureDisp)AxHost.GetIPictureDispFromPicture(image);
-		}
-	}
-	#pragma warning restore CS0189
 }

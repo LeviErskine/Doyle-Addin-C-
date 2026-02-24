@@ -1,16 +1,12 @@
-﻿#region
+﻿namespace DoyleAddin.DXFs;
 
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Windows.Forms;
-using DoyleAddin.Options;
 using Inventor;
-
-#endregion
-
-namespace DoyleAddin.DXFs;
+using Options;
+using Application = Application;
+using Environment = Environment;
+using Path = Path;
 
 internal static class DxfUpdate
 {
@@ -35,7 +31,6 @@ internal static class DxfUpdate
 	private static bool ValidateFlatPattern(SheetMetalComponentDefinition memberDef, string partNumber,
 		List<string> failedExports)
 	{
-		Debug.Assert(memberDef != null, nameof(memberDef) + " != null");
 		if (memberDef.FlatPattern.FlatBendResults.Count != 0 ||
 		    memberDef.FlatPattern.RangeBox.MaxPoint.Z - memberDef.FlatPattern.RangeBox.MinPoint.Z <=
 		    Convert.ToDouble(memberDef.Thickness.Value) + 0.003d) return true;

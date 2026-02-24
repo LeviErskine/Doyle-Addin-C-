@@ -70,8 +70,8 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="DXFs\dxfUpdate.cs"/>
+        <Compile Include="GlobalsHelpers.cs"/>
         <Compile Include="My Project\AssemblyInfo.cs"/>
-        <Compile Include="My Project\GlobalsHelpers.cs"/>
         <Compile Include="My Project\SVGconvert.cs"/>
         <Compile Include="Optional Features\ObsoletePrint.cs"/>
         <Compile Include="Options\UserControl.xaml.cs"/>
@@ -117,13 +117,7 @@
     <ItemGroup>
         <PackageReference Include="Autodesk.Inventor.Sdk" Version="1.0.3"/>
         <PackageReference Include="Docnet.Core" Version="2.7.0-alpha.1"/>
-        <PackageReference Include="GitInfo" Version="3.6.0">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5"/>
         <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1"/>
-        <PackageReference Include="stdole" Version="17.14.40260"/>
         <PackageReference Include="Svg" Version="3.4.7"/>
         <PackageReference Include="WPF-UI" Version="4.2.0"/>
     </ItemGroup>

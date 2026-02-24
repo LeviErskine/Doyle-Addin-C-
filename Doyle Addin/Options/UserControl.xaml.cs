@@ -1,18 +1,14 @@
-﻿#region
+﻿using TextBox = Wpf.Ui.Controls.TextBox;
 
-using System;
+// From the WpfFolderDialog NuGet package
+
+namespace DoyleAddin.Options;
+
 using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Markup;
 using Ookii.Dialogs.Wpf;
-using TextBox = Wpf.Ui.Controls.TextBox;
-
-// From the WpfFolderDialog NuGet package
-
-#endregion
-
-namespace DoyleAddin.Options;
 
 /// <summary>
 /// </summary>
@@ -148,7 +144,7 @@ public partial class UserOptionsWindow
 
 	private void ApplyThemeResources(ResourceDictionary resourceDictionary)
 	{
-		if (System.Windows.Application.Current?.Resources != null)
+		if (Application.Current?.Resources != null)
 			CopyToApplicationResources(resourceDictionary);
 		else
 			AddToWindowResources(resourceDictionary);
@@ -156,7 +152,7 @@ public partial class UserOptionsWindow
 
 	private static void CopyToApplicationResources(ResourceDictionary resourceDictionary)
 	{
-		var appRes                                               = System.Windows.Application.Current.Resources;
+		var appRes                                               = Application.Current.Resources;
 		foreach (var key in resourceDictionary.Keys) appRes[key] = resourceDictionary[key];
 	}
 

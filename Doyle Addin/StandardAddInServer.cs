@@ -1,6 +1,5 @@
-﻿#region
+﻿namespace DoyleAddin;
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -11,14 +10,13 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DoyleAddin.My_Project;
-using DoyleAddin.Optional_Features;
-using DoyleAddin.Options;
 using Inventor;
-
-#endregion
-
-namespace DoyleAddin;
+using My_Project;
+using Optional_Features;
+using Options;
+using Application = Application;
+using File = File;
+using Path = Path;
 
 /// <inheritdoc />
 [ProgId("DoyleAddin.StandardAddInServer")]
@@ -29,6 +27,16 @@ public class StandardAddInServer : ApplicationAddInServer
 	private const string printupdate = "printUpdate";
 	private const string dxfupdate = "dxfUpdate";
 	private const string geniusprops = "geniusProps";
+	private const string drawing = "Drawing";
+	private const string obsoleteprint = "ObsoletePrint";
+	private const string addIns = "Add-Ins";
+
+	private static readonly string[] SheetMetalManageUnfold = ["id_PanelP_SheetMetalManageUnfold"];
+	private static readonly string[] ToolsOptions = ["id_PanelP_ToolsOptions", addIns];
+	private static readonly string[] Item4Array0 = [addIns];
+	private static readonly string[] Item4Array2 = ["id_PanelP_ToolsOptions"];
+	private static readonly string[] FlatPatternExit = ["id_PanelP_FlatPatternExit"];
+	private static readonly string[] AnnotateRevision = ["id_PanelD_AnnotateRevision"];
 
 	// Event handler delegates to ensure proper unsubscription
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _dxfUpdateHandler;
@@ -117,28 +125,6 @@ public class StandardAddInServer : ApplicationAddInServer
 			field?.OnExecute += _obsoleteButtonHandler;
 		}
 	}
-
-	[MethodImpl(MethodImplOptions.Synchronized)]
-	private void SetUiEvents(UserInterfaceEvents value)
-	{
-		uiEvents?.OnResetRibbonInterface -= _uiEventsResetRibbonInterfaceHandler;
-
-		uiEvents                         =  value;
-		uiEvents?.OnResetRibbonInterface += _uiEventsResetRibbonInterfaceHandler;
-	}
-
-	/// <summary>
-	///     Gets the add-in installation directory dynamically
-	/// </summary>
-	/// <returns>The directory where the add-in is installed</returns>
-	private static string GetAddInDirectory()
-	{
-		var assemblyLocation = Assembly.GetExecutingAssembly().Location;
-		var directory        = Path.GetDirectoryName(assemblyLocation);
-		return directory ?? throw new InvalidOperationException("Could not determine add-in directory");
-	}
-
-	#region ApplicationAddInServer Members
 
 	// Inventor calls this method when it loads the AddIn. The AddInSiteObject provides access 
 	// To the Inventor Application object. The FirstTime flag indicates if the AddIn is loaded for
@@ -277,77 +263,6 @@ public class StandardAddInServer : ApplicationAddInServer
 		}
 	}
 
-	private static async Task CheckForUpdateAndDownloadAsync(Application application)
-	{
-		try
-		{
-			var localVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString();
-			// System.Windows.Forms.MessageBox.Show($"Local version: {localVersion}", "Debug")
-
-			var releaseNullable = await GetLatestReleaseFromGitHub();
-			if (!releaseNullable.HasValue)
-				// System.Windows.Forms.MessageBox.Show("Could not fetch release info from GitHub.", "Debug")
-				return;
-
-			var release = releaseNullable.Value;
-
-			var latestVersion = release.GetProperty("tag_name").GetString()?.TrimStart('v');
-			// System.Windows.Forms.MessageBox.Show($"Latest GitHub version: {latestVersion}", "Debug")
-
-			Debug.Assert(localVersion != null, nameof(localVersion) + " != null");
-			if (localVersion != null)
-			{
-				var localVerObj = new Version(localVersion);
-				Debug.Assert(latestVersion != null, nameof(latestVersion) + " != null");
-				if (latestVersion != null)
-				{
-					var latestVerObj = new Version(latestVersion);
-					if (latestVerObj <= localVerObj) return;
-				}
-			}
-
-			var result =
-				MessageBox.Show(
-					$"A new version of the Doyle AddIn is available ({latestVersion}) . Update now?",
-					"Update Available", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-			if (result == DialogResult.Yes)
-			{
-				await File.WriteAllTextAsync(
-					Path.Combine(GetAddInDirectory(), "pending_update.txt"), "update");
-				application.Quit();
-			}
-			else
-			{
-				await File.WriteAllTextAsync(
-					Path.Combine(GetAddInDirectory(), "pending_update.txt"), "update");
-				MessageBox.Show("The update will be installed after you close Inventor.", "Update Scheduled",
-					MessageBoxButtons.OK, MessageBoxIcon.Information);
-			}
-			// System.Windows.Forms.MessageBox.Show("You are running the latest version.", "Debug")
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine(ex);
-			// Optionally log or show error
-		}
-	}
-
-	private static async Task<JsonElement?> GetLatestReleaseFromGitHub()
-	{
-		const string githubUser = "LeviErskine";
-		const string githubRepo = "Doyle-Addin-C-";
-		const string url        = $"https://api.github.com/repos/{githubUser}/{githubRepo}/releases";
-		using var    client     = new HttpClient();
-		client.DefaultRequestHeaders.UserAgent.ParseAdd("InventorAddinUpdater");
-		var json = await client.GetStringAsync(url);
-		var doc  = JsonDocument.Parse(json);
-		var root = doc.RootElement;
-		if (root.ValueKind == JsonValueKind.Array &&
-		    root.GetArrayLength() > 0) return root[0]; // Use the first release (most recent)
-
-		return null;
-	}
-
 	// Inventor calls this method when the AddIn is unloaded. The AddIn will be
 	// unloaded either manually by the user or when the Inventor session is terminated.
 	/// <inheritdoc />
@@ -429,24 +344,101 @@ public class StandardAddInServer : ApplicationAddInServer
 	/// <inheritdoc />
 	public object Automation => null;
 
-	private static readonly string[] Item4 = ["id_PanelP_SheetMetalManageUnfold"];
-	private static readonly string[] Item4Array = ["id_PanelP_ToolsOptions", addIns];
-	private static readonly string[] Item4Array0 = [addIns];
-	private static readonly string[] Item4Array2 = ["id_PanelP_ToolsOptions"];
-	private static readonly string[] Item4Array3 = ["id_PanelP_FlatPatternExit"];
-	private static readonly string[] Item4Array4 = ["id_PanelD_AnnotateRevision"];
-	private const string drawing = "Drawing";
-	private const string obsoleteprint = "ObsoletePrint";
-	private const string addIns = "Add-Ins";
-
 	/// <inheritdoc />
 	public void ExecuteCommand(int CommandID)
 	{
 	}
 
-	#endregion
+	[MethodImpl(MethodImplOptions.Synchronized)]
+	private void SetUiEvents(UserInterfaceEvents value)
+	{
+		uiEvents?.OnResetRibbonInterface -= _uiEventsResetRibbonInterfaceHandler;
 
-	#region User interface definition
+		uiEvents                         =  value;
+		uiEvents?.OnResetRibbonInterface += _uiEventsResetRibbonInterfaceHandler;
+	}
+
+	/// <summary>
+	///     Gets the add-in installation directory dynamically
+	/// </summary>
+	/// <returns>The directory where the add-in is installed</returns>
+	private static string GetAddInDirectory()
+	{
+		var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+		var directory        = Path.GetDirectoryName(assemblyLocation);
+		return directory ?? throw new InvalidOperationException("Could not determine add-in directory");
+	}
+
+	private static async Task CheckForUpdateAndDownloadAsync(Application application)
+	{
+		try
+		{
+			var localVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString();
+			// System.Windows.Forms.MessageBox.Show($"Local version: {localVersion}", "Debug")
+
+			var releaseNullable = await GetLatestReleaseFromGitHub();
+			if (!releaseNullable.HasValue)
+				// System.Windows.Forms.MessageBox.Show("Could not fetch release info from GitHub.", "Debug")
+				return;
+
+			var release = releaseNullable.Value;
+
+			var latestVersion = release.GetProperty("tag_name").GetString()?.TrimStart('v');
+			// System.Windows.Forms.MessageBox.Show($"Latest GitHub version: {latestVersion}", "Debug")
+
+
+			if (localVersion != null)
+			{
+				var localVerObj = new Version(localVersion);
+
+				if (latestVersion != null)
+				{
+					var latestVerObj = new Version(latestVersion);
+					if (latestVerObj <= localVerObj) return;
+				}
+			}
+
+			var result =
+				MessageBox.Show(
+					$"A new version of the Doyle AddIn is available ({latestVersion}) . Update now?",
+					"Update Available", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+			if (result == DialogResult.Yes)
+			{
+				await File.WriteAllTextAsync(
+					Path.Combine(GetAddInDirectory(), "pending_update.txt"), "update");
+				application.Quit();
+			}
+			else
+			{
+				await File.WriteAllTextAsync(
+					Path.Combine(GetAddInDirectory(), "pending_update.txt"), "update");
+				MessageBox.Show("The update will be installed after you close Inventor.", "Update Scheduled",
+					MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
+			// System.Windows.Forms.MessageBox.Show("You are running the latest version.", "Debug")
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex);
+			// Optionally log or show error
+		}
+	}
+
+	private static async Task<JsonElement?> GetLatestReleaseFromGitHub()
+	{
+		const string githubUser = "LeviErskine";
+		const string githubRepo = "Doyle-Addin-C-";
+		const string url        = $"https://api.github.com/repos/{githubUser}/{githubRepo}/releases";
+		using var    client     = new HttpClient();
+		client.DefaultRequestHeaders.UserAgent.ParseAdd("InventorAddinUpdater");
+		var json = await client.GetStringAsync(url);
+		var doc  = JsonDocument.Parse(json);
+		var root = doc.RootElement;
+		if (root.ValueKind == JsonValueKind.Array &&
+		    root.GetArrayLength() > 0) return root[0]; // Use the first release (most recent)
+
+		return null;
+	}
 
 	// Sub where the user-interface creation is done.  This is called when
 	// the add-in is loaded and also if the user interface is reset.
@@ -469,8 +461,8 @@ public class StandardAddInServer : ApplicationAddInServer
 		// DXF button only appears on Part documents
 		var dxfButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
 		{
-			Tuple.Create("id_TabSheetMetal", dxfupdate, DxfUpdate, Item4),
-			Tuple.Create("id_TabFlatPattern", dxfupdate, DxfUpdate, Item4Array3),
+			Tuple.Create("id_TabSheetMetal", dxfupdate, DxfUpdate, SheetMetalManageUnfold),
+			Tuple.Create("id_TabFlatPattern", dxfupdate, DxfUpdate, FlatPatternExit),
 			Tuple.Create("id_TabTools", dxfupdate, DxfUpdate, Item4Array2)
 		};
 
@@ -479,13 +471,13 @@ public class StandardAddInServer : ApplicationAddInServer
 		{
 			Tuple.Create("id_TabPlaceViews", printupdate, PrintUpdate, Item4Array0),
 			Tuple.Create(TabAnnotateId, printupdate, PrintUpdate, Item4Array0),
-			Tuple.Create("id_TabTools", "userOptions", OptionsButton, Item4Array)
+			Tuple.Create("id_TabTools", "userOptions", OptionsButton, ToolsOptions)
 		};
 
 		// Obsolete Print button - only add if feature is enabled
 		var obsoletePrintConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>();
 		if (options.EnableObsoletePrint)
-			obsoletePrintConfigs.Add(Tuple.Create(TabAnnotateId, obsoleteprint, ObsoleteButton, Item4Array4));
+			obsoletePrintConfigs.Add(Tuple.Create(TabAnnotateId, obsoleteprint, ObsoleteButton, AnnotateRevision));
 
 		// Add buttons to appropriate ribbons based on document context
 		foreach (var (ribbonName, ribbon) in ribbonMappings)
@@ -709,8 +701,6 @@ public class StandardAddInServer : ApplicationAddInServer
 			Debug.Print($"Failed to delete control: {ex.Message}");
 		}
 	}
-
-	#endregion
 }
 
 /// <summary>

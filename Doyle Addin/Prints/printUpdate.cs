@@ -1,15 +1,13 @@
-﻿#region
+﻿namespace DoyleAddin.Prints;
 
-using System;
 using System.Windows.Forms;
 using Docnet.Core;
 using Docnet.Core.Models;
-using DoyleAddin.Options;
 using Inventor;
-
-#endregion
-
-namespace DoyleAddin.Prints;
+using Options;
+using Environment = Environment;
+using File = File;
+using Path = Path;
 
 internal static class PrintUpdate
 {

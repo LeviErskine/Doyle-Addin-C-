@@ -1,11 +1,11 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
+﻿namespace DoyleAddin.Optional_Features;
+
 using System.Linq;
 using System.Reflection;
 using Inventor;
-
-namespace DoyleAddin.Optional_Features;
+using Environment = Environment;
+using File = File;
+using Path = Path;
 
 internal static class ObsoletePrint
 {
@@ -161,10 +161,8 @@ internal static class ObsoletePrint
 			// Ensure destination directory exists
 			var destinationDir = Path.GetDirectoryName(destinationPath);
 			if (!Directory.Exists(destinationDir))
-			{
-				Debug.Assert(destinationDir != null, nameof(destinationDir) + " != null");
-				Directory.CreateDirectory(destinationDir);
-			}
+				if (destinationDir != null)
+					Directory.CreateDirectory(destinationDir);
 
 			// Copy the file (overwrite if exists)
 			File.Copy(sourcePath, destinationPath, true);

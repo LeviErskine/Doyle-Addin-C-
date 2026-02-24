@@ -1,18 +1,11 @@
-#region
+namespace DoyleAddin.Prints;
 
-using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Docnet.Core;
 using Docnet.Core.Models;
-
-#endregion
-
-namespace DoyleAddin.Prints;
 
 /// <summary>
 ///     Provides functionality to convert a PDF file to an image file.
@@ -37,7 +30,7 @@ public static class PdfToImage
 
 			// Construct the path to the native DLLs within the runtimes folder
 			// IMPORTANT: Adjust 'win-x64' if your target platform is x86 or another.
-			Debug.Assert(assemblyLocation != null, nameof(assemblyLocation) + " != null");
+
 			if (assemblyLocation != null)
 			{
 				var nativeDllPath = Path.Combine(assemblyLocation, "runtimes", "win-x64", "native");
