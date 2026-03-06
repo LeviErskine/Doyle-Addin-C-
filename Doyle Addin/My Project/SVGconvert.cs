@@ -1,4 +1,4 @@
-﻿namespace DoyleAddin.My_Project;
+namespace DoyleAddin.My_Project;
 
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -19,9 +19,9 @@ internal static class SVGconvert
 		var method = axHostType.GetMethod("GetIPictureDispFromPicture",
 			BindingFlags.Static | BindingFlags.NonPublic);
 
-		if (method == null) throw new InvalidOperationException("Cannot access GetIPictureDispFromPicture method");
-
-		return method.Invoke(null, new object[] { image });
+		return method == null
+			? throw new InvalidOperationException("Cannot access GetIPictureDispFromPicture method")
+			: method.Invoke(null, [image]);
 	}
 
 	// Find a group by "name" or "inkscape:label" attribute
