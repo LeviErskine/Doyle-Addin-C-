@@ -61,6 +61,7 @@ internal static class PrintUpdate
 		{
 			// Publish document
 			oPdfAddin.SaveCopyAs(oDocument, oContext, oOptions, oDataMedium);
+			PdfToImage.ExportFirstPageAsImage(pdfPath, Path.Combine(oFilePath, pn + ".jpg"));
 		}
 		catch
 		{
@@ -86,56 +87,17 @@ internal static class PrintUpdate
 				pageCount = 1;
 			}
 
-			if (pageCount == 1)
-			{
-				// Single page - use existing logic
-				PdfToImage.ExportFirstPageAsImage(pdfPath, Path.Combine(oFilePath, pn + ".jpg"));
-				if (File.Exists(pdfPath)) File.Delete(pdfPath);
-			}
-			else
-			{
-				// Multi-page - export each page with its own part number, but keep the PDF
-				PdfToImage.ExportMultiPagePartImages(pdfPath, oFilePath, pageCount, dpi, pn,
-					pageIndex => GetPartNumberForPage(oDDoc, pageIndex));
-				// Keep the PDF file for multi-page documents
-			}
+			// Only convert and delete if single page
+			if (pageCount != 1) return;
+			PdfToImage.ExportFirstPageAsImage(pdfPath, Path.Combine(oFilePath, pn + ".jpg"));
+			if (File.Exists(pdfPath)) File.Delete(pdfPath);
+			// Optionally, notify the user or handle multipage PDFs as needed
+			// MsgBox("PDF has multiple pages and will not be converted to JPG or deleted.", MsgBoxStyle.Information)
 		}
 		catch (Exception ex)
 		{
 			MessageBox.Show("Failed to convert PDF to JPG: " + ex.Message, "Conversion failed", MessageBoxButtons.OK,
 				MessageBoxIcon.Error);
 		}
-	}
-
-	private static string GetPartNumberForPage(DrawingDocument drawingDoc, int pageIndex)
-	{
-		try
-		{
-			// Get the sheet for this page (0-based index)
-			if (pageIndex >= drawingDoc.Sheets.Count) return string.Empty;
-
-			var sheet = drawingDoc.Sheets[pageIndex + 1]; // Sheets are 1-based in Inventor
-
-			// Look for drawing views on this sheet
-			foreach (DrawingView view in sheet.DrawingViews)
-				try
-				{
-					// Get the referenced document for this view
-					if (view.ReferencedDocumentDescriptor?.ReferencedDocument is not Document refDocument) continue;
-					// Get the part number from the referenced document
-					var partNumberProp = refDocument.PropertySets["Design Tracking Properties"]["Part Number"];
-					if (partNumberProp?.Value != null) return partNumberProp.Value.ToString();
-				}
-				catch
-				{
-					// Continue to next view if this one fails
-				}
-		}
-		catch
-		{
-			// Return empty if any error occurs
-		}
-
-		return string.Empty;
 	}
 }

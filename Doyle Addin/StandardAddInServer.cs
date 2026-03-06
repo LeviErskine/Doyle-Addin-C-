@@ -33,7 +33,7 @@ public class StandardAddInServer : ApplicationAddInServer
 
 	private static readonly string[] SheetMetalManageUnfold = ["id_PanelP_SheetMetalManageUnfold"];
 	private static readonly string[] ToolsOptions = ["id_PanelP_ToolsOptions", addIns];
-	private static readonly string[] CustomAddinTab = [addIns];
+	private static readonly string[] Item4Array0 = [addIns];
 	private static readonly string[] Item4Array2 = ["id_PanelP_ToolsOptions"];
 	private static readonly string[] FlatPatternExit = ["id_PanelP_FlatPatternExit"];
 	private static readonly string[] AnnotateRevision = ["id_PanelD_AnnotateRevision"];
@@ -469,8 +469,8 @@ public class StandardAddInServer : ApplicationAddInServer
 		// Option button appears on all document types
 		var optionsButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
 		{
-			Tuple.Create("id_TabPlaceViews", printupdate, PrintUpdate, CustomAddinTab),
-			Tuple.Create(TabAnnotateId, printupdate, PrintUpdate, CustomAddinTab),
+			Tuple.Create("id_TabPlaceViews", printupdate, PrintUpdate, Item4Array0),
+			Tuple.Create(TabAnnotateId, printupdate, PrintUpdate, Item4Array0),
 			Tuple.Create("id_TabTools", "userOptions", OptionsButton, ToolsOptions)
 		};
 
@@ -486,34 +486,22 @@ public class StandardAddInServer : ApplicationAddInServer
 			if (ribbonName == "Part")
 				foreach (var (tabName, panelName, buttonDef, fallbackPanels) in dxfButtonConfigs)
 					AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels);
-			AddButtonsToRibbon(ribbon, ribbonName, "Part", dxfButtonConfigs);
 
 			// Add Options buttons to all ribbons
 			foreach (var (tabName, panelName, buttonDef, fallbackPanels) in optionsButtonConfigs)
 				AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels);
 
-			if (options.EnableObsoletePrint)
-				AddButtonsToRibbon(ribbon, ribbonName, drawing, obsoletePrintConfigs);
+			AddObsoletePrintButton(ribbon, ribbonName, obsoletePrintConfigs);
 		}
 	}
 
-	// Generic helper method to add buttons to ribbon based on document type filter
-	private static void AddButtonsToRibbon(Ribbon ribbon, string ribbonName, object ribbonFilter,
-		List<Tuple<string, string, ButtonDefinition, string[]>> buttonConfigs)
+	// Helper method to add obsolete print button only to Drawing ribbon
+	private static void AddObsoletePrintButton(Ribbon ribbon, string ribbonName,
+		List<Tuple<string, string, ButtonDefinition, string[]>> obsoletePrintConfigs)
 	{
-		if (buttonConfigs.Count == 0) return;
+		if (ribbonName != drawing) return;
 
-		var shouldAdd = ribbonFilter switch
-		{
-			null                     => true,
-			string singleRibbon      => ribbonName == singleRibbon,
-			string[] multipleRibbons => multipleRibbons.Contains(ribbonName),
-			_                        => false
-		};
-
-		if (!shouldAdd) return;
-
-		foreach (var (tabName, panelName, buttonDef, fallbackPanels) in buttonConfigs)
+		foreach (var (tabName, panelName, buttonDef, fallbackPanels) in obsoletePrintConfigs)
 			AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels);
 	}
 
@@ -625,77 +613,71 @@ public class StandardAddInServer : ApplicationAddInServer
 	{
 		try
 		{
+			// Remove the obsolete print button from all ribbons first
 			RemoveButtons(_application);
+
+			// Re-add buttons with updated settings
 			AddToUserInterface();
 		}
+
+		// MessageBox.Show("Ribbon updated successfully. Changes are now active.",
+		// "Settings Applied",
+		// MessageBoxButtons.OK,
+		// MessageBoxIcon.Information)'
 		catch (Exception ex)
 		{
 			Console.WriteLine(ex);
+			// MessageBox.Show($"Error refreshing ribbon: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
 		}
 	}
 
-	// Generic helper method to remove buttons from specific ribbon/tab combinations
+	// Helper method to remove the obsolete print button from ribbons
 	private static void RemoveButtons(Application application)
 	{
 		try
 		{
 			var ribbon = application.UserInterfaceManager.Ribbons[drawing];
 			if (ribbon is null) return;
-			var buttonRemovalConfigs = new[]
-			{
-				new { RibbonName = drawing, TabName = TabAnnotateId, ButtonInternalName = obsoleteprint },
-			};
 
-			foreach (var config in buttonRemovalConfigs)
-				RemoveButtonFromRibbonTab(application, config.RibbonName, config.TabName, config.ButtonInternalName);
+			RemoveButtonsFromAnnotateTab(ribbon);
 		}
 		catch (Exception ex)
 		{
-			Debug.Print($"Error removing buttons: {ex.Message}");
+			Debug.Print($"Error removing obsolete print button: {ex.Message}");
 		}
 	}
 
-	// Generic method to remove a specific button from a ribbon tab
-	private static void RemoveButtonFromRibbonTab(Application application, string ribbonName, string tabName,
-		string buttonInternalName)
+	private static void RemoveButtonsFromAnnotateTab(Ribbon ribbon)
 	{
 		try
 		{
-			var ribbon = application.UserInterfaceManager.Ribbons[ribbonName];
-
-			var tab = ribbon?.RibbonTabs[tabName];
+			var tab = ribbon.RibbonTabs[TabAnnotateId];
 			if (tab is null) return;
 
-			RemoveButtonFromPanels(tab.RibbonPanels, buttonInternalName);
+			ProcessPanelsForObsoleteButtons(tab.RibbonPanels);
 		}
 		catch (Exception ex)
 		{
-			Debug.Print($"Could not remove button '{buttonInternalName}' from {ribbonName}/{tabName}: {ex.Message}");
+			Debug.Print($"Could not remove button from Annotate tab: {ex.Message}");
 		}
 	}
 
-	// Generic method to remove a button from all panels in a tab
-	private static void RemoveButtonFromPanels(RibbonPanels panels, string buttonInternalName)
+	private static void ProcessPanelsForObsoleteButtons(RibbonPanels panels)
 	{
-		foreach (var ctrl in panels.Cast<RibbonPanel>().Select(panel => GetControlsToRemove(panel, buttonInternalName))
-		                           .SelectMany(controlsToRemove => controlsToRemove)) TryDeleteControl(ctrl);
+		foreach (var controlsToRemove in from RibbonPanel panel in panels select GetControlsToRemove(panel))
+			RemoveObsoleteControls(controlsToRemove);
 	}
 
-	// Generic method to find controls matching a button internal name
-	private static List<CommandControl> GetControlsToRemove(RibbonPanel panel, string buttonInternalName)
+	private static List<CommandControl> GetControlsToRemove(RibbonPanel panel)
 	{
-		return
-		[
-			.. panel.CommandControls.Cast<CommandControl>().Where(ctrl => IsMatchingControl(ctrl, buttonInternalName))
-		];
+		return panel.CommandControls.Cast<CommandControl>().Where(IsObsoletePrintControl).ToList();
 	}
 
-	// Generic method to check if control matches a button internal name
-	private static bool IsMatchingControl(CommandControl ctrl, string buttonInternalName)
+	private static bool IsObsoletePrintControl(CommandControl ctrl)
 	{
 		try
 		{
-			return ctrl?.ControlDefinition?.InternalName == buttonInternalName;
+			return ctrl?.ControlDefinition is { InternalName: obsoleteprint };
 		}
 		catch
 		{
@@ -703,7 +685,11 @@ public class StandardAddInServer : ApplicationAddInServer
 		}
 	}
 
-	// Generic method to safely delete a control
+	private static void RemoveObsoleteControls(IEnumerable<CommandControl> controls)
+	{
+		foreach (var ctrl in controls) TryDeleteControl(ctrl);
+	}
+
 	private static void TryDeleteControl(CommandControl ctrl)
 	{
 		try

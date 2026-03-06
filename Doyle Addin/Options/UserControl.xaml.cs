@@ -119,7 +119,7 @@ public partial class UserOptionsWindow
 		}
 		catch
 		{
-			return [];
+			return new ResourceDictionary();
 		}
 	}
 
@@ -131,14 +131,14 @@ public partial class UserOptionsWindow
 			var themePath   = Path.Combine(asmLocation, "Options", "Themes", themeName + ".xaml");
 
 			if (!File.Exists(themePath))
-				return [];
+				return new ResourceDictionary();
 
 			using var fs = File.OpenRead(themePath);
 			return (ResourceDictionary)XamlReader.Load(fs);
 		}
 		catch
 		{
-			return [];
+			return new ResourceDictionary();
 		}
 	}
 
