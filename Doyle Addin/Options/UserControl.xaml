@@ -11,7 +11,8 @@
     FontFamily="Tahoma"
     WindowStartupLocation="CenterScreen"
     Loaded="UserOptionsWindow_Loaded" WindowStyle="None" AllowsTransparency="True" SnapsToDevicePixels="True"
-    ResizeMode="NoResize" ShowInTaskbar="False" SizeToContent="WidthAndHeight" Topmost="True" Background="Transparent">
+    ResizeMode="NoResize" ShowInTaskbar="False" SizeToContent="WidthAndHeight" Topmost="True" Background="Transparent"
+    d:DataContext="{d:DesignInstance }">
 
     <Window.Resources>
         <!-- Theme ResourceDictionaries are external (Options/Themes/*.xaml) and are merged at runtime by code. -->
@@ -89,14 +90,14 @@
         </Style>
     </Window.Resources>
 
-    <Border x:Name="MainWindowBorder"
-            Background="{DynamicResource WindowBackgroundBrush}"
-            CornerRadius="5"
-            BorderBrush="{DynamicResource BorderBrush}"
-            BorderThickness="4"
-            Padding="16" UseLayoutRounding="True" ClipToBounds="True"
-            ScrollViewer.VerticalScrollBarVisibility="Disabled"
-            Width="480" Height="208" IsEnabled="True">
+    <Border
+        Background="{DynamicResource WindowBackgroundBrush}"
+        CornerRadius="5"
+        BorderBrush="{DynamicResource BorderBrush}"
+        BorderThickness="4"
+        Padding="16" UseLayoutRounding="True" ClipToBounds="True"
+        ScrollViewer.VerticalScrollBarVisibility="Disabled"
+        Width="480" Height="208" IsEnabled="True">
 
         <Grid Margin="0,0,0,-10">
             <Grid.RowDefinitions>
@@ -145,52 +146,106 @@
             </Grid>
 
             <!-- Checkbox -->
-            <CheckBox x:Name="ChkObsoletePrint" FontFamily="Segoe UI"
-                      FontSize="12"
-                      Grid.Row="2" Content="Enable Obsolete Print"
-                      HorizontalAlignment="Left"
-                      Background="{DynamicResource ControlBackgroundBrush}"
-                      BorderBrush="{DynamicResource TextBoxBorderBrush}"
-                      Margin="0,0,0,0" VerticalAlignment="Center"
-                      IsChecked="{Binding EnableObsoletePrint, Mode=TwoWay}"
-                      Foreground="{DynamicResource ControlForegroundBrush}">
-                <CheckBox.Style>
-                    <Style TargetType="{x:Type CheckBox}">
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="{x:Type CheckBox}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Border Width="16" Height="16" Background="{TemplateBinding Background}"
-                                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
-                                                CornerRadius="2" Margin="0,0,8,0">
-                                            <Path x:Name="CheckMark" Visibility="Collapsed" Data="M2,8 L6,12 L14,2"
-                                                  Stroke="{TemplateBinding Foreground}" StrokeThickness="2"
-                                                  StrokeLineJoin="Round"
-                                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
-                                        </Border>
-                                        <ContentPresenter VerticalAlignment="Center" RecognizesAccessKey="True" />
-                                    </StackPanel>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsChecked" Value="True">
-                                            <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </CheckBox.Style>
-            </CheckBox>
-            <!-- Information Message -->
-            <Label x:Name="FutureMsg"
-                   FontFamily="Segoe UI"
-                   Grid.Row="2"
-                   Content="More options planned for the future"
-                   Background="Transparent"
-                   Foreground="{DynamicResource InfoForegroundBrush}"
-                   BorderThickness="0"
-                   FontSize="13" Margin="162,0,6,6" d:LayoutOverrides="Height" VerticalAlignment="Center"
-                   HorizontalAlignment="Center" />
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center">
+                    <CheckBox x:Name="ChkObsoletePrint" FontFamily="Segoe UI"
+                              FontSize="12"
+                              Content="Enable Obsolete Print"
+                              HorizontalAlignment="Left"
+                              Background="{DynamicResource ControlBackgroundBrush}"
+                              BorderBrush="{DynamicResource TextBoxBorderBrush}"
+                              Margin="0,0,0,2" VerticalAlignment="Center"
+                              IsChecked="{Binding EnableObsoletePrint, Mode=TwoWay}"
+                              Foreground="{DynamicResource ControlForegroundBrush}">
+                        <CheckBox.Style>
+                            <Style TargetType="{x:Type CheckBox}">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type CheckBox}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border Width="16" Height="16"
+                                                        Background="{TemplateBinding Background}"
+                                                        BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
+                                                        CornerRadius="2" Margin="0,0,8,0">
+                                                    <Path x:Name="CheckMark" Visibility="Collapsed"
+                                                          Data="M2,8 L6,12 L14,2"
+                                                          Stroke="{TemplateBinding Foreground}" StrokeThickness="2"
+                                                          StrokeLineJoin="Round"
+                                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                                </Border>
+                                                <ContentPresenter VerticalAlignment="Center" RecognizesAccessKey="True" />
+                                            </StackPanel>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="CheckMark" Property="Visibility"
+                                                            Value="Visible" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </CheckBox.Style>
+                    </CheckBox>
+
+                    <CheckBox FontFamily="Segoe UI"
+                              FontSize="12"
+                              Content="Enable Explode iComponents"
+                              HorizontalAlignment="Left"
+                              Background="{DynamicResource ControlBackgroundBrush}"
+                              BorderBrush="{DynamicResource TextBoxBorderBrush}"
+                              Margin="0,2,0,0" VerticalAlignment="Center"
+                              IsChecked="{Binding EnableExplodeiComponents, Mode=TwoWay}"
+                              Foreground="{DynamicResource ControlForegroundBrush}">
+                        <CheckBox.Style>
+                            <Style TargetType="{x:Type CheckBox}">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type CheckBox}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border Width="16" Height="16"
+                                                        Background="{TemplateBinding Background}"
+                                                        BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
+                                                        CornerRadius="2" Margin="0,0,8,0">
+                                                    <Path x:Name="CheckMark" Visibility="Collapsed"
+                                                          Data="M2,8 L6,12 L14,2"
+                                                          Stroke="{TemplateBinding Foreground}" StrokeThickness="2"
+                                                          StrokeLineJoin="Round"
+                                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                                </Border>
+                                                <ContentPresenter VerticalAlignment="Center" RecognizesAccessKey="True" />
+                                            </StackPanel>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="CheckMark" Property="Visibility"
+                                                            Value="Visible" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </CheckBox.Style>
+                    </CheckBox>
+                </StackPanel>
+
+                <!-- Information Message -->
+                <Label x:Name="FutureMsg"
+                       FontFamily="Segoe UI"
+                       Grid.Column="1"
+                       Content="More options planned for the future"
+                       Background="Transparent"
+                       Foreground="{DynamicResource InfoForegroundBrush}"
+                       BorderThickness="0"
+                       FontSize="13" Margin="12,0,6,6" d:LayoutOverrides="Height" VerticalAlignment="Center"
+                       HorizontalAlignment="Center" />
+            </Grid>
+
             <Grid Grid.Row="3" Margin="0,24,0,-16" HorizontalAlignment="Center">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />

@@ -73,6 +73,7 @@
         <Compile Include="GlobalsHelpers.cs"/>
         <Compile Include="My Project\AssemblyInfo.cs"/>
         <Compile Include="My Project\SVGconvert.cs"/>
+        <Compile Include="Optional Features\ExplodeiComponents.cs"/>
         <Compile Include="Optional Features\ObsoletePrint.cs"/>
         <Compile Include="Options\UserControl.xaml.cs"/>
         <Compile Include="Prints\PDFToJPG.cs"/>
@@ -116,7 +117,12 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Autodesk.Inventor.Sdk" Version="1.0.3"/>
+        <PackageReference Include="ClosedXML" Version="0.104.2"/>
         <PackageReference Include="Docnet.Core" Version="2.7.0-alpha.1"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="5.0.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1"/>
         <PackageReference Include="Svg" Version="3.4.7"/>
         <PackageReference Include="WPF-UI" Version="4.2.0"/>
@@ -128,5 +134,8 @@
         <Page Include="Options\Themes\DarkTheme.xaml"/>
         <Page Include="Options\Themes\LightTheme.xaml"/>
         <Page Include="Options\UserControl.xaml"/>
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="Resources\ExplodeiPart.svg"/>
     </ItemGroup>
 </Project>

@@ -26,10 +26,10 @@ public class StandardAddInServer : ApplicationAddInServer
 	private const string TabAnnotateId = "id_TabAnnotate";
 	private const string printupdate = "printUpdate";
 	private const string dxfupdate = "dxfUpdate";
-	private const string geniusprops = "geniusProps";
 	private const string drawing = "Drawing";
 	private const string obsoleteprint = "ObsoletePrint";
 	private const string addIns = "Add-Ins";
+	private const string explodeicomponents = "explodeiComponents";
 
 	private static readonly string[] SheetMetalManageUnfold = ["id_PanelP_SheetMetalManageUnfold"];
 	private static readonly string[] ToolsOptions = ["id_PanelP_ToolsOptions", addIns];
@@ -37,9 +37,13 @@ public class StandardAddInServer : ApplicationAddInServer
 	private static readonly string[] Item4Array2 = ["id_PanelP_ToolsOptions"];
 	private static readonly string[] FlatPatternExit = ["id_PanelP_FlatPatternExit"];
 	private static readonly string[] AnnotateRevision = ["id_PanelD_AnnotateRevision"];
+	private static readonly string[] ManagePanels = ["id_PanelP_Manage", "id_PanelA_Manage", addIns];
+
+	private static readonly string[] stringArray = ["Part", "Assembly"];
 
 	// Event handler delegates to ensure proper unsubscription
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _dxfUpdateHandler;
+	private readonly ButtonDefinitionSink_OnExecuteEventHandler _explodeiComponentsHandler;
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _obsoleteButtonHandler;
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _optionsButtonHandler;
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _printUpdateHandler;
@@ -47,8 +51,6 @@ public class StandardAddInServer : ApplicationAddInServer
 
 	// Instance field to store the Inventor application reference
 	private Application _application;
-
-	// New Genius Properties button definition and property
 
 	private UserInterfaceEvents uiEvents;
 
@@ -67,6 +69,7 @@ public class StandardAddInServer : ApplicationAddInServer
 		_printUpdateHandler                  = _ => PrintUpdate_OnExecute();
 		_optionsButtonHandler                = _ => OptionsButton_OnExecute();
 		_obsoleteButtonHandler               = _ => ObsoleteButton_OnExecute();
+		_explodeiComponentsHandler           = _ => ExplodeiComponents_OnExecute();
 		_uiEventsResetRibbonInterfaceHandler = UiEvents_OnResetRibbonInterface;
 	}
 
@@ -126,6 +129,20 @@ public class StandardAddInServer : ApplicationAddInServer
 		}
 	}
 
+	private ButtonDefinition ExplodeiComponentsButton
+	{
+		[MethodImpl(MethodImplOptions.Synchronized)]
+		get;
+		[MethodImpl(MethodImplOptions.Synchronized)]
+		set
+		{
+			field?.OnExecute -= _explodeiComponentsHandler;
+
+			field            =  value;
+			field?.OnExecute += _explodeiComponentsHandler;
+		}
+	}
+
 	// Inventor calls this method when it loads the AddIn. The AddInSiteObject provides access 
 	// To the Inventor Application object. The FirstTime flag indicates if the AddIn is loaded for
 	// The first time. However, with the introduction of the ribbon, this argument is always true.
@@ -179,8 +196,8 @@ public class StandardAddInServer : ApplicationAddInServer
 						},
 						new
 						{
-							Name         = "Genius Properties", Icon = "DoyleAddin.Resources.SettingsIcon.svg",
-							InternalName = geniusprops
+							Name         = "Explode iComponents", Icon = "DoyleAddin.Resources.ExplodeiPart.svg",
+							InternalName = explodeicomponents
 						}
 					};
 
@@ -231,6 +248,14 @@ public class StandardAddInServer : ApplicationAddInServer
 							{
 								ObsoleteButton = controlDefs.AddButtonDefinition("Obsolete" + '\n' + "Print",
 									obsoleteprint, CommandTypesEnum.kNonShapeEditCmdType, Globals.AddInClientId(),
+									StandardIcon: smallIcon, LargeIcon: largeIcon);
+								break;
+							}
+							case "Explode iComponents":
+							{
+								ExplodeiComponentsButton = controlDefs.AddButtonDefinition(
+									"Explode" + '\n' + "iComponents",
+									explodeicomponents, CommandTypesEnum.kShapeEditCmdType, Globals.AddInClientId(),
 									StandardIcon: smallIcon, LargeIcon: largeIcon);
 								break;
 							}
@@ -303,6 +328,16 @@ public class StandardAddInServer : ApplicationAddInServer
 		{
 			ObsoleteButton?.Delete();
 			ObsoleteButton = null;
+		}
+		catch
+		{
+			// ignored
+		}
+
+		try
+		{
+			ExplodeiComponentsButton?.Delete();
+			ExplodeiComponentsButton = null;
 		}
 		catch
 		{
@@ -474,6 +509,12 @@ public class StandardAddInServer : ApplicationAddInServer
 			Tuple.Create("id_TabTools", "userOptions", OptionsButton, ToolsOptions)
 		};
 
+		// ExplodeiComponents button - appears on Part documents
+		var explodeButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
+		{
+			Tuple.Create("id_TabManage", explodeicomponents, ExplodeiComponentsButton, ManagePanels)
+		};
+
 		// Obsolete Print button - only add if feature is enabled
 		var obsoletePrintConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>();
 		if (options.EnableObsoletePrint)
@@ -482,15 +523,11 @@ public class StandardAddInServer : ApplicationAddInServer
 		// Add buttons to appropriate ribbons based on document context
 		foreach (var (ribbonName, ribbon) in ribbonMappings)
 		{
-			// Add the DXF button only to Part ribbon
-			if (ribbonName == "Part")
-				foreach (var (tabName, panelName, buttonDef, fallbackPanels) in dxfButtonConfigs)
-					AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels);
 			AddButtonsToRibbon(ribbon, ribbonName, "Part", dxfButtonConfigs);
+			AddButtonsToRibbon(ribbon, ribbonName, null, optionsButtonConfigs);
 
-			// Add Options buttons to all ribbons
-			foreach (var (tabName, panelName, buttonDef, fallbackPanels) in optionsButtonConfigs)
-				AddButtonToRibbon(ribbon, tabName, panelName, buttonDef, fallbackPanels);
+			if (options.EnableExplodeiComponents)
+				AddButtonsToRibbon(ribbon, ribbonName, stringArray, explodeButtonConfigs);
 
 			if (options.EnableObsoletePrint)
 				AddButtonsToRibbon(ribbon, ribbonName, drawing, obsoletePrintConfigs);
@@ -620,6 +657,11 @@ public class StandardAddInServer : ApplicationAddInServer
 		new Action(() => ObsoletePrint.ApplyObsoletePrint(_application))();
 	}
 
+	private static void ExplodeiComponents_OnExecute()
+	{
+		ExplodeiComponents.ExplodeiComponentsAction();
+	}
+
 	// Helper method to refresh the ribbon UI
 	private void RefreshRibbon()
 	{
@@ -639,11 +681,10 @@ public class StandardAddInServer : ApplicationAddInServer
 	{
 		try
 		{
-			var ribbon = application.UserInterfaceManager.Ribbons[drawing];
-			if (ribbon is null) return;
 			var buttonRemovalConfigs = new[]
 			{
 				new { RibbonName = drawing, TabName = TabAnnotateId, ButtonInternalName = obsoleteprint },
+				new { RibbonName = drawing, TabName = TabAnnotateId, ButtonInternalName = explodeicomponents }
 			};
 
 			foreach (var config in buttonRemovalConfigs)

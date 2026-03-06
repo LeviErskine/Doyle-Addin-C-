@@ -60,6 +60,23 @@ public class UserOptions : INotifyPropertyChanged
 	} = false;
 
 	/// <summary>
+	///     Specifies whether the "Explode iComponents" functionality is enabled in the application.
+	///     When set to true, the related options and buttons for exploding iComponents are made
+	///     available in the user interface. This property is intended for scenarios where users
+	///     need to manually manipulate iComponents within their designs.
+	/// </summary>
+	public bool EnableExplodeiComponents
+	{
+		get;
+		init
+		{
+			if (value == field) return;
+			field = value;
+			OnPropertyChanged(nameof(EnableExplodeiComponents));
+		}
+	} = false;
+
+	/// <summary>
 	///     Raised when a property value changes; used by WPF data binding (INotifyPropertyChanged).
 	/// </summary>
 	public event PropertyChangedEventHandler PropertyChanged;
