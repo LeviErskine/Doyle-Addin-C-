@@ -155,26 +155,51 @@ internal static class DxfUpdate
 			return;
 		}
 
-		if (!CreateFlatPattern(oDef,
-			    oPartDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString(), failedExports))
-		{
-			MessageBox.Show("Failed to create flat pattern", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-			return;
-		}
+		var modelStates = oDef.ModelStates;
+		var exportCount = 0;
+		var totalCount  = modelStates.Count;
+		var partNumber  = oPartDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString();
 
-		try
+		foreach (ModelState modelState in modelStates)
+			try
+			{
+				// Activate the model state
+				modelState.Activate();
+
+				// Get the part number for this specific model state
+				var currentStatePartNumber =
+					oPartDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString();
+				var fileName = Path.Combine(Path.GetDirectoryName(oFileName) ?? "", $"{currentStatePartNumber}.dxf");
+
+				if (!CreateFlatPattern(oDef, currentStatePartNumber, failedExports))
+				{
+					failedExports.Add(
+						$"Failed to create flat pattern for model state '{modelState.Name}' in: {currentStatePartNumber}");
+					continue;
+				}
+
+				ExportDxf(oDef, fileName, currentStatePartNumber, failedExports);
+				exportCount++;
+			}
+			catch (Exception ex)
+			{
+				failedExports.Add($"Error processing model state '{modelState.Name}': {ex.Message}");
+			}
+
+		// Show results
+		if (failedExports.Count > 0)
 		{
-			ExportDxf(oDef, oFileName,
-				oPartDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString(), failedExports);
-			if (failedExports.Count == 0)
-				MessageBox.Show(oPartDoc.DisplayName + " exported successfully.", "Success", MessageBoxButtons.OK,
-					MessageBoxIcon.Information);
+			MessageBox.Show($"{exportCount} of {totalCount} model states exported successfully." + Environment.NewLine +
+			                $"{failedExports.Count} errors:" + Environment.NewLine +
+			                string.Join(Environment.NewLine, failedExports),
+				"Export Results", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 		}
-		catch (Exception ex)
+		else
 		{
-			MessageBox.Show(
-				"DXF failed to generate. Check connection to X drive" + Environment.NewLine + "Error: " +
-				ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			var message = totalCount > 1
+				? $"All {totalCount} model states exported successfully."
+				: $"{partNumber} exported successfully.";
+			MessageBox.Show(message, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
 		}
 	}
 

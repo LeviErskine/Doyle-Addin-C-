@@ -57,7 +57,7 @@ public class UserOptions : INotifyPropertyChanged
 			field = value;
 			OnPropertyChanged(nameof(EnableObsoletePrint));
 		}
-	} = true;
+	} = false;
 
 	/// <summary>
 	///     Raised when a property value changes; used by WPF data binding (INotifyPropertyChanged).
