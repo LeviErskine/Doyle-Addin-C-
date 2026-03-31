@@ -21,10 +21,10 @@ internal static class ObsoletePrint
 	}
 
 	// This is the main routine that runs.
-	public static void ApplyObsoletePrint(Application thisApplication)
+	public static void ApplyObsoletePrint()
 	{
 		// Get the active drawing document
-		if (thisApplication.ActiveDocument is not DrawingDocument drawingDoc) return;
+		if (ThisApplication.ActiveDocument is not DrawingDocument drawingDoc) return;
 
 		foreach (Sheet sheet in drawingDoc.Sheets)
 		{
@@ -33,14 +33,14 @@ internal static class ObsoletePrint
 			if (string.IsNullOrEmpty(symbolName)) continue; // Skip unsupported sheet sizes
 
 			// Get or load the symbol definition
-			var symbolDefinition = GetSymbolDefinition(symbolName, drawingDoc, thisApplication);
+			var symbolDefinition = GetSymbolDefinition(symbolName, drawingDoc);
 			if (symbolDefinition is null) continue; // Skip if the symbol cannot be found or loaded
 
 			// Delete existing instances of this symbol on the sheet
 			DeleteExistingSymbolInstances(sheet, symbolName);
 
 			// Place the symbol at the center of the sheet
-			PlaceSymbolAtSheetCenter(sheet, symbolDefinition, thisApplication);
+			PlaceSymbolAtSheetCenter(sheet, symbolDefinition);
 		}
 	}
 
@@ -59,8 +59,7 @@ internal static class ObsoletePrint
 	}
 
 	// Gets the symbol definition from the document or library
-	private static SketchedSymbolDefinition GetSymbolDefinition(string symbolName, DrawingDocument drawingDoc,
-		Application thisApplication)
+	private static SketchedSymbolDefinition GetSymbolDefinition(string symbolName, DrawingDocument drawingDoc)
 	{
 		// Step 1: Try to get the symbol from the active document itself
 		SketchedSymbolDefinition symbolDefinition = null;
@@ -94,7 +93,7 @@ internal static class ObsoletePrint
 			var libraryPath = CopyObsoleteLibrary();
 			if (!string.IsNullOrEmpty(libraryPath))
 				// Library copied successfully, restart the entire process
-				ApplyObsoletePrint(thisApplication);
+				ApplyObsoletePrint();
 			return null;
 		}
 
@@ -131,14 +130,13 @@ internal static class ObsoletePrint
 	}
 
 	// Places the symbol at the center of the specified sheet
-	private static void PlaceSymbolAtSheetCenter(Sheet sheet, SketchedSymbolDefinition symbolDefinition,
-		Application thisApplication)
+	private static void PlaceSymbolAtSheetCenter(Sheet sheet, SketchedSymbolDefinition symbolDefinition)
 	{
 		// Get the center point of the sheet
-		var transientGeometry = thisApplication.TransientGeometry;
+		var transientGeometry = ThisApplication.TransientGeometry;
 		var centerPoint       = transientGeometry.CreatePoint2d(sheet.Width / 2d, sheet.Height / 2d);
 
-		var pointCollection = thisApplication.TransientObjects.CreateObjectCollection();
+		var pointCollection = ThisApplication.TransientObjects.CreateObjectCollection();
 		pointCollection.Add(centerPoint);
 
 		// Add an instance of the symbol to the sheet at the center point

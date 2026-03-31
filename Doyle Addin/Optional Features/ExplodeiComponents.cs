@@ -137,9 +137,9 @@ public static class ExplodeiComponents
 				{
 					Debug.WriteLine($"--- Processing iPart member {i} of {totalCount} ---");
 
-					factory = factoryDoc.ComponentDefinition.iPartFactory; // Refresh factory reference
-					if (factory == null)
-						throw new InvalidOperationException("Could not access iPart factory.");
+					factory = factoryDoc.ComponentDefinition.iPartFactory ??
+					          throw new InvalidOperationException(
+						          "Could not access iPart factory."); // Refresh factory reference
 
 					var row = factory.TableRows[i];
 					factory.DefaultRow = row;

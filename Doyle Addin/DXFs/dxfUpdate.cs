@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using Inventor;
 using Options;
-using Application = Application;
 using Environment = Environment;
 using Path = Path;
 
@@ -109,11 +108,11 @@ internal static class DxfUpdate
 		openedDoc.Close(true);
 	}
 
-	private static void ProcessIPartFactory(Application thisApplication, PartDocument oPartDoc,
+	private static void ProcessIPartFactory(PartDocument oPartDoc,
 		SheetMetalComponentDefinition oDef, string pn, List<string> failedExports)
 	{
 		var oFactory = oDef.iPartFactory;
-		var oDoc     = thisApplication.Documents;
+		var oDoc     = ThisApplication.Documents;
 		var total    = oFactory.TableRows.Count;
 		oDoc.CloseAll(true);
 		oPartDoc.ReleaseReference();
@@ -228,7 +227,7 @@ internal static class DxfUpdate
 
 		// Check if a part is a factory and delegate to the appropriate processor
 		if (oDef.IsiPartFactory)
-			ProcessIPartFactory(ThisApplication, oPartDoc, oDef, pn, failedExports);
+			ProcessIPartFactory(oPartDoc, oDef, pn, failedExports);
 		else
 			ProcessNonIPart(oPartDoc, oDef, oFileName, failedExports);
 	}

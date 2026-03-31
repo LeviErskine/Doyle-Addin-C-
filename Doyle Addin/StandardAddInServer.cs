@@ -10,11 +10,11 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Genius;
 using Inventor;
 using My_Project;
 using Optional_Features;
 using Options;
-using Application = Application;
 using File = File;
 using Path = Path;
 
@@ -30,6 +30,7 @@ public class StandardAddInServer : ApplicationAddInServer
 	private const string obsoleteprint = "ObsoletePrint";
 	private const string addIns = "Add-Ins";
 	private const string explodeicomponents = "explodeiComponents";
+	private const string geniusPanel = "geniusPanel";
 
 	private static readonly string[] SheetMetalManageUnfold = ["id_PanelP_SheetMetalManageUnfold"];
 	private static readonly string[] ToolsOptions = ["id_PanelP_ToolsOptions", addIns];
@@ -41,16 +42,16 @@ public class StandardAddInServer : ApplicationAddInServer
 
 	private static readonly string[] stringArray = ["Part", "Assembly"];
 
+	private static PanelWrapper _geniusPanelWrapper;
+
 	// Event handler delegates to ensure proper unsubscription
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _dxfUpdateHandler;
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _explodeiComponentsHandler;
+	private readonly ButtonDefinitionSink_OnExecuteEventHandler _geniusPanelHandler;
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _obsoleteButtonHandler;
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _optionsButtonHandler;
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _printUpdateHandler;
 	private readonly UserInterfaceEventsSink_OnResetRibbonInterfaceEventHandler _uiEventsResetRibbonInterfaceHandler;
-
-	// Instance field to store the Inventor application reference
-	private Application _application;
 
 	private UserInterfaceEvents uiEvents;
 
@@ -70,6 +71,7 @@ public class StandardAddInServer : ApplicationAddInServer
 		_optionsButtonHandler                = _ => OptionsButton_OnExecute();
 		_obsoleteButtonHandler               = _ => ObsoleteButton_OnExecute();
 		_explodeiComponentsHandler           = _ => ExplodeiComponents_OnExecute();
+		_geniusPanelHandler                  = _ => GeniusPanel_OnExecute();
 		_uiEventsResetRibbonInterfaceHandler = UiEvents_OnResetRibbonInterface;
 	}
 
@@ -143,6 +145,20 @@ public class StandardAddInServer : ApplicationAddInServer
 		}
 	}
 
+	private ButtonDefinition GeniusPanelButton
+	{
+		[MethodImpl(MethodImplOptions.Synchronized)]
+		get;
+		[MethodImpl(MethodImplOptions.Synchronized)]
+		set
+		{
+			field?.OnExecute -= _geniusPanelHandler;
+
+			field            =  value;
+			field?.OnExecute += _geniusPanelHandler;
+		}
+	}
+
 	// Inventor calls this method when it loads the AddIn. The AddInSiteObject provides access 
 	// To the Inventor Application object. The FirstTime flag indicates if the AddIn is loaded for
 	// The first time. However, with the introduction of the ribbon, this argument is always true.
@@ -151,17 +167,12 @@ public class StandardAddInServer : ApplicationAddInServer
 	{
 		try
 		{
-			// Initialize AddIn members.
-			_application = AddInSiteObject.Application;
-
-			// Initialize the static ThisApplication field for global access
-			Initialize(_application);
-
-			_ = CheckForUpdateAndDownloadAsync(_application).ConfigureAwait(false);
+			Initialize(AddInSiteObject.Application);
+			_ = CheckForUpdateAndDownloadAsync().ConfigureAwait(false);
 
 			// Get a reference to the ControlDefinitions object. 
-			var controlDefs   = _application.CommandManager.ControlDefinitions;
-			var oThemeManager = _application.ThemeManager;
+			var controlDefs   = ThisApplication.CommandManager.ControlDefinitions;
+			var oThemeManager = ThisApplication.ThemeManager;
 
 			var oTheme = oThemeManager.ActiveTheme;
 
@@ -198,6 +209,11 @@ public class StandardAddInServer : ApplicationAddInServer
 						{
 							Name         = "Explode iComponents", Icon = "DoyleAddin.Resources.ExplodeiPart.svg",
 							InternalName = explodeicomponents
+						},
+						new
+						{
+							Name         = "Genius Panel", Icon = "DoyleAddin.Resources.GeniusPanel.svg",
+							InternalName = geniusPanel
 						}
 					};
 
@@ -259,6 +275,14 @@ public class StandardAddInServer : ApplicationAddInServer
 									StandardIcon: smallIcon, LargeIcon: largeIcon);
 								break;
 							}
+							case "Genius Panel":
+							{
+								GeniusPanelButton = controlDefs.AddButtonDefinition(
+									"Genius" + '\n' + "Panel",
+									geniusPanel, CommandTypesEnum.kNonShapeEditCmdType, Globals.AddInClientId(),
+									StandardIcon: smallIcon, LargeIcon: largeIcon);
+								break;
+							}
 						}
 					}
 
@@ -271,7 +295,7 @@ public class StandardAddInServer : ApplicationAddInServer
 			AddToUserInterface();
 
 			// Connect to the user-interface events to handle a ribbon reset.
-			SetUiEvents(_application.UserInterfaceManager.UserInterfaceEvents);
+			SetUiEvents(ThisApplication.UserInterfaceManager.UserInterfaceEvents);
 
 			// Ensure the option file exists with default values if it doesn't exist
 			if (File.Exists(UserOptions.OptionsFilePath)) return;
@@ -344,9 +368,31 @@ public class StandardAddInServer : ApplicationAddInServer
 			// ignored
 		}
 
+		try
+		{
+			GeniusPanelButton?.Delete();
+			GeniusPanelButton = null;
+		}
+		catch
+		{
+			// ignored
+		}
+
 		// Release objects.
 		SetUiEvents(null);
-		_application = null;
+
+		// Clean up the genius panel wrapper
+		try
+		{
+			_geniusPanelWrapper?.Close();
+			_geniusPanelWrapper = null;
+		}
+		catch
+		{
+			// ignored
+		}
+
+		ThisApplication = null;
 
 		// Check for pending update marker
 		var updateMarker = Path.Combine(GetAddInDirectory(), "pending_update.txt");
@@ -404,7 +450,7 @@ public class StandardAddInServer : ApplicationAddInServer
 		return directory ?? throw new InvalidOperationException("Could not determine add-in directory");
 	}
 
-	private static async Task CheckForUpdateAndDownloadAsync(Application application)
+	private static async Task CheckForUpdateAndDownloadAsync()
 	{
 		try
 		{
@@ -441,7 +487,7 @@ public class StandardAddInServer : ApplicationAddInServer
 			{
 				await File.WriteAllTextAsync(
 					Path.Combine(GetAddInDirectory(), "pending_update.txt"), "update");
-				application.Quit();
+				ThisApplication.Quit();
 			}
 			else
 			{
@@ -483,7 +529,7 @@ public class StandardAddInServer : ApplicationAddInServer
 		var options = UserOptions.Load();
 
 		// Cache frequently used objects
-		var uiManager = _application.UserInterfaceManager;
+		var uiManager = ThisApplication.UserInterfaceManager;
 
 		// Define ribbon mappings for each document type
 		var ribbonMappings = new Dictionary<string, Ribbon>
@@ -515,6 +561,12 @@ public class StandardAddInServer : ApplicationAddInServer
 			Tuple.Create("id_TabManage", explodeicomponents, ExplodeiComponentsButton, ManagePanels)
 		};
 
+		// Genius Panel button - appears on all document types
+		var geniusPanelConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
+		{
+			Tuple.Create("id_TabTools", geniusPanel, GeniusPanelButton, ToolsOptions)
+		};
+
 		// Obsolete Print button - only add if feature is enabled
 		var obsoletePrintConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>();
 		if (options.EnableObsoletePrint)
@@ -525,6 +577,7 @@ public class StandardAddInServer : ApplicationAddInServer
 		{
 			AddButtonsToRibbon(ribbon, ribbonName, "Part", dxfButtonConfigs);
 			AddButtonsToRibbon(ribbon, ribbonName, null, optionsButtonConfigs);
+			AddButtonsToRibbon(ribbon, ribbonName, null, geniusPanelConfigs);
 
 			if (options.EnableExplodeiComponents)
 				AddButtonsToRibbon(ribbon, ribbonName, stringArray, explodeButtonConfigs);
@@ -652,9 +705,9 @@ public class StandardAddInServer : ApplicationAddInServer
 		if (result is true) RefreshRibbon();
 	}
 
-	private void ObsoleteButton_OnExecute()
+	private static void ObsoleteButton_OnExecute()
 	{
-		new Action(() => ObsoletePrint.ApplyObsoletePrint(_application))();
+		ObsoletePrint.ApplyObsoletePrint();
 	}
 
 	private static void ExplodeiComponents_OnExecute()
@@ -662,12 +715,30 @@ public class StandardAddInServer : ApplicationAddInServer
 		ExplodeiComponents.ExplodeiComponentsAction();
 	}
 
+	private static void GeniusPanel_OnExecute()
+	{
+		try
+		{
+			if (ThisApplication == null) return;
+
+			// Clean up existing wrapper if it exists and is disposed
+			if (_geniusPanelWrapper is { IsDisposed: true }) _geniusPanelWrapper = null;
+
+			// Always create a new instance for the panel
+			_geniusPanelWrapper = new PanelWrapper();
+		}
+		catch (Exception ex)
+		{
+			MessageBox.Show($"Error opening Genius Panel: {ex.Message}");
+		}
+	}
+
 	// Helper method to refresh the ribbon UI
 	private void RefreshRibbon()
 	{
 		try
 		{
-			RemoveButtons(_application);
+			RemoveButtons();
 			AddToUserInterface();
 		}
 		catch (Exception ex)
@@ -677,7 +748,7 @@ public class StandardAddInServer : ApplicationAddInServer
 	}
 
 	// Generic helper method to remove buttons from specific ribbon/tab combinations
-	private static void RemoveButtons(Application application)
+	private static void RemoveButtons()
 	{
 		try
 		{
@@ -688,7 +759,7 @@ public class StandardAddInServer : ApplicationAddInServer
 			};
 
 			foreach (var config in buttonRemovalConfigs)
-				RemoveButtonFromRibbonTab(application, config.RibbonName, config.TabName, config.ButtonInternalName);
+				RemoveButtonFromRibbonTab(config.RibbonName, config.TabName, config.ButtonInternalName);
 		}
 		catch (Exception ex)
 		{
@@ -697,12 +768,12 @@ public class StandardAddInServer : ApplicationAddInServer
 	}
 
 	// Generic method to remove a specific button from a ribbon tab
-	private static void RemoveButtonFromRibbonTab(Application application, string ribbonName, string tabName,
+	private static void RemoveButtonFromRibbonTab(string ribbonName, string tabName,
 		string buttonInternalName)
 	{
 		try
 		{
-			var ribbon = application.UserInterfaceManager.Ribbons[ribbonName];
+			var ribbon = ThisApplication.UserInterfaceManager.Ribbons[ribbonName];
 
 			var tab = ribbon?.RibbonTabs[tabName];
 			if (tab is null) return;

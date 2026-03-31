@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
-        <TargetFramework>net8.0-windows</TargetFramework>
+        <TargetFramework>net8.0-windows8.0</TargetFramework>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <OutputType>Library</OutputType>
         <MyType>Windows</MyType>
@@ -70,12 +70,24 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="DXFs\dxfUpdate.cs"/>
+        <Compile Include="Genius\CalculateProps.cs"/>
+        <Compile Include="Genius\Forms\GeniusAssembly.xaml.cs"/>
+        <Compile Include="Genius\Forms\GeniusFormsHelper.cs"/>
+        <Compile Include="Genius\Forms\GeniusiAssembly.xaml.cs"/>
+        <Compile Include="Genius\Forms\GeniusiPart.xaml.cs"/>
+        <Compile Include="Genius\Forms\GeniusPart.xaml.cs"/>
+        <Compile Include="Genius\Geniusinfo.cs"/>
+        <Compile Include="Genius\PanelWrapper.cs"/>
+        <Compile Include="Genius\PropertyExtractor.cs"/>
+        <Compile Include="Genius\SqlDataManager.cs"/>
+        <Compile Include="Genius\ThumbnailHelper.cs"/>
         <Compile Include="GlobalsHelpers.cs"/>
         <Compile Include="My Project\AssemblyInfo.cs"/>
         <Compile Include="My Project\SVGconvert.cs"/>
         <Compile Include="Optional Features\ExplodeiComponents.cs"/>
         <Compile Include="Optional Features\ObsoletePrint.cs"/>
-        <Compile Include="Options\UserControl.xaml.cs"/>
+        <Compile Include="Options\Themes\ThemeManager.cs"/>
+        <Compile Include="Options\OptionsPane.xaml.cs"/>
         <Compile Include="Prints\PDFToJPG.cs"/>
         <Compile Include="Prints\printUpdate.cs"/>
         <Compile Include="StandardAddInServer.cs"/>
@@ -87,6 +99,10 @@
         <None Include="Autodesk.DoyleAddin.Inventor.addin">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <Page Include="Options\Themes\DarkTheme.xaml"/>
+        <Page Include="Options\Themes\Elements.xaml"/>
+        <Page Include="Options\Themes\LightTheme.xaml"/>
+        <EmbeddedResource Include="Resources\GeniusPanel.svg"/>
         <EmbeddedResource Include="Resources\ObsoletePrint.svg"/>
         <EmbeddedResource Include="Resources\PrintUpdateIcon.svg"/>
         <EmbeddedResource Include="Resources\DXFUpdateIcon.svg"/>
@@ -117,25 +133,53 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Autodesk.Inventor.Sdk" Version="1.0.3"/>
-        <PackageReference Include="ClosedXML" Version="0.104.2"/>
+        <PackageReference Include="ClosedXML" Version="0.105.0"/>
         <PackageReference Include="Docnet.Core" Version="2.7.0-alpha.1"/>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="5.0.0">
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="5.3.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1"/>
         <PackageReference Include="Svg" Version="3.4.7"/>
+        <PackageReference Include="System.Data.SqlClient" Version="4.9.1"/>
+        <PackageReference Include="System.Drawing.Common" Version="8.0.0"/>
         <PackageReference Include="WPF-UI" Version="4.2.0"/>
     </ItemGroup>
+    <PropertyGroup>
+        <InventorVersion>2025</InventorVersion>
+    </PropertyGroup>
     <ItemGroup>
         <Import Include="Docnet.Core"/>
     </ItemGroup>
     <ItemGroup>
-        <Page Include="Options\Themes\DarkTheme.xaml"/>
-        <Page Include="Options\Themes\LightTheme.xaml"/>
-        <Page Include="Options\UserControl.xaml"/>
+        <None Include="Options\Themes\*.xaml">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+    <ItemGroup>
+        <Page Include="Genius\Forms\GeniusAssembly.xaml"/>
+        <Page Include="Genius\Forms\GeniusiAssembly.xaml"/>
+        <Page Include="Genius\Forms\GeniusiPart.xaml"/>
+        <Page Include="Genius\Forms\GeniusPart.xaml"/>
+        <Page Include="Options\OptionsPane.xaml"/>
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Resources\ExplodeiPart.svg"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Reference Include="AdUIModel">
+            <HintPath>..\..\..\..\..\Program Files\Autodesk\Inventor 2025\Bin\AdUIModel.dll</HintPath>
+        </Reference>
+        <Reference Include="Autodesk.DataManagement.Client.Framework.Forms">
+            <HintPath>..\..\..\..\..\ProgramData\Autodesk\ApplicationPlugins\VaultInventor2025.bundle\Contents\Autodesk.DataManagement.Client.Framework.Forms.dll</HintPath>
+        </Reference>
+        <Reference Include="InvUIModelPropertyPanel">
+            <HintPath>..\..\..\..\..\Program Files\Autodesk\Inventor 2025\Bin\InvUIModelPropertyPanel.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup>
+        <None Update="Options\Themes\scrollbarstyle.xaml">
+            <Generator>MSBuild:Compile</Generator>
+        </None>
     </ItemGroup>
 </Project>

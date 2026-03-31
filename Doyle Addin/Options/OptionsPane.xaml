@@ -1,0 +1,84 @@
+﻿<Window
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:options="clr-namespace:DoyleAddin.Options" x:Name="Options_Pane"
+    d:DataContext="{d:DesignInstance Type=options:UserOptions}"
+    x:Class="DoyleAddin.Options.UserOptionsWindow"
+    mc:Ignorable="d"
+    Loaded="UserOptionsWindow_Loaded"
+    ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True"
+    WindowStartupLocation="CenterScreen" WindowStyle="None" SnapsToDevicePixels="True"
+    ScrollViewer.VerticalScrollBarVisibility="Disabled" FontSize="16" Width="560" Height="195" UseLayoutRounding="True"
+    Background="#00000000" AllowsTransparency="True" FontFamily="Tahoma">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/DoyleAddin;component/Options/Themes/Elements.xaml" />
+                <ResourceDictionary Source="/DoyleAddin;component/Options/Themes/DarkTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Window.BorderBrush>
+        <SolidColorBrush Color="#00000000" />
+    </Window.BorderBrush>
+    <Window.Foreground>
+        <SolidColorBrush Color="Transparent" />
+    </Window.Foreground>
+
+    <Border x:Name="RoundCorners" CornerRadius="6,6,6,6" BorderThickness="2,2,2,2"
+            BorderBrush="{DynamicResource BorderColorBrush}" Background="{DynamicResource BackgroundColorBrush}">
+
+        <StackPanel x:Name="Rows">
+            <!-- Input Sections -->
+
+            <StackPanel x:Name="Row1Columns" Orientation="Horizontal">
+                <Label x:Name="PrintLabel" Content="Print Export Location"
+                       VerticalContentAlignment="Center" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
+                <TextBox x:Name="PexLoc"
+                         Style="{DynamicResource TextBoxStyle}"
+                         Text="{Binding PrintExportLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         VerticalContentAlignment="Center" Width="275" />
+                <Button x:Name="BrowsePrint" Content="Browse"
+                        UseLayoutRounding="True"
+                        Click="PrintExportLocationButton_Click" Style="{DynamicResource ButtonStyle}" Width="88" />
+            </StackPanel>
+            <StackPanel x:Name="Row2Columns" Orientation="Horizontal">
+                <Label x:Name="DXFLabel" Content="DXF Export Location"
+                       Width="{Binding ActualWidth, ElementName=PrintLabel, Mode=OneWay}"
+                       VerticalContentAlignment="Center"
+                       Height="{Binding ActualHeight, ElementName=PrintLabel, Mode=OneWay}" />
+                <TextBox x:Name="DxFexLoc"
+                         Text="{Binding DxfExportLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{DynamicResource TextBoxStyle}"
+                         Width="{Binding ActualWidth, ElementName=PexLoc, Mode=OneWay}"
+                         VerticalContentAlignment="Center" />
+                <Button x:Name="BrowseDXF" Content="Browse"
+                        UseLayoutRounding="True"
+                        Click="DXFExportLocationButton_Click" Style="{DynamicResource ButtonStyle}"
+                        Width="{Binding ActualWidth, ElementName=BrowsePrint, Mode=OneWay}" />
+            </StackPanel>
+            <StackPanel x:Name="Row3Columns">
+                <CheckBox x:Name="OboleteCkB"
+                          Content="Enable Obsolete Print"
+                          IsChecked="{Binding EnableObsoletePrint, Mode=TwoWay}"
+                          Style="{DynamicResource CheckBoxStyle}" VerticalContentAlignment="Center" />
+                <CheckBox x:Name="ExChkBx"
+                          Content="Enable Explode iComponents"
+                          IsChecked="{Binding EnableExplodeiComponents}" Style="{DynamicResource CheckBoxStyle}"
+                          VerticalContentAlignment="Center" />
+
+            </StackPanel>
+            <UniformGrid x:Name="Row4Columns" Columns="2">
+                <Button x:Name="Save" Content="Save" Click="BtnSave_Click"
+                        Style="{DynamicResource ButtonStyle}"
+                        Width="{Binding ActualWidth, ElementName=Cancel, Mode=OneWay}"
+                        Height="{Binding ActualHeight, ElementName=Cancel, Mode=OneWay}" />
+                <Button Style="{DynamicResource ButtonStyle}" x:Name="Cancel" Content="Cancel"
+                        UseLayoutRounding="True" Click="BtnCncl_Click" Height="35" />
+            </UniformGrid>
+
+        </StackPanel>
+    </Border>
+</Window>
