@@ -1,5 +1,6 @@
 namespace DoyleAddin.Prints;
 
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Reflection;
@@ -72,7 +73,7 @@ public static class PdfToImage
 		}
 		catch (Exception ex)
 		{
-			Console.WriteLine($"Failed to export page {pageIndex}: {ex.Message}");
+			Debug.WriteLine($"Failed to export page {pageIndex}: {ex.Message}");
 		}
 	}
 
@@ -83,7 +84,7 @@ public static class PdfToImage
 	/// <param name="outputPath">The directory where images will be saved.</param>
 	/// <param name="pageCount">The number of pages to export.</param>
 	/// <param name="dpi">The DPI for image export.</param>
-	/// <param name="drawingPartNumber">Fallback part number if page-specific one isn't found.</param>
+	/// <param name="drawingPartNumber">Fallback part number if a page-specific one isn't found.</param>
 	/// <param name="getPartNumberForPage">Function to get part number for a specific page.</param>
 	public static void ExportMultiPagePartImages(string pdfPath, string outputPath, int pageCount, int dpi,
 		string drawingPartNumber, Func<int, string> getPartNumberForPage)
@@ -96,7 +97,6 @@ public static class PdfToImage
 
 			for (var pageIndex = 0; pageIndex < pageCount; pageIndex++)
 			{
-				// Get the part number for this specific page
 				var pagePartNumber = getPartNumberForPage(pageIndex);
 
 				// Export this page as an image with the page-specific part number
