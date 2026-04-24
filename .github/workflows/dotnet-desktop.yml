@@ -35,23 +35,23 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          # Read labels from the merged PR
+          # Read labels from the merged PR (case-insensitive)
           $labelsJson = '${{ toJson(github.event.pull_request.labels.*.name) }}'
           $labels = @()
           if ($labelsJson -ne 'null' -and $labelsJson -ne '') {
             $labels = $labelsJson | ConvertFrom-Json
           }
+          $labelsLower = $labels | ForEach-Object { $_.ToLower() }
 
-          # Determine bump type (priority: major > minor > patch)
           $bumpType = "patch"
-          if ($labels -contains "major")      { $bumpType = "major" }
-          elseif ($labels -contains "minor")  { $bumpType = "minor" }
-          elseif ($labels -contains "patch")  { $bumpType = "patch" }
+          if ($labelsLower -contains "major")      { $bumpType = "major" }
+          elseif ($labelsLower -contains "minor")  { $bumpType = "minor" }
+          elseif ($labelsLower -contains "patch")  { $bumpType = "patch" }
 
           Write-Host "PR labels: $($labels -join ', ')"
           Write-Host "Bump type selected: $bumpType"
 
-          # Get latest tag (or fallback to current known version 7.0.12.0)
+          # Get latest tag
           $lastTag = (git tag --sort=-version:refname | Select-Object -First 1)
           if (-not $lastTag) {
             $lastTag = "7.0.12.0"
@@ -60,32 +60,42 @@ jobs:
             Write-Host "Latest tag: $lastTag"
           }
 
-          if ($lastTag -match '^v?(\d+)\.(\d+)\.(\d+)') {
+          # Support 4-part versioning (e.g. 7.0.12.0)
+          if ($lastTag -match '^v?(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?') {
             $major = [int]$matches[1]
             $minor = [int]$matches[2]
             $patch = [int]$matches[3]
+            $build = if ($matches[4]) { [int]$matches[4] } else { 0 }
 
             switch ($bumpType) {
-              "major" { $major++; $minor = 0; $patch = 0; break }
-              "minor" { $minor++; $patch = 0; break }
-              "patch" { $patch++; break }
+              "major" { $major++; $minor = 0; $patch = 0; $build = 0; break }
+              "minor" { $minor++; $patch = 0; $build = 0; break }
+              "patch" { $patch++; $build = 0; break }
             }
-            $newVersion = "$major.$minor.$patch"
+            $newVersion = "$major.$minor.$patch.$build"
           } else {
             $newVersion = "7.0.13.0"
           }
 
           Write-Host "New version will be: $newVersion"
           echo "version=$newVersion" >> $env:GITHUB_OUTPUT
+          echo "bump_type=$bumpType" >> $env:GITHUB_OUTPUT
 
-      - name: Publish DoyleAddin (Release) with version override
+      - name: Publish DoyleAddin (Release)
         run: |
           dotnet publish DoyleAddin.sln -c Release `
+            -o ./publish/DoyleAddin `
             /p:FileVersion=${{ steps.version.outputs.version }} `
             /p:AssemblyVersion=${{ steps.version.outputs.version }} `
-            /p:OutputPath=./publish/DoyleAddin `
             /p:AppendTargetFrameworkToOutputPath=false `
             /p:AppendRuntimeIdentifierToOutputPath=false
+
+      - name: Debug - Show published files
+        shell: pwsh
+        run: |
+          Write-Host "=== Contents of ./publish ==="
+          Get-ChildItem -Path ./publish -Recurse | Select-Object FullName, Length | Format-Table -AutoSize
+          Write-Host "=== End of listing ==="
 
       - name: Zip the published add-in into DoyleAddin.zip
         shell: pwsh
@@ -109,7 +119,7 @@ jobs:
             Automated release from merged PR #${{ github.event.pull_request.number }}
             ${{ github.event.pull_request.html_url }}
 
-            **Bump type:** $bumpType (from PR labels)
+            **Bump type:** ${{ steps.version.outputs.bump_type }}
             **Version:** v${{ steps.version.outputs.version }}
           files: |
             DoyleAddin.zip
@@ -117,8 +127,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-# How to control the version bump:
-#   Before merging the PR, add one of these labels:
-#     • major   → bumps major (e.g. 7.0.12 → 8.0.0)
-#     • minor   → bumps minor (e.g. 7.0.12 → 7.1.0)
-#     • patch   → bumps patch (e.g. 7.0.12 → 7.0.13)   ← default if no label
+# How to control the version bump (case-insensitive):
+#   Add one of these labels to the PR before merging:
+#     • major   → bumps major (e.g. 7.0.12.0 → 8.0.0.0)
+#     • minor   → bumps minor (e.g. 7.0.12.0 → 7.1.0.0)
+#     • patch   → bumps patch (e.g. 7.0.12.0 → 7.0.13.0)
