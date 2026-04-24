@@ -17,6 +17,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
@@ -31,11 +32,20 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      - name: Determine next semantic version (major / minor / patch from PR labels)
+      - name: Determine next semantic version + update csproj
         id: version
         shell: pwsh
         run: |
-          # Read labels from the merged PR (case-insensitive)
+          $csprojPath = "Doyle Addin/DoyleAddin.csproj"
+
+          # Read current version from csproj
+          [xml]$xml = Get-Content $csprojPath
+          $currentVersionNode = $xml.Project.PropertyGroup | Where-Object { $_.FileVersion } | Select-Object -First 1
+          $currentVersion = if ($currentVersionNode.FileVersion) { $currentVersionNode.FileVersion } else { "0.0.0.0" }
+
+          Write-Host "Current version in csproj: $currentVersion"
+
+          # Read PR labels (case-insensitive)
           $labelsJson = '${{ toJson(github.event.pull_request.labels.*.name) }}'
           $labels = @()
           if ($labelsJson -ne 'null' -and $labelsJson -ne '') {
@@ -48,20 +58,10 @@ jobs:
           elseif ($labelsLower -contains "minor")  { $bumpType = "minor" }
           elseif ($labelsLower -contains "patch")  { $bumpType = "patch" }
 
-          Write-Host "PR labels: $($labels -join ', ')"
-          Write-Host "Bump type selected: $bumpType"
+          Write-Host "Bump type: $bumpType (from labels: $($labels -join ', '))"
 
-          # Get latest tag
-          $lastTag = (git tag --sort=-version:refname | Select-Object -First 1)
-          if (-not $lastTag) {
-            $lastTag = "7.0.12.0"
-            Write-Host "No tags found - starting from 7.0.12.0"
-          } else {
-            Write-Host "Latest tag: $lastTag"
-          }
-
-          # Support 4-part versioning (e.g. 7.0.12.0)
-          if ($lastTag -match '^v?(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?') {
+          # Parse and bump version (supports 3 or 4 parts)
+          if ($currentVersion -match '^(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?') {
             $major = [int]$matches[1]
             $minor = [int]$matches[2]
             $patch = [int]$matches[3]
@@ -74,10 +74,29 @@ jobs:
             }
             $newVersion = "$major.$minor.$patch.$build"
           } else {
-            $newVersion = "7.0.13.0"
+            Write-Warning "Could not parse current version from csproj. Defaulting to 0.0.0.0"
+            $newVersion = "0.0.0.0"
           }
 
-          Write-Host "New version will be: $newVersion"
+          Write-Host "New version: $newVersion"
+
+          # Update csproj with new version
+          $fileVersionNode = $xml.Project.PropertyGroup | Where-Object { $_.FileVersion } | Select-Object -First 1
+          $assemblyVersionNode = $xml.Project.PropertyGroup | Where-Object { $_.AssemblyVersion } | Select-Object -First 1
+
+          if ($fileVersionNode) { $fileVersionNode.FileVersion = $newVersion }
+          if ($assemblyVersionNode) { $assemblyVersionNode.AssemblyVersion = $newVersion }
+
+          $xml.Save($csprojPath)
+          Write-Host "Updated $csprojPath with version $newVersion"
+
+          # Commit the version change back to master
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add $csprojPath
+          git commit -m "chore: bump version to $newVersion [skip ci]" || echo "No version change to commit"
+          git push origin master || echo "Push skipped (no changes or already up to date)"
+
           echo "version=$newVersion" >> $env:GITHUB_OUTPUT
           echo "bump_type=$bumpType" >> $env:GITHUB_OUTPUT
 
@@ -90,13 +109,6 @@ jobs:
             /p:AppendTargetFrameworkToOutputPath=false `
             /p:AppendRuntimeIdentifierToOutputPath=false
 
-      - name: Debug - Show published files
-        shell: pwsh
-        run: |
-          Write-Host "=== Contents of ./publish ==="
-          Get-ChildItem -Path ./publish -Recurse | Select-Object FullName, Length | Format-Table -AutoSize
-          Write-Host "=== End of listing ==="
-
       - name: Zip the published add-in into DoyleAddin.zip
         shell: pwsh
         run: |
@@ -106,7 +118,7 @@ jobs:
             exit 1
           }
           Compress-Archive -Path "$publishPath/*" -DestinationPath "DoyleAddin.zip" -Force
-          Write-Host "Created DoyleAddin.zip (ready for C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin)"
+          Write-Host "Created DoyleAddin.zip"
 
       - name: Create GitHub Release with attached binaries
         uses: softprops/action-gh-release@v2
@@ -123,12 +135,6 @@ jobs:
             **Version:** v${{ steps.version.outputs.version }}
           files: |
             DoyleAddin.zip
-            Updater.bat
+            Doyle.Addin.Installer.bat
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-# How to control the version bump (case-insensitive):
-#   Add one of these labels to the PR before merging:
-#     • major   → bumps major (e.g. 7.0.12.0 → 8.0.0.0)
-#     • minor   → bumps minor (e.g. 7.0.12.0 → 7.1.0.0)
-#     • patch   → bumps patch (e.g. 7.0.12.0 → 7.0.13.0)
