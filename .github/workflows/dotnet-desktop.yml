@@ -43,13 +43,15 @@ jobs:
           }
 
           # Determine bump type (priority: major > minor > patch)
+          # Case-insensitive matching for convenience (GitHub labels are case-insensitive)
+          $labelsLower = $labels | ForEach-Object { $_.ToLower() }
           $bumpType = "patch"
-          if ($labels -contains "major")      { $bumpType = "major" }
-          elseif ($labels -contains "minor")  { $bumpType = "minor" }
-          elseif ($labels -contains "patch")  { $bumpType = "patch" }
+          if ($labelsLower -contains "major")      { $bumpType = "major" }
+          elseif ($labelsLower -contains "minor")  { $bumpType = "minor" }
+          elseif ($labelsLower -contains "patch")  { $bumpType = "patch" }
 
           Write-Host "PR labels: $($labels -join ', ')"
-          Write-Host "Bump type selected: $bumpType"
+          Write-Host "Bump type selected: $bumpType (case-insensitive match)"
 
           # Get latest tag (or fallback to current known version 7.0.12.0)
           $lastTag = (git tag --sort=-version:refname | Select-Object -First 1)
@@ -118,7 +120,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 # How to control the version bump:
-#   Before merging the PR, add one of these labels:
+#   Before merging the PR, add one of these labels (case-insensitive):
 #     • major   → bumps major (e.g. 7.0.12 → 8.0.0)
 #     • minor   → bumps minor (e.g. 7.0.12 → 7.1.0)
 #     • patch   → bumps patch (e.g. 7.0.12 → 7.0.13)   ← default if no label
