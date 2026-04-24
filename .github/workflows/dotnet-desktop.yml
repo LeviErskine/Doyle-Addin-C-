@@ -1,66 +1,49 @@
-name: DoyleAddin - Build & Release on PR Merge to Master
+name: DoyleAddin - Version Bump + Release
 
 on:
   pull_request:
-    types: [closed]
+    types: [labeled, synchronize, closed]
     branches:
       - master
 
 jobs:
-  build-and-release:
-    if: github.event.pull_request.merged == true
+  version-bump:
+    if: |
+      (github.event.action == 'labeled' && 
+       (github.event.label.name == 'major' || github.event.label.name == 'minor' || github.event.label.name == 'patch')) ||
+      (github.event.action == 'synchronize' && 
+       (contains(join(github.event.pull_request.labels.*.name, ','), 'major') ||
+        contains(join(github.event.pull_request.labels.*.name, ','), 'minor') ||
+        contains(join(github.event.pull_request.labels.*.name, ','), 'patch')))
     runs-on: windows-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
-      - name: Checkout repository (master branch after merge)
+      - name: Checkout the feature branch
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          ref: ${{ github.head_ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Determine next semantic version + update csproj
-        id: version
+      - name: Bump version in csproj (on feature branch)
         shell: pwsh
         run: |
           $csprojPath = "Doyle Addin/DoyleAddin.csproj"
 
-          # Read current version from csproj
           [xml]$xml = Get-Content $csprojPath
           $currentVersionNode = $xml.Project.PropertyGroup | Where-Object { $_.FileVersion } | Select-Object -First 1
           $currentVersion = if ($currentVersionNode.FileVersion) { $currentVersionNode.FileVersion } else { "0.0.0.0" }
 
-          Write-Host "Current version in csproj: $currentVersion"
-
-          # Read PR labels (case-insensitive)
-          $labelsJson = '${{ toJson(github.event.pull_request.labels.*.name) }}'
-          $labels = @()
-          if ($labelsJson -ne 'null' -and $labelsJson -ne '') {
-            $labels = $labelsJson | ConvertFrom-Json
-          }
+          $labels = '${{ toJson(github.event.pull_request.labels.*.name) }}' | ConvertFrom-Json
           $labelsLower = $labels | ForEach-Object { $_.ToLower() }
 
           $bumpType = "patch"
-          if ($labelsLower -contains "major")      { $bumpType = "major" }
-          elseif ($labelsLower -contains "minor")  { $bumpType = "minor" }
-          elseif ($labelsLower -contains "patch")  { $bumpType = "patch" }
+          if ($labelsLower -contains "major") { $bumpType = "major" }
+          elseif ($labelsLower -contains "minor") { $bumpType = "minor" }
 
-          Write-Host "Bump type: $bumpType (from labels: $($labels -join ', '))"
+          Write-Host "Current: $currentVersion | Bump: $bumpType"
 
-          # Parse and bump version (supports 3 or 4 parts)
           if ($currentVersion -match '^(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?') {
             $major = [int]$matches[1]
             $minor = [int]$matches[2]
@@ -68,71 +51,78 @@ jobs:
             $build = if ($matches[4]) { [int]$matches[4] } else { 0 }
 
             switch ($bumpType) {
-              "major" { $major++; $minor = 0; $patch = 0; $build = 0; break }
-              "minor" { $minor++; $patch = 0; $build = 0; break }
-              "patch" { $patch++; $build = 0; break }
+              "major" { $major++; $minor=0; $patch=0; $build=0 }
+              "minor" { $minor++; $patch=0; $build=0 }
+              "patch" { $patch++; $build=0 }
             }
             $newVersion = "$major.$minor.$patch.$build"
           } else {
-            Write-Warning "Could not parse current version from csproj. Defaulting to 0.0.0.0"
             $newVersion = "0.0.0.0"
           }
 
-          Write-Host "New version: $newVersion"
-
-          # Update csproj with new version
-          $fileVersionNode = $xml.Project.PropertyGroup | Where-Object { $_.FileVersion } | Select-Object -First 1
-          $assemblyVersionNode = $xml.Project.PropertyGroup | Where-Object { $_.AssemblyVersion } | Select-Object -First 1
-
-          if ($fileVersionNode) { $fileVersionNode.FileVersion = $newVersion }
-          if ($assemblyVersionNode) { $assemblyVersionNode.AssemblyVersion = $newVersion }
-
+          $fileNode = $xml.Project.PropertyGroup | Where-Object { $_.FileVersion } | Select-Object -First 1
+          $asmNode  = $xml.Project.PropertyGroup | Where-Object { $_.AssemblyVersion } | Select-Object -First 1
+          if ($fileNode) { $fileNode.FileVersion = $newVersion }
+          if ($asmNode)  { $asmNode.AssemblyVersion = $newVersion }
           $xml.Save($csprojPath)
-          Write-Host "Updated $csprojPath with version $newVersion"
 
-          # Commit the version change back to master
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add $csprojPath
-          git commit -m "chore: bump version to $newVersion [skip ci]" || echo "No version change to commit"
-          git push origin master || echo "Push skipped (no changes or already up to date)"
+          git commit -m "chore: bump version to $newVersion (via PR label)" || echo "No changes"
+          git push origin ${{ github.head_ref }}
 
-          echo "version=$newVersion" >> $env:GITHUB_OUTPUT
-          echo "bump_type=$bumpType" >> $env:GITHUB_OUTPUT
+          echo "NEW_VERSION=$newVersion" >> $env:GITHUB_ENV
 
-      - name: Publish DoyleAddin (Release)
-        run: |
-          dotnet publish DoyleAddin.sln -c Release `
-            -o ./publish/DoyleAddin `
-            /p:FileVersion=${{ steps.version.outputs.version }} `
-            /p:AssemblyVersion=${{ steps.version.outputs.version }} `
-            /p:AppendTargetFrameworkToOutputPath=false `
-            /p:AppendRuntimeIdentifierToOutputPath=false
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `✅ Version automatically bumped to **${{ env.NEW_VERSION || 'N/A' }}** based on the PR label.`
+            })
 
-      - name: Zip the published add-in into DoyleAddin.zip
+  release:
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Get current version from csproj
+        id: version
         shell: pwsh
         run: |
-          $publishPath = "./publish/DoyleAddin"
-          if (-not (Test-Path $publishPath)) {
-            Write-Error "Publish output not found at $publishPath"
-            exit 1
-          }
-          Compress-Archive -Path "$publishPath/*" -DestinationPath "DoyleAddin.zip" -Force
-          Write-Host "Created DoyleAddin.zip"
+          [xml]$xml = Get-Content "Doyle Addin/DoyleAddin.csproj"
+          $ver = ($xml.Project.PropertyGroup | Where-Object { $_.FileVersion } | Select-Object -First 1).FileVersion
+          echo "version=$ver" >> $env:GITHUB_OUTPUT
 
-      - name: Create GitHub Release with attached binaries
+      - name: Publish
+        run: |
+          dotnet publish DoyleAddin.sln -c Release -o ./publish/DoyleAddin
+
+      - name: Zip
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "./publish/DoyleAddin/*" -DestinationPath "DoyleAddin.zip" -Force
+
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: Release v${{ steps.version.outputs.version }}
-          draft: false
-          prerelease: false
-          body: |
-            Automated release from merged PR #${{ github.event.pull_request.number }}
-            ${{ github.event.pull_request.html_url }}
-
-            **Bump type:** ${{ steps.version.outputs.bump_type }}
-            **Version:** v${{ steps.version.outputs.version }}
           files: |
             DoyleAddin.zip
             Doyle.Addin.Installer.bat
