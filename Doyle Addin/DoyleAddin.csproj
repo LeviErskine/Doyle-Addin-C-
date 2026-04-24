@@ -138,4 +138,9 @@
     <ItemGroup>
         <EmbeddedResource Include="Resources\ExplodeiPart.svg"/>
     </ItemGroup>
+    <ItemGroup>
+        <Content Include="Doyle Addin Installer.bat">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
 </Project>
