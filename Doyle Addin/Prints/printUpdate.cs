@@ -30,6 +30,34 @@ internal static class PrintUpdate
 		var oFilePath = UserOptions.Load().PrintExportLocation;
 		var pn        = oDDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString();
 
+		// Check if Part Number matches Filename
+		var fileNameWithoutExt = Path.GetFileNameWithoutExtension(oDDoc.FullFileName);
+		if (!string.IsNullOrEmpty(fileNameWithoutExt) &&
+		    !string.Equals(pn, fileNameWithoutExt, StringComparison.OrdinalIgnoreCase))
+		{
+			var result = MessageBox.Show(
+				$"The document's Part Number '{pn}' does not match the filename '{fileNameWithoutExt}'." +
+				Environment.NewLine +
+				"Update to match the filename?" +
+				Environment.NewLine +
+				Environment.NewLine +
+				"If this was intentional select 'No'",
+				"Part Number Mismatch",
+				MessageBoxButtons.YesNoCancel,
+				MessageBoxIcon.Warning);
+
+			switch (result)
+			{
+				case DialogResult.Yes:
+					oDDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value = fileNameWithoutExt;
+					pn = fileNameWithoutExt; // Update pn variable for subsequent use
+					break;
+				case DialogResult.Cancel:
+					return; // Stop the export process
+			}
+			// If result is DialogResult.No, continue with the current pn without updating
+		}
+
 		// Always export PDF
 		if (string.IsNullOrEmpty(oFilePath))
 		{
@@ -61,6 +89,7 @@ internal static class PrintUpdate
 		{
 			// Publish document
 			oPdfAddin.SaveCopyAs(oDocument, oContext, oOptions, oDataMedium);
+			PdfToImage.ExportFirstPageAsImage(pdfPath, Path.Combine(oFilePath, pn + ".jpg"));
 		}
 		catch
 		{
@@ -94,10 +123,10 @@ internal static class PrintUpdate
 			}
 			else
 			{
-				// Multi-page - export each page with its own part number, but keep the PDF
+				// Multipage - export each page with its own part number but keep the PDF
 				PdfToImage.ExportMultiPagePartImages(pdfPath, oFilePath, pageCount, dpi, pn,
 					pageIndex => GetPartNumberForPage(oDDoc, pageIndex));
-				// Keep the PDF file for multi-page documents
+				// Keep the PDF file for multipage documents
 			}
 		}
 		catch (Exception ex)
@@ -122,7 +151,7 @@ internal static class PrintUpdate
 				{
 					// Get the referenced document for this view
 					if (view.ReferencedDocumentDescriptor?.ReferencedDocument is not Document refDocument) continue;
-					// Get the part number from the referenced document
+					// Get the part-number from the referenced document
 					var partNumberProp = refDocument.PropertySets["Design Tracking Properties"]["Part Number"];
 					if (partNumberProp?.Value != null) return partNumberProp.Value.ToString();
 				}
