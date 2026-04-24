@@ -5,13 +5,9 @@ REM --- Configuration ---
 SET GITHUB_USER=LeviErskine
 SET GITHUB_REPO=Doyle-Addin-C-
 SET ADDIN_NAME=DoyleAddin
-REM This should be the base name of your add-in files (e.g., DoyleAddin.dll, DoyleAddin.addin)
 
 REM --- Define target directory ---
 SET TARGET_ADDINS_PATH=C:\ProgramData\Autodesk\Inventor Addins\%ADDIN_NAME%
-REM Note: This now includes a subfolder for your addin to keep things clean and isolated.
-
-REM --- Check for Administrator Privileges ---
 
 ECHO.
 ECHO Installing %ADDIN_NAME% Add-in...
