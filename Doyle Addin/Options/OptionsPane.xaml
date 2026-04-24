@@ -10,14 +10,15 @@
     Loaded="UserOptionsWindow_Loaded"
     ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True"
     WindowStartupLocation="CenterScreen" WindowStyle="None" SnapsToDevicePixels="True"
-    ScrollViewer.VerticalScrollBarVisibility="Disabled" FontSize="16" Width="560" Height="195" UseLayoutRounding="True"
-    Background="#00000000" AllowsTransparency="True" FontFamily="Tahoma">
+    ScrollViewer.VerticalScrollBarVisibility="Disabled" FontSize="16" UseLayoutRounding="True"
+    Background="#00000000" AllowsTransparency="True" FontFamily="Tahoma" MaxHeight="330" MaxWidth="565">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/DoyleAddin;component/Options/Themes/Elements.xaml" />
                 <ResourceDictionary Source="/DoyleAddin;component/Options/Themes/DarkTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BoolToVis" />
         </ResourceDictionary>
     </Window.Resources>
     <Window.BorderBrush>
@@ -32,6 +33,7 @@
 
         <StackPanel x:Name="Rows">
             <!-- Input Sections -->
+            <StackPanel Orientation="Vertical">
 
             <StackPanel x:Name="Row1Columns" Orientation="Horizontal">
                 <Label x:Name="PrintLabel" Content="Print Export Location"
@@ -67,6 +69,10 @@
                 <CheckBox x:Name="ExChkBx"
                           Content="Enable Explode iComponents"
                           IsChecked="{Binding EnableExplodeiComponents}" Style="{DynamicResource CheckBoxStyle}"
+                          VerticalContentAlignment="Center" />
+                <CheckBox x:Name="ClickUpChkB"
+                          Content="Enable ClickUp DXF Integration"
+                          IsChecked="{Binding EnableClickUpIntegration}" Style="{DynamicResource CheckBoxStyle}"
                           VerticalContentAlignment="Center" />
 
             </StackPanel>

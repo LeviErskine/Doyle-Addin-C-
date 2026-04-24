@@ -14,7 +14,6 @@ using MessageBox = System.Windows.Forms.MessageBox;
 public interface IPanelWrapper
 {
 	/// <summary>
-	///     Gets whether the wrapper has been disposed.
 	/// </summary>
 	bool IsDisposed { get; }
 
@@ -64,7 +63,7 @@ public class DockableWindowChildAdapter
 	///     Adds a WPF window to an Inventor dockable window with proper keyboard input handling.
 	/// </summary>
 	/// <param name="window">The WPF window to host.</param>
-	/// <exception cref="ArgumentNullException">Thrown when window is null.</exception>
+	/// <exception cref="ArgumentNullException">Thrown when the window is null.</exception>
 	public void AddWPFWindow(Window window)
 	{
 		ArgumentNullException.ThrowIfNull(window);
@@ -158,7 +157,6 @@ public class PanelWrapper : IDisposable, IPanelWrapper
 	}
 
 	/// <summary>
-	///     Gets whether the wrapper has been disposed.
 	/// </summary>
 	public bool IsDisposed { get; private set; }
 

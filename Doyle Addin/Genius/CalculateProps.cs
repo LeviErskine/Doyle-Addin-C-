@@ -1,8 +1,6 @@
 namespace DoyleAddin.Genius;
 
 using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Inventor;
@@ -26,44 +24,51 @@ public static class CalculateProps
 	/// </summary>
 	/// <param name="document">The Inventor document to calculate properties for.</param>
 	/// <returns>A dictionary containing calculated property names and values.</returns>
-	public static async Task<Dictionary<string, string>> CalculateAllPropertiesAsync(Document document)
+	public static Task<Dictionary<string, string>> CalculateAllPropertiesAsync(Document document)
 	{
-		var properties = new Dictionary<string, string>();
-
 		try
 		{
-			if (document == null) return properties;
+			var properties = new Dictionary<string, string>();
 
-			var unitsOfMeasure = document.UnitsOfMeasure;
-
-			// Calculate GeniusMass from Inventor's mass
-			CalculateGeniusMass(document, properties);
-
-			// Handle sheet metal specific properties
-			if (document is PartDocument { ComponentDefinition: SheetMetalComponentDefinition smDef } partDoc)
+			try
 			{
-				unitsOfMeasure.LengthDisplayPrecision = 4;
+				if (document == null) return Task.FromResult(properties);
 
-				// Calculate Thickness for sheet metal parts
-				var thickness = CalculateThickness(smDef, unitsOfMeasure, properties);
+				var unitsOfMeasure = document.UnitsOfMeasure;
 
-				// Calculate extent properties from flat pattern
-				CalculateExtentProperties(smDef, unitsOfMeasure, properties);
+				// Calculate GeniusMass from Inventor's mass
+				CalculateGeniusMass(document, properties);
 
-				// Calculate raw material properties
-				await CalculateRawMaterialPropertiesAsync(partDoc, thickness, properties);
+				// Handle sheet metal-specific properties
+				if (document is PartDocument { ComponentDefinition: SheetMetalComponentDefinition smDef } partDoc)
+				{
+					unitsOfMeasure.LengthDisplayPrecision = 4;
+
+					// Calculate Thickness for sheet metal parts
+					var thickness = CalculateThickness(smDef, unitsOfMeasure, properties);
+
+					// Calculate extent properties from flat pattern
+					CalculateExtentProperties(smDef, unitsOfMeasure, properties);
+
+					// Calculate raw material properties
+					CalculateRawMaterialProperties(partDoc, thickness, smDef, properties);
+				}
 			}
-		}
-		catch (Exception ex)
-		{
-			Debug.WriteLine($"Error calculating properties: {ex.Message}");
-		}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"Error calculating properties: {ex.Message}");
+			}
 
-		return properties;
+			return Task.FromResult(properties);
+		}
+		catch (Exception exception)
+		{
+			return Task.FromException<Dictionary<string, string>>(exception);
+		}
 	}
 
-	private static async Task CalculateRawMaterialPropertiesAsync(PartDocument partDoc, double thickness,
-		Dictionary<string, string> properties)
+	private static void CalculateRawMaterialProperties(PartDocument partDoc, double thickness,
+		SheetMetalComponentDefinition smDef, Dictionary<string, string> properties)
 	{
 		try
 		{
@@ -76,7 +81,9 @@ public static class CalculateProps
 				return;
 			}
 
-			var rawMaterialData = await FindMatchingRawMaterialAsync(material, thickness);
+			var gaugeName       = GetSheetMetalGaugeName(smDef);
+			var rawMaterialData = FindMatchingRawMaterial(material, gaugeName, thickness);
+
 			if (rawMaterialData is { Count: > 0 })
 			{
 				if (rawMaterialData.TryGetValue("RM", out var rmValue))
@@ -94,7 +101,7 @@ public static class CalculateProps
 			else
 			{
 				Debug.WriteLine(
-					$"CalculateRawMaterialProperties: No matching raw material found for {material}, thickness {thickness}");
+					$"CalculateRawMaterialProperties: No matching raw material found for {material}, gauge {gaugeName}, thickness {thickness}");
 			}
 		}
 		catch (Exception ex)
@@ -103,17 +110,33 @@ public static class CalculateProps
 		}
 	}
 
+	private static string GetSheetMetalGaugeName(SheetMetalComponentDefinition smDef)
+	{
+		try
+		{
+			// Try to get the active sheet metal style name which typically contains gauge info
+			var style = smDef.SheetMetalStyles[smDef.ActiveSheetMetalStyle];
+			return style?.Name ?? string.Empty;
+		}
+		catch
+		{
+			return string.Empty;
+		}
+	}
+
 	private static void CalculateGeniusMass(Document document, Dictionary<string, string> properties)
 	{
 		try
 		{
-			var massKg = document switch
+			var massProperties = document switch
 			{
-				PartDocument partDoc     => partDoc.ComponentDefinition.MassProperties.Mass,
-				AssemblyDocument assyDoc => assyDoc.ComponentDefinition.MassProperties.Mass,
-				_                        => 0
+				PartDocument partDoc     => partDoc.ComponentDefinition.MassProperties,
+				AssemblyDocument assyDoc => assyDoc.ComponentDefinition.MassProperties,
+				_                        => null
 			};
 
+			if (massProperties == null) return;
+			var massKg = massProperties.Mass;
 			if (massKg <= 0) return;
 
 			var unitsOfMeasure = document.UnitsOfMeasure;
@@ -134,7 +157,7 @@ public static class CalculateProps
 			var parameters = smDef.Parameters;
 			if (parameters == null) return 0;
 
-			// Try common thickness parameter names without multiple try-catches
+			// Try common thickness parameter names
 			var paramNames = new[] { "Thickness", "SheetMetalThickness", "MaterialThickness" };
 			foreach (var name in paramNames)
 				try
@@ -194,56 +217,93 @@ public static class CalculateProps
 		}
 	}
 
-	private static async Task<Dictionary<string, string>> FindMatchingRawMaterialAsync(string material,
+	private static Dictionary<string, string> FindMatchingRawMaterial(string material, string gaugeName,
 		double thickness)
 	{
-		const double thicknessTolerance = 0.010;
+		// Hardcoded mappings based on VBA pnShtMetalHardCoded function
+		var    materialKey = material.ToLowerInvariant();
+		string rmValue     = null;
 
-		try
-		{
-			const string query = """
-			                     SELECT TOP 1
-			                         Item, 
-			                         Unit, 
-			                         Item as RM,
-			                         'FT2' as RMUNIT
-			                     FROM vgMfiItems
-			                     WHERE (Item LIKE 'FS%' OR Item LIKE 'FM%')
-			                     AND Specification6 LIKE @Material 
-			                     AND Thickness BETWEEN @ThicknessMin AND @ThicknessMax
-			                     AND (OnHand > 0 OR OnOrder > 0)
-			                     ORDER BY ABS(Thickness - @Thickness), Width * Length 
-			                     """;
-
-			await using var connection = new SqlConnection(Geniusinfo.DefaultConnectionString);
-			await using var command    = new SqlCommand(query, connection);
-
-			var materialParam = material.ToLowerInvariant() switch
+		if (materialKey.Contains("stainless"))
+			rmValue = gaugeName switch
 			{
-				var m when m.Contains("stainless") => "%SS%",
-				var m when m.Contains("mild")      => "%MS%",
-				_                                  => $"%{material}%"
+				_ when gaugeName.Contains("18")   => "FS-48x96x0.048",
+				_ when gaugeName.Contains("14")   => "FS-60x120x0.075",
+				_ when gaugeName.Contains("13")   => "FS-60x97x0.09",
+				_ when gaugeName.Contains("12")   => "FS-60x120x0.105",
+				_ when gaugeName.Contains("10")   => "FS-60x144x0.135",
+				_ when gaugeName.Contains("3/16") => "FS-60x144x0.188",
+				_ when gaugeName.Contains("1/4")  => "FS-60x144x0.25",
+				_ when gaugeName.Contains("5/16") => "FS-60x144x0.313",
+				_ when gaugeName.Contains("3/8")  => "FS-60x144x0.375",
+				_ when gaugeName.Contains("1/2")  => "FS-60x144x0.5",
+				_                                 => MatchStainlessSteelByThickness(thickness)
 			};
+		else if (materialKey.Contains("mild"))
+			rmValue = gaugeName switch
+			{
+				_ when gaugeName.Contains("14")   => "FM-60x144x0.075",
+				_ when gaugeName.Contains("12")   => "FM-60x144x0.105",
+				_ when gaugeName.Contains("10")   => "FM-60x144x0.135",
+				_ when gaugeName.Contains("3/16") => "FM-60x144x0.188",
+				_ when gaugeName.Contains("1/4")  => "FM-60x144x0.25",
+				_ when gaugeName.Contains("5/16") => "FM-60x144x0.313",
+				_ when gaugeName.Contains("3/8")  => "FM-60x144x0.375",
+				_ when gaugeName.Contains("1/2")  => "FM-60x144x0.5",
+				_ when gaugeName.Contains("5/8")  => "FM-60x144x0.625",
+				_ when gaugeName.Contains("3/4")  => "FM-60x120x0.75",
+				_ when gaugeName.Contains("1") && !gaugeName.Contains("1/2") && !gaugeName.Contains("1/4")
+					=> "FM-48x120x1",
+				_ => MatchMildSteelByThickness(thickness)
+			};
+		else if (materialKey.Contains("rubber")) rmValue = "LG";
 
-			command.Parameters.Add("@Material", SqlDbType.NVarChar).Value  = materialParam;
-			command.Parameters.Add("@ThicknessMin", SqlDbType.Float).Value = thickness - thicknessTolerance;
-			command.Parameters.Add("@ThicknessMax", SqlDbType.Float).Value = thickness + thicknessTolerance;
-			command.Parameters.Add("@Thickness", SqlDbType.Float).Value    = thickness;
-
-			await connection.OpenAsync();
-			await using var reader = await command.ExecuteReaderAsync();
-
-			if (!await reader.ReadAsync()) return null;
-
-			var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-			for (var i = 0; i < reader.FieldCount; i++)
-				result[reader.GetName(i)] = reader.GetValue(i).ToString() ?? string.Empty;
-			return result;
-		}
-		catch (Exception ex)
-		{
-			Debug.WriteLine($"Error in FindMatchingRawMaterial: {ex.Message}");
+		if (string.IsNullOrEmpty(rmValue))
 			return null;
-		}
+
+		return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+		{
+			["RM"]     = rmValue,
+			["RMUNIT"] = "FT2"
+		};
+	}
+
+	private static string MatchStainlessSteelByThickness(double thickness)
+	{
+		const double tolerance = 0.005;
+		return thickness switch
+		{
+			_ when Math.Abs(thickness - 0.048) <= tolerance => "FS-48x96x0.048",
+			_ when Math.Abs(thickness - 0.075) <= tolerance => "FS-60x120x0.075",
+			_ when Math.Abs(thickness - 0.090) <= tolerance => "FS-60x97x0.09",
+			_ when Math.Abs(thickness - 0.105) <= tolerance => "FS-60x120x0.105",
+			_ when Math.Abs(thickness - 0.135) <= tolerance => "FS-60x144x0.135",
+			_ when Math.Abs(thickness - 0.188) <= tolerance => "FS-60x144x0.188",
+			_ when Math.Abs(thickness - 0.250) <= tolerance => "FS-60x144x0.25",
+			_ when Math.Abs(thickness - 0.313) <= tolerance => "FS-60x144x0.313",
+			_ when Math.Abs(thickness - 0.375) <= tolerance => "FS-60x144x0.375",
+			_ when Math.Abs(thickness - 0.500) <= tolerance => "FS-60x144x0.5",
+			_                                               => null
+		};
+	}
+
+	private static string MatchMildSteelByThickness(double thickness)
+	{
+		const double tolerance = 0.005;
+		return thickness switch
+		{
+			_ when Math.Abs(thickness - 0.075) <= tolerance => "FM-60x144x0.075",
+			_ when Math.Abs(thickness - 0.105) <= tolerance => "FM-60x144x0.105",
+			_ when Math.Abs(thickness - 0.135) <= tolerance => "FM-60x144x0.135",
+			_ when Math.Abs(thickness - 0.188) <= tolerance => "FM-60x144x0.188",
+			_ when Math.Abs(thickness - 0.250) <= tolerance => "FM-60x144x0.25",
+			_ when Math.Abs(thickness - 0.313) <= tolerance => "FM-60x144x0.313",
+			_ when Math.Abs(thickness - 0.375) <= tolerance => "FM-60x144x0.375",
+			_ when Math.Abs(thickness - 0.500) <= tolerance => "FM-60x144x0.5",
+			_ when Math.Abs(thickness - 0.625) <= tolerance => "FM-60x144x0.625",
+			_ when Math.Abs(thickness - 0.750) <= tolerance => "FM-60x120x0.75",
+			_ when Math.Abs(thickness - 1.000) <= tolerance => "FM-48x120x1",
+			_                                               => null
+		};
 	}
 }

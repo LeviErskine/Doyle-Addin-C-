@@ -23,24 +23,12 @@ using Path = Path;
 [Guid("513b9d7e-103e-4569-8eb5-ab3929cd33ad")]
 public class StandardAddInServer : ApplicationAddInServer
 {
-	private const string TabAnnotateId = "id_TabAnnotate";
-	private const string printupdate = "printUpdate";
-	private const string dxfupdate = "dxfUpdate";
-	private const string drawing = "Drawing";
-	private const string obsoleteprint = "ObsoletePrint";
-	private const string addIns = "Add-Ins";
-	private const string explodeicomponents = "explodeiComponents";
-	private const string geniusPanel = "geniusPanel";
-
 	private static readonly string[] SheetMetalManageUnfold = ["id_PanelP_SheetMetalManageUnfold"];
-	private static readonly string[] ToolsOptions = ["id_PanelP_ToolsOptions", addIns];
-	private static readonly string[] CustomAddinTab = [addIns];
-	private static readonly string[] Item4Array2 = ["id_PanelP_ToolsOptions"];
+	private static readonly string[] ToolsOptions = ["id_PanelP_ToolsOptions", "id_PanelA_ToolsOptions"];
+	private static readonly string[] AddinTab = ["Add-Ins"];
 	private static readonly string[] FlatPatternExit = ["id_PanelP_FlatPatternExit"];
 	private static readonly string[] AnnotateRevision = ["id_PanelD_AnnotateRevision"];
-	private static readonly string[] ManagePanels = ["id_PanelP_Manage", "id_PanelA_Manage", addIns];
-
-	private static readonly string[] stringArray = ["Part", "Assembly"];
+	private static readonly string[] ManagePanels = ["id_PanelP_Manage", "id_PanelA_Manage"];
 
 	private static PanelWrapper _geniusPanelWrapper;
 
@@ -188,32 +176,32 @@ public class StandardAddInServer : ApplicationAddInServer
 						new
 						{
 							Name         = "PrintUpdate", Icon = "DoyleAddin.Resources.PrintUpdateIcon.svg",
-							InternalName = printupdate
+							InternalName = "PrintUpdate"
 						},
 						new
 						{
 							Name         = "DXFUpdate", Icon = "DoyleAddin.Resources.DXFUpdateIcon.svg",
-							InternalName = dxfupdate
+							InternalName = "DXFUpdate"
 						},
 						new
 						{
 							Name         = "Settings", Icon = "DoyleAddin.Resources.SettingsIcon.svg",
-							InternalName = "userOptions"
+							InternalName = "Settings"
 						},
 						new
 						{
-							Name         = obsoleteprint, Icon = "DoyleAddin.Resources.ObsoletePrint.svg",
-							InternalName = obsoleteprint
+							Name         = "ObsoletePrint", Icon = "DoyleAddin.Resources.ObsoletePrint.svg",
+							InternalName = "ObsoletePrint"
 						},
 						new
 						{
 							Name         = "Explode iComponents", Icon = "DoyleAddin.Resources.ExplodeiPart.svg",
-							InternalName = explodeicomponents
+							InternalName = "Explode iComponents"
 						},
 						new
 						{
 							Name         = "Genius Panel", Icon = "DoyleAddin.Resources.GeniusPanel.svg",
-							InternalName = geniusPanel
+							InternalName = "Genius Panel"
 						}
 					};
 
@@ -242,28 +230,28 @@ public class StandardAddInServer : ApplicationAddInServer
 							case "PrintUpdate":
 							{
 								PrintUpdate = controlDefs.AddButtonDefinition("Print" + '\n' + "Update",
-									printupdate, CommandTypesEnum.kShapeEditCmdType, Globals.AddInClientId(),
+									"PrintUpdate", CommandTypesEnum.kShapeEditCmdType, Globals.AddInClientId(),
 									StandardIcon: smallIcon, LargeIcon: largeIcon);
 								break;
 							}
 							case "DXFUpdate":
 							{
-								DxfUpdate = controlDefs.AddButtonDefinition("DXF" + '\n' + "Update", dxfupdate,
+								DxfUpdate = controlDefs.AddButtonDefinition("DXF" + '\n' + "Update", "DXFUpdate",
 									CommandTypesEnum.kShapeEditCmdType, Globals.AddInClientId(),
 									StandardIcon: smallIcon, LargeIcon: largeIcon);
 								break;
 							}
 							case "Settings":
 							{
-								OptionsButton = controlDefs.AddButtonDefinition("Options", "userOptions",
+								OptionsButton = controlDefs.AddButtonDefinition("Options", "Settings",
 									CommandTypesEnum.kNonShapeEditCmdType, Globals.AddInClientId(),
 									StandardIcon: smallIcon, LargeIcon: largeIcon);
 								break;
 							}
-							case obsoleteprint:
+							case "ObsoletePrint":
 							{
 								ObsoleteButton = controlDefs.AddButtonDefinition("Obsolete" + '\n' + "Print",
-									obsoleteprint, CommandTypesEnum.kNonShapeEditCmdType, Globals.AddInClientId(),
+									"ObsoletePrint", CommandTypesEnum.kNonShapeEditCmdType, Globals.AddInClientId(),
 									StandardIcon: smallIcon, LargeIcon: largeIcon);
 								break;
 							}
@@ -271,7 +259,7 @@ public class StandardAddInServer : ApplicationAddInServer
 							{
 								ExplodeiComponentsButton = controlDefs.AddButtonDefinition(
 									"Explode" + '\n' + "iComponents",
-									explodeicomponents, CommandTypesEnum.kShapeEditCmdType, Globals.AddInClientId(),
+									"Explode iComponents", CommandTypesEnum.kShapeEditCmdType, Globals.AddInClientId(),
 									StandardIcon: smallIcon, LargeIcon: largeIcon);
 								break;
 							}
@@ -279,7 +267,7 @@ public class StandardAddInServer : ApplicationAddInServer
 							{
 								GeniusPanelButton = controlDefs.AddButtonDefinition(
 									"Genius" + '\n' + "Panel",
-									geniusPanel, CommandTypesEnum.kNonShapeEditCmdType, Globals.AddInClientId(),
+									"Genius Panel", CommandTypesEnum.kNonShapeEditCmdType, Globals.AddInClientId(),
 									StandardIcon: smallIcon, LargeIcon: largeIcon);
 								break;
 							}
@@ -535,55 +523,63 @@ public class StandardAddInServer : ApplicationAddInServer
 		var ribbonMappings = new Dictionary<string, Ribbon>
 		{
 			{ "Part", uiManager.Ribbons["Part"] }, { "Assembly", uiManager.Ribbons["Assembly"] },
-			{ drawing, uiManager.Ribbons[drawing] }, { "ZeroDoc", uiManager.Ribbons["ZeroDoc"] }
+			{ "Drawing", uiManager.Ribbons["Drawing"] }, { "ZeroDoc", uiManager.Ribbons["ZeroDoc"] }
 		};
 
 		// Define button configurations with document type specificity
 		// DXF button only appears on Part documents
 		var dxfButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
 		{
-			Tuple.Create("id_TabSheetMetal", dxfupdate, DxfUpdate, SheetMetalManageUnfold),
-			Tuple.Create("id_TabFlatPattern", dxfupdate, DxfUpdate, FlatPatternExit),
-			Tuple.Create("id_TabTools", dxfupdate, DxfUpdate, Item4Array2)
+			Tuple.Create("id_TabSheetMetal", "DXFUpdate", DxfUpdate, SheetMetalManageUnfold),
+			Tuple.Create("id_TabFlatPattern", "DXFUpdate", DxfUpdate, FlatPatternExit),
+			Tuple.Create("id_TabTools", "DXFUpdate", DxfUpdate, ToolsOptions)
 		};
 
 		// Option button appears on all document types
 		var optionsButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
 		{
-			Tuple.Create("id_TabPlaceViews", printupdate, PrintUpdate, CustomAddinTab),
-			Tuple.Create(TabAnnotateId, printupdate, PrintUpdate, CustomAddinTab),
-			Tuple.Create("id_TabTools", "userOptions", OptionsButton, ToolsOptions)
+			Tuple.Create("id_TabTools", "Settings", OptionsButton, ToolsOptions)
 		};
 
-		// ExplodeiComponents button - appears on Part documents
+		// Print Update button appears on Drawings document types
+		var printButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
+		{
+			Tuple.Create("id_TabPlaceViews", "PrintUpdate", PrintUpdate, AddinTab),
+			Tuple.Create("id_TabAnnotate", "PrintUpdate", PrintUpdate, AddinTab)
+		};
+
+		// ExplodeiComponents button appears on Part documents
 		var explodeButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
 		{
-			Tuple.Create("id_TabManage", explodeicomponents, ExplodeiComponentsButton, ManagePanels)
+			Tuple.Create("id_TabManage", "Explode iComponents", ExplodeiComponentsButton, ManagePanels)
 		};
 
-		// Genius Panel button - appears on all document types
+		// Genius Panel button appears on all document types
 		var geniusPanelConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
 		{
-			Tuple.Create("id_TabTools", geniusPanel, GeniusPanelButton, ToolsOptions)
+			Tuple.Create("id_TabTools", "Genius Panel", GeniusPanelButton, ToolsOptions)
 		};
 
 		// Obsolete Print button - only add if feature is enabled
 		var obsoletePrintConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>();
 		if (options.EnableObsoletePrint)
-			obsoletePrintConfigs.Add(Tuple.Create(TabAnnotateId, obsoleteprint, ObsoleteButton, AnnotateRevision));
+			obsoletePrintConfigs.Add(Tuple.Create("id_TabAnnotate", "ObsoletePrint", ObsoleteButton, AnnotateRevision));
 
 		// Add buttons to appropriate ribbons based on document context
 		foreach (var (ribbonName, ribbon) in ribbonMappings)
 		{
 			AddButtonsToRibbon(ribbon, ribbonName, "Part", dxfButtonConfigs);
+			AddButtonsToRibbon(ribbon, ribbonName, "Assembly", geniusPanelConfigs);
+			AddButtonsToRibbon(ribbon, ribbonName, "Part", geniusPanelConfigs);
+			AddButtonsToRibbon(ribbon, ribbonName, "Drawing", printButtonConfigs);
 			AddButtonsToRibbon(ribbon, ribbonName, null, optionsButtonConfigs);
-			AddButtonsToRibbon(ribbon, ribbonName, null, geniusPanelConfigs);
 
 			if (options.EnableExplodeiComponents)
-				AddButtonsToRibbon(ribbon, ribbonName, stringArray, explodeButtonConfigs);
+				AddButtonsToRibbon(ribbon, ribbonName, "Part", explodeButtonConfigs);
+			AddButtonsToRibbon(ribbon, ribbonName, "Assembly", explodeButtonConfigs);
 
 			if (options.EnableObsoletePrint)
-				AddButtonsToRibbon(ribbon, ribbonName, drawing, obsoletePrintConfigs);
+				AddButtonsToRibbon(ribbon, ribbonName, "Drawing", obsoletePrintConfigs);
 		}
 	}
 
@@ -654,8 +650,8 @@ public class StandardAddInServer : ApplicationAddInServer
 	{
 		try
 		{
-			return fallbackPanel == addIns
-				? tab.RibbonPanels.Add(addIns, panelName, Globals.AddInClientId())
+			return fallbackPanel == "Add-Ins"
+				? tab.RibbonPanels.Add("Add-Ins", panelName, Globals.AddInClientId())
 				: tab.RibbonPanels[fallbackPanel];
 		}
 		catch
@@ -754,8 +750,8 @@ public class StandardAddInServer : ApplicationAddInServer
 		{
 			var buttonRemovalConfigs = new[]
 			{
-				new { RibbonName = drawing, TabName = TabAnnotateId, ButtonInternalName = obsoleteprint },
-				new { RibbonName = drawing, TabName = TabAnnotateId, ButtonInternalName = explodeicomponents }
+				new { RibbonName = "Drawing", TabName = "id_TabAnnotate", ButtonInternalName = "ObsoletePrint" },
+				new { RibbonName = "Drawing", TabName = "id_TabAnnotate", ButtonInternalName = "Explode iComponents" }
 			};
 
 			foreach (var config in buttonRemovalConfigs)

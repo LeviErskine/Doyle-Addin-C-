@@ -3,6 +3,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using Ookii.Dialogs.Wpf;
+using Services;
 using Themes;
 
 /// <summary>
@@ -63,5 +64,24 @@ public partial class UserOptionsWindow
 	{
 		DialogResult = false;
 		Close();
+	}
+
+	private async void TestClickUpButton_Click(object sender, RoutedEventArgs e)
+	{
+		if (string.IsNullOrWhiteSpace(options.ClickUpApiToken))
+		{
+			MessageBox.Show("Please enter a ClickUp API token.", "Configuration Error",
+				MessageBoxButton.OK, MessageBoxImage.Warning);
+			return;
+		}
+
+		var isValid = await ClickUpService.ValidateConfigurationAsync(options.ClickUpApiToken);
+
+		if (isValid)
+			MessageBox.Show("ClickUp configuration is valid!", "Test Successful",
+				MessageBoxButton.OK, MessageBoxImage.Information);
+		else
+			MessageBox.Show("Failed to validate ClickUp configuration.\nPlease check your API token.",
+				"Test Failed", MessageBoxButton.OK, MessageBoxImage.Error);
 	}
 }

@@ -18,43 +18,25 @@ public interface IPropertyExtractor;
 /// </summary>
 public abstract class PropertyExtractor : IPropertyExtractor
 {
-	/// <summary>
-	///     Gets all custom iProperties and standard properties from the active document.
-	/// </summary>
-	/// <returns>A dictionary containing property names and values.</returns>
 	public static Dictionary<string, string> GetAllProperties()
 	{
-		var properties = new Dictionary<string, string>();
-
-		try
-		{
-			var activeDocument = ThisApplication.ActiveDocument;
-			if (activeDocument == null) return properties;
-
-			GetStandardProperties(activeDocument, properties);
-		}
-		catch (Exception ex)
-		{
-			Debug.WriteLine($"Error in GetAllProperties: {ex.Message}");
-		}
-
-		return properties;
+		return ThisApplication.ActiveDocument is { } doc ? GetPropertiesFromDocumentStatic(doc) : [];
 	}
 
-	/// <summary>
-	///     Gets all custom iProperties and standard properties from a specific document.
-	/// </summary>
-	/// <param name="document">The Inventor document to extract properties from.</param>
-	/// <returns>A dictionary containing property names and values.</returns>
 	public static Dictionary<string, string> GetPropertiesFromDocumentStatic(Document document)
 	{
 		var properties = new Dictionary<string, string>();
+		if (document == null) return properties;
 
 		try
 		{
-			if (document == null) return properties;
+			var propertySets = document.PropertySets;
 
-			GetStandardProperties(document, properties);
+			if (TryGetPropertySet(propertySets, GeniusConstants.DesignTrackingProperties, out var designTrackingProps))
+				AddPropertiesFromSet(designTrackingProps, GeniusConstants.StandardProps, properties);
+
+			if (TryGetPropertySet(propertySets, GeniusConstants.UserDefinedProperties, out var customPropertySet))
+				AddPropertiesFromSet(customPropertySet, GeniusConstants.CustomProps, properties);
 		}
 		catch (Exception ex)
 		{
@@ -64,42 +46,6 @@ public abstract class PropertyExtractor : IPropertyExtractor
 		return properties;
 	}
 
-	/// <summary>
-	///     Gets standard properties like Part Number and Description.
-	/// </summary>
-	/// <param name="document">The Inventor document.</param>
-	/// <param name="properties">Dictionary to populate with properties.</param>
-	private static void GetStandardProperties(Document document, Dictionary<string, string> properties)
-	{
-		try
-		{
-			var propertySets = document.PropertySets;
-
-			// Design Tracking Properties
-			if (TryGetPropertySet(propertySets, "Design Tracking Properties", out var designTrackingProps))
-			{
-				string[] trackingProps = ["Part Number", "Description", "Cost Center"];
-				AddPropertiesFromSet(designTrackingProps, trackingProps, properties);
-			}
-
-			// Custom Properties
-			if (!TryGetPropertySet(propertySets, "Inventor User Defined Properties", out var customPropertySet)) return;
-			string[] customProps =
-			[
-				"GeniusMass", "Thickness", "Extent_Width", "Extent_Length", "Extent_Area", "RM", "RMUNIT", "RMQTY"
-			];
-			AddPropertiesFromSet(customPropertySet, customProps, properties);
-		}
-		catch (Exception ex)
-		{
-			Debug.WriteLine($"Error in GetStandardProperties: {ex.Message}");
-		}
-	}
-
-	/// <summary>
-	///     Adds specified properties from a property set to the dictionary by iterating once.
-	///     This avoids multiple COMExceptions that occur when using the indexer for missing properties.
-	/// </summary>
 	private static void AddPropertiesFromSet(PropertySet propertySet, string[] propertyNames,
 		Dictionary<string, string> properties)
 	{
@@ -125,11 +71,6 @@ public abstract class PropertyExtractor : IPropertyExtractor
 		}
 	}
 
-	/// <summary>
-	///     Finds and returns a document based on the given part number.
-	/// </summary>
-	/// <param name="partNumber">The part number corresponding to the document to be retrieved.</param>
-	/// <returns>The document associated with the given part number, or null if no matching document is found.</returns>
 	public static Document FindDocumentByPartNumber(string partNumber)
 	{
 		return ThisApplication?.Documents.Cast<Document>().FirstOrDefault(doc =>
@@ -138,19 +79,6 @@ public abstract class PropertyExtractor : IPropertyExtractor
 				StringComparison.OrdinalIgnoreCase));
 	}
 
-	/// <summary>
-	///     Loads property data for a specified part from both a SQL data source and an Inventor document.
-	/// </summary>
-	/// <param name="partNumber">The part number of the item for which properties are to be loaded.</param>
-	/// <param name="sqlDataManager">The SQL data manager instance used to retrieve data from the SQL database.</param>
-	/// <param name="document">
-	///     The Inventor document from which to extract properties. If null, a default method is used to retrieve properties.
-	/// </param>
-	/// <returns>
-	///     A tuple containing two lists of property rows:
-	///     1. A list of property rows derived from the SQL database (geniusRows).
-	///     2. A list of property rows derived from the Inventor document (invRows).
-	/// </returns>
 	public static async Task<(List<PropertyRow> geniusRows, List<PropertyRow> invRows)> LoadPropertiesForPart(
 		string partNumber, ISqlDataManager sqlDataManager, Document document = null)
 	{
@@ -178,8 +106,10 @@ public abstract class PropertyExtractor : IPropertyExtractor
 				var invVal = invProps.GetValueOrDefault(invName, "");
 				return new PropertyRow
 				{
-					Property      = invName, ["SQL Value"] = kvp.Value,
-					HasDifference = !GeniusFormsHelper.ValuesAreEqual(kvp.Value, invVal)
+					Property           = invName,
+					["SQL Value"]      = kvp.Value,
+					["Inventor Value"] = invVal,
+					HasDifference      = !GeniusFormsHelper.ValuesAreEqual(kvp.Value, invVal)
 				};
 			}).Where(row => row != null).ToList();
 
@@ -193,8 +123,10 @@ public abstract class PropertyExtractor : IPropertyExtractor
 				var sqlVal = sqlData.GetValueOrDefault(Geniusinfo.GetSqlColumnName(kvp.Key), "");
 				return new PropertyRow
 				{
-					Property      = kvp.Key, ["Inventor Value"] = kvp.Value,
-					HasDifference = !GeniusFormsHelper.ValuesAreEqual(sqlVal, kvp.Value)
+					Property           = kvp.Key,
+					["Inventor Value"] = kvp.Value,
+					["SQL Value"]      = sqlVal,
+					HasDifference      = !GeniusFormsHelper.ValuesAreEqual(sqlVal, kvp.Value)
 				};
 			}).Where(row => row != null).ToList();
 
