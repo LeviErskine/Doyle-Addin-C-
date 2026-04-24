@@ -1,9 +1,11 @@
 ﻿namespace DoyleAddin.DXFs;
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Inventor;
 using Options;
+using Services;
 using Environment = Environment;
 using Path = Path;
 
@@ -38,7 +40,7 @@ internal static class DxfUpdate
 	}
 
 	private static void ExportDxf(SheetMetalComponentDefinition def, string fileName, string partNumber,
-		List<string> failedExports)
+		List<string> failedExports, UserOptions userOptions)
 	{
 		const string oFormat =
 				"FLAT PATTERN DXF?AcadVersion=2018"
@@ -75,6 +77,10 @@ internal static class DxfUpdate
 		try
 		{
 			def.DataIO.WriteDataToFile(oFormat, fileName);
+
+			// Create ClickUp task after successful DXF export if enabled
+			if (userOptions.EnableClickUpIntegration)
+				_ = Task.Run(async () => await ClickUpService.CreateDxfExportTaskAsync(partNumber));
 		}
 		catch (Exception ex)
 		{
@@ -90,13 +96,14 @@ internal static class DxfUpdate
 			oFactory.CreateMember(iPartTableRow);
 	}
 
-	private static void ProcessIPartMember(string filepath, Documents oDoc, List<string> failedExports)
+	private static void ProcessIPartMember(string filepath, Documents oDoc, List<string> failedExports,
+		UserOptions userOptions)
 	{
 		if (oDoc.Open(filepath) is not PartDocument openedDoc) return;
 
 		var memberDef  = openedDoc.ComponentDefinition as SheetMetalComponentDefinition;
 		var partNumber = openedDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString();
-		var oiFileName = Path.Combine(UserOptions.Load().DxfExportLocation, partNumber + ".dxf");
+		var oiFileName = Path.Combine(userOptions.DxfExportLocation, partNumber + ".dxf");
 
 		if (!ValidateFlatPattern(memberDef, partNumber, failedExports))
 		{
@@ -104,12 +111,12 @@ internal static class DxfUpdate
 			return;
 		}
 
-		ExportDxf(memberDef, oiFileName, partNumber, failedExports);
+		ExportDxf(memberDef, oiFileName, partNumber, failedExports, userOptions);
 		openedDoc.Close(true);
 	}
 
 	private static void ProcessIPartFactory(PartDocument oPartDoc,
-		SheetMetalComponentDefinition oDef, string pn, List<string> failedExports)
+		SheetMetalComponentDefinition oDef, string pn, List<string> failedExports, UserOptions userOptions)
 	{
 		var oFactory = oDef.iPartFactory;
 		var oDoc     = ThisApplication.Documents;
@@ -135,7 +142,7 @@ internal static class DxfUpdate
 		}
 
 		foreach (var filepath in Directory.GetFiles(oFactory.MemberCacheDir))
-			ProcessIPartMember(filepath, oDoc, failedExports);
+			ProcessIPartMember(filepath, oDoc, failedExports, userOptions);
 
 		if (failedExports.Count > 0)
 			MessageBox.Show(failedExports.Count + " Members have errors and were skipped." +
@@ -145,7 +152,7 @@ internal static class DxfUpdate
 	}
 
 	private static void ProcessNonIPart(PartDocument oPartDoc, SheetMetalComponentDefinition oDef, string oFileName,
-		List<string> failedExports)
+		List<string> failedExports, UserOptions userOptions)
 	{
 		if (oPartDoc._ComatoseNodesCount > 0 || oPartDoc._SickNodesCount > 0)
 		{
@@ -164,8 +171,6 @@ internal static class DxfUpdate
 			{
 				// Activate the model state
 				modelState.Activate();
-
-				// Get the part number for this specific model state
 				var currentStatePartNumber =
 					oPartDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString();
 				var fileName = Path.Combine(Path.GetDirectoryName(oFileName) ?? "", $"{currentStatePartNumber}.dxf");
@@ -177,7 +182,7 @@ internal static class DxfUpdate
 					continue;
 				}
 
-				ExportDxf(oDef, fileName, currentStatePartNumber, failedExports);
+				ExportDxf(oDef, fileName, currentStatePartNumber, failedExports, userOptions);
 				exportCount++;
 			}
 			catch (Exception ex)
@@ -227,8 +232,8 @@ internal static class DxfUpdate
 
 		// Check if a part is a factory and delegate to the appropriate processor
 		if (oDef.IsiPartFactory)
-			ProcessIPartFactory(oPartDoc, oDef, pn, failedExports);
+			ProcessIPartFactory(oPartDoc, oDef, pn, failedExports, userOptions);
 		else
-			ProcessNonIPart(oPartDoc, oDef, oFileName, failedExports);
+			ProcessNonIPart(oPartDoc, oDef, oFileName, failedExports, userOptions);
 	}
 }

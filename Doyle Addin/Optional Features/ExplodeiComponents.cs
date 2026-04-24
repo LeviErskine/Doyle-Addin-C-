@@ -166,7 +166,6 @@ public static class ExplodeiComponents
 					dynamic workingDoc = (PartDocument)ThisApplication.Documents.Open(workingCopyPath, false);
 					workingDoc.Update();
 
-					// Set the part number iProperty to ensure it's retained
 					try
 					{
 						var designTrackingProps = workingDoc.PropertySets["Design Tracking Properties"];

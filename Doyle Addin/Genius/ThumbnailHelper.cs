@@ -17,48 +17,26 @@ public static class ThumbnailHelper
 {
 	/// <summary>
 	///     Retrieves the raw thumbnail object (IPictureDisp) from an Inventor document.
-	///     Must be called on STA thread (UI thread) due to COM property access.
 	/// </summary>
-	/// <param name="document">The Inventor document to retrieve the thumbnail from.</param>
-	/// <returns>The IPictureDisp object, or null if unavailable.</returns>
 	public static object GetThumbnailRaw(Document document)
 	{
+		if (document == null) return null;
+
 		try
 		{
-			if (document == null) return null;
+			// Try getting thumbnail via PropertySets (Summary Information)
+			var summaryProps = document.PropertySets.Cast<PropertySet>()
+			                           .FirstOrDefault(ps =>
+				                           ps.InternalName == "{F29F5501-2E01-11D0-A6E1-00A0C922E752}" ||
+				                           ps.Name == GeniusConstants.SummaryInformation);
 
-			// Validate document type
-			if (document.DocumentType is not kPartDocumentObject and
-			    not kAssemblyDocumentObject)
-				return null;
+			if (summaryProps == null) return document.GetType().GetProperty("Thumbnail")?.GetValue(document);
+			foreach (var prop in summaryProps.Cast<Property>()
+			                                 .Where(prop => prop.Name == "Thumbnail" && prop.Value != null))
+				return prop.Value;
 
-			// Try getting thumbnail via PropertySets (Inventor Summary Information)
-			// Iterating avoids COMException when the property or set doesn't exist
-			try
-			{
-				foreach (var ps in document.PropertySets.Cast<PropertySet>().Where(ps =>
-					         string.Equals(ps.Name, "Inventor Summary Information",
-						         StringComparison.OrdinalIgnoreCase)))
-				{
-					foreach (var prop in from Property prop in ps
-					         where string.Equals(prop.Name, "Thumbnail", StringComparison.OrdinalIgnoreCase)
-					         where prop.Value != null
-					         select prop) return prop.Value;
-
-					break;
-				}
-			}
-			catch (Exception ex)
-			{
-				Debug.WriteLine($"ThumbnailHelper: PropertySets approach failed: {ex.Message}");
-			}
-
-			// Fallback: try direct property access via reflection
-			var thumbnailPropInfo =
-				document.GetType().GetProperty("Thumbnail", BindingFlags.Public | BindingFlags.Instance);
-			if (thumbnailPropInfo == null) return null;
-			var value = thumbnailPropInfo.GetValue(document);
-			return value;
+			// Fallback: direct property access
+			return document.GetType().GetProperty("Thumbnail")?.GetValue(document);
 		}
 		catch (Exception ex)
 		{
@@ -69,60 +47,49 @@ public static class ThumbnailHelper
 
 	/// <summary>
 	///     Converts an IPictureDisp object to System.Drawing.Image.
-	///     Must be called on STA thread (UI thread) due to COM interop requirements.
 	/// </summary>
-	/// <param name="pictureDisp">The IPictureDisp COM object.</param>
-	/// <returns>A System.Drawing.Image, or null if conversion fails.</returns>
 	public static Image ConvertIPictureToImage(object pictureDisp)
 	{
 		if (pictureDisp == null) return null;
 
 		try
 		{
-			var axHostType = typeof(AxHost);
-
-			// Try common method names for IPicture conversion in AxHost
+			var      axHostType  = typeof(AxHost);
 			string[] methodNames = ["GetImageFromIPicture", "GetImageFromIPictureDisp", "GetPicture"];
+
 			foreach (var methodName in methodNames)
 			{
 				var method = axHostType.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Static);
 				if (method == null) continue;
 				try
 				{
-					var result = method.Invoke(null, [pictureDisp]);
-					if (result is Image img) return img;
+					if (method.Invoke(null, [pictureDisp]) is Image img) return img;
 				}
 				catch
 				{
-					// Continue to next method
+					/* continue */
 				}
 			}
 
-			// Search all methods if specific ones failed
-			var methods = axHostType.GetMethods(BindingFlags.NonPublic | BindingFlags.Static);
-			foreach (var method in methods)
-			{
-				if (!method.Name.Contains("Image") && !method.Name.Contains("Picture")) continue;
-				try
-				{
-					var parameters = method.GetParameters();
-					if (parameters.Length == 1)
-					{
-						var result = method.Invoke(null, [pictureDisp]);
-						if (result is Image img) return img;
-					}
-				}
-				catch
-				{
-					// Continue trying other methods
-				}
-			}
-
-			return null;
+			// Brute force search
+			return axHostType.GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
+			                 .Where(m => m.Name.Contains("Image") || m.Name.Contains("Picture"))
+			                 .Select(m =>
+			                 {
+				                 try
+				                 {
+					                 return m.Invoke(null, [pictureDisp]) as Image;
+				                 }
+				                 catch
+				                 {
+					                 return null;
+				                 }
+			                 })
+			                 .FirstOrDefault(img => img != null);
 		}
 		catch (Exception ex)
 		{
-			Debug.WriteLine($"ThumbnailHelper: Error converting IPicture - {ex.GetType().Name}: {ex.Message}");
+			Debug.WriteLine($"ThumbnailHelper: Error converting IPicture: {ex.Message}");
 			return null;
 		}
 	}
@@ -130,8 +97,6 @@ public static class ThumbnailHelper
 	/// <summary>
 	///     Converts a System.Drawing.Image to WPF BitmapImage.
 	/// </summary>
-	/// <param name="image">The System.Drawing.Image to convert.</param>
-	/// <returns>A WPF BitmapImage.</returns>
 	public static BitmapImage ConvertToBitmapImage(Image image)
 	{
 		if (image == null) return null;
@@ -139,7 +104,6 @@ public static class ThumbnailHelper
 		try
 		{
 			using var memoryStream = new MemoryStream();
-			// Use a clone to avoid issues with the source image's state
 			using (var clone = new Bitmap(image))
 			{
 				clone.Save(memoryStream, ImageFormat.Png);

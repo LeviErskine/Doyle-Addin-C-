@@ -70,6 +70,7 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="DXFs\dxfUpdate.cs"/>
+        <Compile Include="Services\ClickUpService.cs"/>
         <Compile Include="Genius\CalculateProps.cs"/>
         <Compile Include="Genius\Forms\GeniusAssembly.xaml.cs"/>
         <Compile Include="Genius\Forms\GeniusFormsHelper.cs"/>
@@ -135,7 +136,7 @@
         <PackageReference Include="Autodesk.Inventor.Sdk" Version="1.0.3"/>
         <PackageReference Include="ClosedXML" Version="0.105.0"/>
         <PackageReference Include="Docnet.Core" Version="2.7.0-alpha.1"/>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="5.3.0">
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="5.0.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -167,19 +168,14 @@
         <EmbeddedResource Include="Resources\ExplodeiPart.svg"/>
     </ItemGroup>
     <ItemGroup>
-        <Reference Include="AdUIModel">
-            <HintPath>..\..\..\..\..\Program Files\Autodesk\Inventor 2025\Bin\AdUIModel.dll</HintPath>
-        </Reference>
-        <Reference Include="Autodesk.DataManagement.Client.Framework.Forms">
-            <HintPath>..\..\..\..\..\ProgramData\Autodesk\ApplicationPlugins\VaultInventor2025.bundle\Contents\Autodesk.DataManagement.Client.Framework.Forms.dll</HintPath>
-        </Reference>
-        <Reference Include="InvUIModelPropertyPanel">
-            <HintPath>..\..\..\..\..\Program Files\Autodesk\Inventor 2025\Bin\InvUIModelPropertyPanel.dll</HintPath>
-        </Reference>
-    </ItemGroup>
-    <ItemGroup>
         <None Update="Options\Themes\scrollbarstyle.xaml">
             <Generator>MSBuild:Compile</Generator>
         </None>
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="Doyle Addin Installer.bat"/>
+        <Content Include="Libs\AdUIModel.dll"/>
+        <Content Include="Libs\Autodesk.DataManagement.Client.Framework.Forms.dll"/>
+        <Content Include="Libs\InvUIModelPropertyPanel.dll"/>
     </ItemGroup>
 </Project>

@@ -6,22 +6,11 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-/// <summary>
-///     Interface for managing SQL Server connections and data retrieval.
-/// </summary>
 public interface ISqlDataManager
 {
-	/// <summary>
-	///     Gets matching data from SQL Server based on part number.
-	/// </summary>
-	/// <param name="partNumber">The part number to search for.</param>
-	/// <returns>Dictionary of property names and SQL values.</returns>
 	Task<Dictionary<string, string>> GetSqlDataAsync(string partNumber);
 }
 
-/// <summary>
-///     Manages SQL Server connections and data retrieval for property comparison.
-/// </summary>
 public class SqlDataManager(string connectionString) : ISqlDataManager
 {
 	private const string Query = """
@@ -43,14 +32,9 @@ public class SqlDataManager(string connectionString) : ISqlDataManager
 	                             """;
 
 	private readonly string _connectionString = string.IsNullOrWhiteSpace(connectionString)
-		? Geniusinfo.DefaultConnectionString
+		? GeniusConstants.DefaultConnectionString
 		: connectionString;
 
-	/// <summary>
-	///     Gets matching data from SQL Server based on part number.
-	/// </summary>
-	/// <param name="partNumber">The part number to search for.</param>
-	/// <returns>Dictionary of property names and SQL values.</returns>
 	public async Task<Dictionary<string, string>> GetSqlDataAsync(string partNumber)
 	{
 		var sqlData = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -73,11 +57,7 @@ public class SqlDataManager(string connectionString) : ISqlDataManager
 			if (await reader.ReadAsync())
 			{
 				for (var i = 0; i < reader.FieldCount; i++)
-				{
-					var columnName = reader.GetName(i);
-					var value      = reader.GetValue(i).ToString() ?? string.Empty;
-					sqlData[columnName] = value;
-				}
+					sqlData[reader.GetName(i)] = reader.GetValue(i).ToString() ?? string.Empty;
 
 				Debug.WriteLine($"SqlDataManager: Retrieved {sqlData.Count} properties for part {partNumber}");
 			}
