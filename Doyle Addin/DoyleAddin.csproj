@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
         <TargetFramework>net8.0-windows8.0</TargetFramework>
