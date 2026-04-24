@@ -1,0 +1,124 @@
+name: DoyleAddin - Build & Release on PR Merge to Master
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - master
+
+jobs:
+  build-and-release:
+    if: github.event.pull_request.merged == true
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository (master branch after merge)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Determine next semantic version (major / minor / patch from PR labels)
+        id: version
+        shell: pwsh
+        run: |
+          # Read labels from the merged PR
+          $labelsJson = '${{ toJson(github.event.pull_request.labels.*.name) }}'
+          $labels = @()
+          if ($labelsJson -ne 'null' -and $labelsJson -ne '') {
+            $labels = $labelsJson | ConvertFrom-Json
+          }
+
+          # Determine bump type (priority: major > minor > patch)
+          $bumpType = "patch"
+          if ($labels -contains "major")      { $bumpType = "major" }
+          elseif ($labels -contains "minor")  { $bumpType = "minor" }
+          elseif ($labels -contains "patch")  { $bumpType = "patch" }
+
+          Write-Host "PR labels: $($labels -join ', ')"
+          Write-Host "Bump type selected: $bumpType"
+
+          # Get latest tag (or fallback to current known version 7.0.12.0)
+          $lastTag = (git tag --sort=-version:refname | Select-Object -First 1)
+          if (-not $lastTag) {
+            $lastTag = "7.0.12.0"
+            Write-Host "No tags found - starting from 7.0.12.0"
+          } else {
+            Write-Host "Latest tag: $lastTag"
+          }
+
+          if ($lastTag -match '^v?(\d+)\.(\d+)\.(\d+)') {
+            $major = [int]$matches[1]
+            $minor = [int]$matches[2]
+            $patch = [int]$matches[3]
+
+            switch ($bumpType) {
+              "major" { $major++; $minor = 0; $patch = 0; break }
+              "minor" { $minor++; $patch = 0; break }
+              "patch" { $patch++; break }
+            }
+            $newVersion = "$major.$minor.$patch"
+          } else {
+            $newVersion = "7.0.13.0"
+          }
+
+          Write-Host "New version will be: $newVersion"
+          echo "version=$newVersion" >> $env:GITHUB_OUTPUT
+
+      - name: Publish DoyleAddin (Release) with version override
+        run: |
+          dotnet publish DoyleAddin.sln -c Release `
+            /p:FileVersion=${{ steps.version.outputs.version }} `
+            /p:AssemblyVersion=${{ steps.version.outputs.version }} `
+            /p:OutputPath=./publish/DoyleAddin `
+            /p:AppendTargetFrameworkToOutputPath=false `
+            /p:AppendRuntimeIdentifierToOutputPath=false
+
+      - name: Zip the published add-in into DoyleAddin.zip
+        shell: pwsh
+        run: |
+          $publishPath = "./publish/DoyleAddin"
+          if (-not (Test-Path $publishPath)) {
+            Write-Error "Publish output not found at $publishPath"
+            exit 1
+          }
+          Compress-Archive -Path "$publishPath/*" -DestinationPath "DoyleAddin.zip" -Force
+          Write-Host "Created DoyleAddin.zip (ready for C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin)"
+
+      - name: Create GitHub Release with attached binaries
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
+          draft: false
+          prerelease: false
+          body: |
+            Automated release from merged PR #${{ github.event.pull_request.number }}
+            ${{ github.event.pull_request.html_url }}
+
+            **Bump type:** $bumpType (from PR labels)
+            **Version:** v${{ steps.version.outputs.version }}
+          files: |
+            DoyleAddin.zip
+            Updater.bat
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+# How to control the version bump:
+#   Before merging the PR, add one of these labels:
+#     • major   → bumps major (e.g. 7.0.12 → 8.0.0)
+#     • minor   → bumps minor (e.g. 7.0.12 → 7.1.0)
+#     • patch   → bumps patch (e.g. 7.0.12 → 7.0.13)   ← default if no label
