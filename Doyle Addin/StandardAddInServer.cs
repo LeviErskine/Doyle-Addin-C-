@@ -27,6 +27,7 @@ public class StandardAddInServer : ApplicationAddInServer
 	private static readonly string[] ToolsOptions = ["id_PanelP_ToolsOptions", "id_PanelA_ToolsOptions"];
 	private static readonly string[] AddinTab = ["Add-Ins"];
 	private static readonly string[] FlatPatternExit = ["id_PanelP_FlatPatternExit"];
+
 	private static readonly string[] AnnotateRevision = ["id_PanelD_AnnotateRevision"];
 	private static readonly string[] ManagePanels = ["id_PanelP_Manage", "id_PanelA_Manage"];
 
