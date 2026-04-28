@@ -7,12 +7,11 @@
     x:Class="DoyleAddin.Options.UserOptionsWindow"
     mc:Ignorable="d"
     Title="Options"
-    Height="208" Width="480"
+    Height="210" Width="480"
     FontFamily="Tahoma"
     WindowStartupLocation="CenterScreen"
     Loaded="UserOptionsWindow_Loaded" WindowStyle="None" AllowsTransparency="True" SnapsToDevicePixels="True"
-    ResizeMode="NoResize" ShowInTaskbar="False" SizeToContent="WidthAndHeight" Topmost="True" Background="Transparent"
-    d:DataContext="{d:DesignInstance }">
+    ResizeMode="NoResize" ShowInTaskbar="False" SizeToContent="WidthAndHeight" Topmost="True" Background="Transparent">
 
     <Window.Resources>
         <!-- Theme ResourceDictionaries are external (Options/Themes/*.xaml) and are merged at runtime by code. -->
@@ -28,7 +27,7 @@
             <Setter Property="Padding" Value="6,3" />
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="Button">
+                    <ControlTemplate TargetType="{x:Type Button}">
                         <Border x:Name="border" Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5"
@@ -97,13 +96,13 @@
         BorderThickness="4"
         Padding="16" UseLayoutRounding="True" ClipToBounds="True"
         ScrollViewer.VerticalScrollBarVisibility="Disabled"
-        Width="480" Height="208" IsEnabled="True">
+        Width="480" Height="210" IsEnabled="True">
 
         <Grid Margin="0,0,0,-10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="32" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="48" />
             </Grid.RowDefinitions>
 
@@ -145,7 +144,7 @@
                         Click="DXFExportLocationButton_Click" />
             </Grid>
 
-            <!-- Checkbox -->
+            <!-- Checkbox and Info -->
             <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -193,7 +192,7 @@
                         </CheckBox.Style>
                     </CheckBox>
 
-                    <CheckBox FontFamily="Segoe UI"
+                    <!--<CheckBox FontFamily="Segoe UI"
                               FontSize="12"
                               Content="Enable Explode iComponents"
                               HorizontalAlignment="Left"
@@ -231,19 +230,27 @@
                                 </Setter>
                             </Style>
                         </CheckBox.Style>
-                    </CheckBox>
+                    </CheckBox>-->
                 </StackPanel>
 
-                <!-- Information Message -->
-                <Label x:Name="FutureMsg"
-                       FontFamily="Segoe UI"
-                       Grid.Column="1"
-                       Content="More options planned for the future"
-                       Background="Transparent"
-                       Foreground="{DynamicResource InfoForegroundBrush}"
-                       BorderThickness="0"
-                       FontSize="13" Margin="12,0,6,6" d:LayoutOverrides="Height" VerticalAlignment="Center"
-                       HorizontalAlignment="Center" />
+                <!-- Information Message and Bug Report -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Label x:Name="FutureMsg"
+                           FontFamily="Segoe UI"
+                           Content="More options planned for the future"
+                           Background="Transparent"
+                           Foreground="{DynamicResource InfoForegroundBrush}"
+                           BorderThickness="0"
+                           FontSize="13" VerticalAlignment="Center"
+                           HorizontalAlignment="Center" />
+                    <TextBlock HorizontalAlignment="Left" FontSize="12" Margin="0,-5,0,0" Padding="5,5,5,5">
+                        <Hyperlink NavigateUri="https://forms.cloud.microsoft/r/nTzBPgpuYc"
+                                   RequestNavigate="Hyperlink_RequestNavigate"
+                                   Foreground="Blue">
+                            Report a bug
+                        </Hyperlink>
+                    </TextBlock>
+                </StackPanel>
             </Grid>
 
             <Grid Grid.Row="3" Margin="0,24,0,-16" HorizontalAlignment="Center">
@@ -260,7 +267,6 @@
                         Height="{Binding ActualHeight, ElementName=Button, Mode=OneWay}"
                         Width="{Binding ActualWidth, ElementName=Button, Mode=OneWay}" />
             </Grid>
-
         </Grid>
     </Border>
 </Window>

@@ -4,10 +4,12 @@
 
 namespace DoyleAddin.Options;
 
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Markup;
+using System.Windows.Navigation;
 using Ookii.Dialogs.Wpf;
 
 /// <summary>
@@ -78,11 +80,6 @@ public partial class UserOptionsWindow
 
 		// Set the DataContext for potential data binding
 		DataContext = options;
-
-		// Manual property setting for non-bound controls
-
-
-		// ChkObsoletePrint.IsChecked is now handled by data binding
 
 		ApplyThemeColors();
 	}
@@ -206,6 +203,13 @@ public partial class UserOptionsWindow
 	{
 		DialogResult = false;
 
+		Close();
+	}
+
+	private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+	{
+		Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+		e.Handled = true;
 		Close();
 	}
 }
