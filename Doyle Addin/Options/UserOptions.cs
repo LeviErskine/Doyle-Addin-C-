@@ -1,6 +1,7 @@
 ﻿namespace DoyleAddin.Options;
 
 using System.ComponentModel;
+using System.Windows.Forms;
 using System.Xml.Serialization;
 
 /// <summary>
@@ -59,7 +60,7 @@ public class UserOptions : INotifyPropertyChanged
 		}
 	} = false;
 
-	/// <summary>
+	/*/// <summary>
 	///     Specifies whether the "Explode iComponents" functionality is enabled in the application.
 	///     When set to true, the related options and buttons for exploding iComponents are made
 	///     available in the user interface. This property is intended for scenarios where users
@@ -74,7 +75,7 @@ public class UserOptions : INotifyPropertyChanged
 			field = value;
 			OnPropertyChanged(nameof(EnableExplodeiComponents));
 		}
-	} = false;
+	} = false;*/
 
 	/// <summary>
 	///     Raised when a property value changes; used by WPF data binding (INotifyPropertyChanged).
@@ -125,8 +126,7 @@ public class UserOptions : INotifyPropertyChanged
 		}
 		catch (Exception)
 		{
-			// If loading fails for any reason (corrupt file, permission issue, etc.)
-			// return default options to keep the application usable.
+			MessageBox.Show("Failed to load options");
 			return new UserOptions();
 		}
 	}
