@@ -1,11 +1,9 @@
 ﻿namespace DoyleAddin.DXFs;
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Inventor;
 using Options;
-using Services;
 using Environment = Environment;
 using Path = Path;
 
@@ -40,7 +38,7 @@ internal static class DxfUpdate
 	}
 
 	private static void ExportDxf(SheetMetalComponentDefinition def, string fileName, string partNumber,
-		List<string> failedExports, UserOptions userOptions)
+		List<string> failedExports)
 	{
 		const string oFormat =
 				"FLAT PATTERN DXF?AcadVersion=2018"
@@ -77,10 +75,6 @@ internal static class DxfUpdate
 		try
 		{
 			def.DataIO.WriteDataToFile(oFormat, fileName);
-
-			// Create ClickUp task after successful DXF export if enabled
-			if (userOptions.EnableClickUpIntegration)
-				_ = Task.Run(async () => await ClickUpService.CreateDxfExportTaskAsync(partNumber));
 		}
 		catch (Exception ex)
 		{
@@ -111,7 +105,7 @@ internal static class DxfUpdate
 			return;
 		}
 
-		ExportDxf(memberDef, oiFileName, partNumber, failedExports, userOptions);
+		ExportDxf(memberDef, oiFileName, partNumber, failedExports);
 		openedDoc.Close(true);
 	}
 
@@ -152,7 +146,7 @@ internal static class DxfUpdate
 	}
 
 	private static void ProcessNonIPart(PartDocument oPartDoc, SheetMetalComponentDefinition oDef, string oFileName,
-		List<string> failedExports, UserOptions userOptions)
+		List<string> failedExports)
 	{
 		if (oPartDoc._ComatoseNodesCount > 0 || oPartDoc._SickNodesCount > 0)
 		{
@@ -182,7 +176,7 @@ internal static class DxfUpdate
 					continue;
 				}
 
-				ExportDxf(oDef, fileName, currentStatePartNumber, failedExports, userOptions);
+				ExportDxf(oDef, fileName, currentStatePartNumber, failedExports);
 				exportCount++;
 			}
 			catch (Exception ex)
@@ -234,6 +228,6 @@ internal static class DxfUpdate
 		if (oDef.IsiPartFactory)
 			ProcessIPartFactory(oPartDoc, oDef, pn, failedExports, userOptions);
 		else
-			ProcessNonIPart(oPartDoc, oDef, oFileName, failedExports, userOptions);
+			ProcessNonIPart(oPartDoc, oDef, oFileName, failedExports);
 	}
 }
