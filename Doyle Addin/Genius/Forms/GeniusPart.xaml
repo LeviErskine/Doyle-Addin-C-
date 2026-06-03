@@ -1,0 +1,74 @@
+﻿<UserControl
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:data="clr-namespace:System.Data;assembly=System.Data"
+    mc:Ignorable="d"
+    x:Class="DoyleAddin.Genius.Forms.GeniusPart"
+    d:DataContext="{d:DesignInstance Type=data:DataRowView, IsDesignTimeCreatable=False}" d:DesignWidth="305"
+    d:DesignHeight="446" FontFamily="Tahoma" UseLayoutRounding="True">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/DoyleAddin;component/Options/Themes/Elements.xaml" />
+                <ResourceDictionary Source="/DoyleAddin;component/Options/Themes/DarkTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid x:Name="grid">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20" />
+            <RowDefinition Height="50*" />
+            <RowDefinition Height="20" />
+            <RowDefinition Height="50*" />
+            <RowDefinition Height="33" />
+        </Grid.RowDefinitions>
+        <Label Content="Genius Properties" Foreground="{DynamicResource NormalText}" VerticalContentAlignment="Center"
+               HorizontalAlignment="Left" Padding="0,0,0,0" VerticalAlignment="Bottom" Margin="5,0,0,0"
+               FontSize="14" />
+
+        <DataGrid x:Name="SqlDataGrid"
+                  Style="{DynamicResource CompleteDataGridStyle}" d:ItemsSource="{d:SampleData ItemCount=5}"
+                  Grid.Row="1" Margin="5,5,5,5">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Property" Binding="{Binding [Property]}" IsReadOnly="True" />
+                <DataGridTextColumn Header="Genius Value" Binding="{Binding [SQL Value]}" IsReadOnly="True"
+                                    CanUserSort="False" Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Label Content="Inventor Properties" Foreground="{DynamicResource NormalText}"
+               VerticalContentAlignment="Center" Grid.Row="2" HorizontalAlignment="Left" Padding="0,0,0,0"
+               VerticalAlignment="Bottom" Margin="5,0,0,0"
+               FontSize="14" />
+
+        <DataGrid x:Name="InventorDataGrid"
+                  Style="{DynamicResource CompleteDataGridStyle}" d:ItemsSource="{d:SampleData ItemCount=5}"
+                  Height="{Binding Height, ElementName=SqlDataGrid}" Width="{Binding Width, ElementName=SqlDataGrid}"
+                  Grid.Row="3" Margin="5,5,5,5" CellEditEnding="InventorDataGrid_CellEditEnding">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Property" Binding="{Binding [Property]}" IsReadOnly="True" />
+                <DataGridTextColumn Header="Inventor Value" Binding="{Binding [Inventor Value]}"
+                                    IsReadOnly="False" Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel x:Name="Buttons" Orientation="Horizontal" Grid.Row="4" HorizontalAlignment="Center">
+
+            <Button x:Name="CalculatePropsButton" Content="Calculate Properties"
+                    Click="CalculatePropsButton_Click" Height="20" Width="115" Margin="5,5,5,5"
+                    Style="{DynamicResource ButtonStyle}" />
+            <Button x:Name="SaveButton" Content="Save" Click="SaveButton_Click"
+                    IsEnabled="False" Height="20" Width="80" Margin="0,5,0,5"
+                    Style="{DynamicResource ButtonStyle}" />
+            <Button x:Name="CancelButton" Content="Cancel" Click="CancelButton_Click"
+                    IsEnabled="False" Height="20" Width="80" Margin="5,5,5,5"
+                    Style="{DynamicResource ButtonStyle}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

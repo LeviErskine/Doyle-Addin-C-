@@ -78,62 +78,6 @@ public class UserOptions : INotifyPropertyChanged
 	} = false;*/
 
 	/// <summary>
-	///     Specifies whether ClickUp integration for DXF exports is enabled.
-	/// </summary>
-	public bool EnableClickUpIntegration
-	{
-		get;
-		set
-		{
-			if (value == field) return;
-			field = value;
-			OnPropertyChanged(nameof(EnableClickUpIntegration));
-		}
-	} = false;
-
-	/// <summary>
-	///     ClickUp API token for authentication.
-	/// </summary>
-	public string ClickUpApiToken
-	{
-		get;
-		set
-		{
-			if (value == field) return;
-			field = value;
-			OnPropertyChanged(nameof(ClickUpApiToken));
-		}
-	} = "";
-
-	/// <summary>
-	///     ClickUp List ID where DXF export tasks will be created.
-	/// </summary>
-	public string ClickUpListId
-	{
-		get;
-		set
-		{
-			if (value == field) return;
-			field = value;
-			OnPropertyChanged(nameof(ClickUpListId));
-		}
-	} = "";
-
-	/// <summary>
-	///     ClickUp User ID to assign tasks to.
-	/// </summary>
-	public string ClickUpAssigneeId
-	{
-		get;
-		set
-		{
-			if (value == field) return;
-			field = value;
-			OnPropertyChanged(nameof(ClickUpAssigneeId));
-		}
-	} = "";
-
-	/// <summary>
 	///     Raised when a property value changes; used by WPF data binding (INotifyPropertyChanged).
 	/// </summary>
 	public event PropertyChangedEventHandler PropertyChanged;

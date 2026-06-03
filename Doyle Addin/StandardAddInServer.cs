@@ -29,13 +29,14 @@ public class StandardAddInServer : ApplicationAddInServer
 	private static readonly string[] FlatPatternExit = ["id_PanelP_FlatPatternExit"];
 
 	private static readonly string[] AnnotateRevision = ["id_PanelD_AnnotateRevision"];
-	private static readonly string[] ManagePanels = ["id_PanelP_Manage", "id_PanelA_Manage"];
+	/*private static readonly string[] ManagePanels = ["id_PanelP_Manage", "id_PanelA_Manage"];*/
 
 	private static PanelWrapper _geniusPanelWrapper;
 
 	// Event handler delegates to ensure proper unsubscription
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _dxfUpdateHandler;
-	private readonly ButtonDefinitionSink_OnExecuteEventHandler _explodeiComponentsHandler;
+
+	/*private readonly ButtonDefinitionSink_OnExecuteEventHandler _explodeiComponentsHandler;*/
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _geniusPanelHandler;
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _obsoleteButtonHandler;
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _optionsButtonHandler;
@@ -55,11 +56,11 @@ public class StandardAddInServer : ApplicationAddInServer
 	/// </remarks>
 	public StandardAddInServer()
 	{
-		_dxfUpdateHandler                    = _ => DXFUpdate_OnExecute();
-		_printUpdateHandler                  = _ => PrintUpdate_OnExecute();
-		_optionsButtonHandler                = _ => OptionsButton_OnExecute();
-		_obsoleteButtonHandler               = _ => ObsoleteButton_OnExecute();
-		_explodeiComponentsHandler           = _ => ExplodeiComponents_OnExecute();
+		_dxfUpdateHandler      = _ => DXFUpdate_OnExecute();
+		_printUpdateHandler    = _ => PrintUpdate_OnExecute();
+		_optionsButtonHandler  = _ => OptionsButton_OnExecute();
+		_obsoleteButtonHandler = _ => ObsoleteButton_OnExecute();
+		/*_explodeiComponentsHandler           = _ => ExplodeiComponents_OnExecute();*/
 		_geniusPanelHandler                  = _ => GeniusPanel_OnExecute();
 		_uiEventsResetRibbonInterfaceHandler = UiEvents_OnResetRibbonInterface;
 	}
@@ -120,7 +121,7 @@ public class StandardAddInServer : ApplicationAddInServer
 		}
 	}
 
-	private ButtonDefinition ExplodeiComponentsButton
+	/*private ButtonDefinition ExplodeiComponentsButton
 	{
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		get;
@@ -132,7 +133,7 @@ public class StandardAddInServer : ApplicationAddInServer
 			field            =  value;
 			field?.OnExecute += _explodeiComponentsHandler;
 		}
-	}
+	}*/
 
 	private ButtonDefinition GeniusPanelButton
 	{
@@ -256,14 +257,14 @@ public class StandardAddInServer : ApplicationAddInServer
 									StandardIcon: smallIcon, LargeIcon: largeIcon);
 								break;
 							}
-							case "Explode iComponents":
+							/*case "Explode iComponents":
 							{
 								ExplodeiComponentsButton = controlDefs.AddButtonDefinition(
 									"Explode" + '\n' + "iComponents",
 									"Explode iComponents", CommandTypesEnum.kShapeEditCmdType, Globals.AddInClientId(),
 									StandardIcon: smallIcon, LargeIcon: largeIcon);
 								break;
-							}
+							}*/
 							case "Genius Panel":
 							{
 								GeniusPanelButton = controlDefs.AddButtonDefinition(
@@ -347,7 +348,7 @@ public class StandardAddInServer : ApplicationAddInServer
 			// ignored
 		}
 
-		try
+		/*try
 		{
 			ExplodeiComponentsButton?.Delete();
 			ExplodeiComponentsButton = null;
@@ -355,7 +356,7 @@ public class StandardAddInServer : ApplicationAddInServer
 		catch
 		{
 			// ignored
-		}
+		}*/
 
 		try
 		{
@@ -549,11 +550,11 @@ public class StandardAddInServer : ApplicationAddInServer
 			Tuple.Create("id_TabAnnotate", "PrintUpdate", PrintUpdate, AddinTab)
 		};
 
-		// ExplodeiComponents button appears on Part documents
+		/*// ExplodeiComponents button appears on Part documents
 		var explodeButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
 		{
 			Tuple.Create("id_TabManage", "Explode iComponents", ExplodeiComponentsButton, ManagePanels)
-		};
+		};*/
 
 		// Genius Panel button appears on all document types
 		var geniusPanelConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
@@ -575,9 +576,9 @@ public class StandardAddInServer : ApplicationAddInServer
 			AddButtonsToRibbon(ribbon, ribbonName, "Drawing", printButtonConfigs);
 			AddButtonsToRibbon(ribbon, ribbonName, null, optionsButtonConfigs);
 
-			if (options.EnableExplodeiComponents)
+			/*if (options.EnableExplodeiComponents)
 				AddButtonsToRibbon(ribbon, ribbonName, "Part", explodeButtonConfigs);
-			AddButtonsToRibbon(ribbon, ribbonName, "Assembly", explodeButtonConfigs);
+			AddButtonsToRibbon(ribbon, ribbonName, "Assembly", explodeButtonConfigs);*/
 
 			if (options.EnableObsoletePrint)
 				AddButtonsToRibbon(ribbon, ribbonName, "Drawing", obsoletePrintConfigs);
@@ -707,10 +708,10 @@ public class StandardAddInServer : ApplicationAddInServer
 		ObsoletePrint.ApplyObsoletePrint();
 	}
 
-	private static void ExplodeiComponents_OnExecute()
+	/*private static void ExplodeiComponents_OnExecute()
 	{
 		ExplodeiComponents.ExplodeiComponentsAction();
-	}
+	}*/
 
 	private static void GeniusPanel_OnExecute()
 	{

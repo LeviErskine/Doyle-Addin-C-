@@ -70,7 +70,6 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="DXFs\dxfUpdate.cs"/>
-        <Compile Include="Services\ClickUpService.cs"/>
         <Compile Include="Genius\CalculateProps.cs"/>
         <Compile Include="Genius\Forms\GeniusAssembly.xaml.cs"/>
         <Compile Include="Genius\Forms\GeniusFormsHelper.cs"/>
