@@ -71,17 +71,6 @@
     <ItemGroup>
         <Compile Include="DXFs\dxfUpdate.cs"/>
         <Compile Include="Services\ClickUpService.cs"/>
-        <Compile Include="Genius\CalculateProps.cs"/>
-        <Compile Include="Genius\Forms\GeniusAssembly.xaml.cs"/>
-        <Compile Include="Genius\Forms\GeniusFormsHelper.cs"/>
-        <Compile Include="Genius\Forms\GeniusiAssembly.xaml.cs"/>
-        <Compile Include="Genius\Forms\GeniusiPart.xaml.cs"/>
-        <Compile Include="Genius\Forms\GeniusPart.xaml.cs"/>
-        <Compile Include="Genius\Geniusinfo.cs"/>
-        <Compile Include="Genius\PanelWrapper.cs"/>
-        <Compile Include="Genius\PropertyExtractor.cs"/>
-        <Compile Include="Genius\SqlDataManager.cs"/>
-        <Compile Include="Genius\ThumbnailHelper.cs"/>
         <Compile Include="GlobalsHelpers.cs"/>
         <Compile Include="My Project\AssemblyInfo.cs"/>
         <Compile Include="My Project\SVGconvert.cs"/>
@@ -101,9 +90,7 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <Page Include="Options\Themes\DarkTheme.xaml"/>
-        <Page Include="Options\Themes\Elements.xaml"/>
         <Page Include="Options\Themes\LightTheme.xaml"/>
-        <EmbeddedResource Include="Resources\GeniusPanel.svg"/>
         <EmbeddedResource Include="Resources\ObsoletePrint.svg"/>
         <EmbeddedResource Include="Resources\PrintUpdateIcon.svg"/>
         <EmbeddedResource Include="Resources\DXFUpdateIcon.svg"/>
@@ -158,10 +145,6 @@
         </None>
     </ItemGroup>
     <ItemGroup>
-        <Page Include="Genius\Forms\GeniusAssembly.xaml"/>
-        <Page Include="Genius\Forms\GeniusiAssembly.xaml"/>
-        <Page Include="Genius\Forms\GeniusiPart.xaml"/>
-        <Page Include="Genius\Forms\GeniusPart.xaml"/>
         <Page Include="Options\OptionsPane.xaml"/>
     </ItemGroup>
     <ItemGroup>
@@ -174,8 +157,5 @@
     </ItemGroup>
     <ItemGroup>
         <Content Include="Doyle Addin Installer.bat"/>
-        <Content Include="Libs\AdUIModel.dll"/>
-        <Content Include="Libs\Autodesk.DataManagement.Client.Framework.Forms.dll"/>
-        <Content Include="Libs\InvUIModelPropertyPanel.dll"/>
     </ItemGroup>
 </Project>
