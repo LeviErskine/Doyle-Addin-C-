@@ -75,7 +75,7 @@
     <Compile Include="My Project\SVGconvert.cs" />
     <Compile Include="Optional Features\ExplodeiComponents.cs" />
     <Compile Include="Optional Features\ObsoletePrint.cs" />
-    <Compile Include="Options\UserControl.xaml.cs" />
+      <Compile Include="Options\OptionsPane.xaml.cs"/>
     <Compile Include="Prints\PDFToJPG.cs" />
     <Compile Include="Prints\printUpdate.cs" />
     <Compile Include="StandardAddInServer.cs" />
@@ -133,7 +133,7 @@
   <ItemGroup>
     <Page Include="Options\Themes\DarkTheme.xaml" />
     <Page Include="Options\Themes\LightTheme.xaml" />
-    <Page Include="Options\UserControl.xaml" />
+      <Page Include="Options\OptionsPane.xaml"/>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\ExplodeiPart.svg" />
