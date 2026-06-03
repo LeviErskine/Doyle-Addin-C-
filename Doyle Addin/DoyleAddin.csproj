@@ -23,7 +23,7 @@
     <UseWPF>true</UseWPF>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
     <Title>Doyle Addin</Title>
-    <FileVersion>7.1.1.0</FileVersion>
+    <FileVersion>7.1.2.0</FileVersion>
     <Description>Doyle Addin for print and dxf updates</Description>
     <Company>Doyle MFG.</Company>
     <Product>Doyle Macro</Product>
@@ -32,7 +32,7 @@
     <LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>7.1.1.0</AssemblyVersion>
+    <AssemblyVersion>7.1.2.0</AssemblyVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DocumentationFile>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin.xml</DocumentationFile>
@@ -75,7 +75,7 @@
     <Compile Include="My Project\SVGconvert.cs" />
     <Compile Include="Optional Features\ExplodeiComponents.cs" />
     <Compile Include="Optional Features\ObsoletePrint.cs" />
-    <Compile Include="Options\UserControl.xaml.cs" />
+    <Compile Include="Options\OptionsPane.xaml.cs" />
     <Compile Include="Prints\PDFToJPG.cs" />
     <Compile Include="Prints\printUpdate.cs" />
     <Compile Include="StandardAddInServer.cs" />
@@ -133,7 +133,7 @@
   <ItemGroup>
     <Page Include="Options\Themes\DarkTheme.xaml" />
     <Page Include="Options\Themes\LightTheme.xaml" />
-    <Page Include="Options\UserControl.xaml" />
+    <Page Include="Options\OptionsPane.xaml" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\ExplodeiPart.svg" />
