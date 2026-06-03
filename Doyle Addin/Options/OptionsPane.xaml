@@ -67,10 +67,10 @@
                           Content="Enable Obsolete Print"
                           IsChecked="{Binding EnableObsoletePrint, Mode=TwoWay}"
                           Style="{DynamicResource CheckBoxStyle}" VerticalContentAlignment="Center" />
-                <CheckBox x:Name="ExChkBx"
+                <!--<CheckBox x:Name="ExChkBx"
                           Content="Enable Explode iComponents"
                           IsChecked="{Binding EnableExplodeiComponents}" Style="{DynamicResource CheckBoxStyle}"
-                          VerticalContentAlignment="Center" />
+                          VerticalContentAlignment="Center" />-->
                 <CheckBox x:Name="ClickUpChkB"
                           Content="Enable ClickUp DXF Integration"
                           IsChecked="{Binding EnableClickUpIntegration}" Style="{DynamicResource CheckBoxStyle}"
