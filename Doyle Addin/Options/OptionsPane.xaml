@@ -62,11 +62,22 @@
                             Width="{Binding ActualWidth, ElementName=BrowsePrint, Mode=OneWay}" />
                 </StackPanel>
             </StackPanel>
-            <StackPanel x:Name="Row3Columns">
+            <DockPanel>
                 <CheckBox x:Name="OboleteCkB"
                           Content="Enable Obsolete Print"
                           IsChecked="{Binding EnableObsoletePrint, Mode=TwoWay}"
                           Style="{DynamicResource CheckBoxStyle}" VerticalContentAlignment="Center" />
+                <TextBlock FontSize="12" Width="69" VerticalAlignment="Center">
+                    <Hyperlink NavigateUri="https://forms.cloud.microsoft/r/nTzBPgpuYc"
+                               RequestNavigate="Hyperlink_RequestNavigate"
+                               Foreground="Blue">
+                        <Run Text="Report a bug" />
+                    </Hyperlink>
+                </TextBlock>
+            </DockPanel>
+            <StackPanel x:Name="Row3Columns" d:LayoutOverrides="LeftPosition, RightPosition"
+                        VerticalAlignment="Center">
+
                 <!--<CheckBox x:Name="ExChkBx"
                           Content="Enable Explode iComponents"
                           IsChecked="{Binding EnableExplodeiComponents}" Style="{DynamicResource CheckBoxStyle}"
@@ -75,42 +86,41 @@
                           Content="Enable ClickUp DXF Integration"
                           IsChecked="{Binding EnableClickUpIntegration}" Style="{DynamicResource CheckBoxStyle}"
                           VerticalContentAlignment="Center" />
-
-            </StackPanel>
-            <StackPanel Orientation="Vertical">
-                <StackPanel x:Name="Row3bColumns" Orientation="Horizontal"
-                            Visibility="{Binding EnableClickUpIntegration, Converter={StaticResource BoolToVis}}">
-                    <Label x:Name="ClickUpTokenLabel" Content="ClickUp API Token"
-                           VerticalContentAlignment="Center" Width="151" />
-                    <TextBox x:Name="ClickUpToken"
-                             Style="{DynamicResource TextBoxStyle}"
-                             Text="{Binding ClickUpApiToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             VerticalContentAlignment="Center" Width="385" />
-                </StackPanel>
-                <StackPanel x:Name="Row3cColumns" Orientation="Horizontal"
-                            Visibility="{Binding EnableClickUpIntegration, Converter={StaticResource BoolToVis}}">
-                    <Label x:Name="ClickUpListLabel" Content="ClickUp List ID"
-                           Width="151"
-                           VerticalContentAlignment="Center" />
-                    <TextBox x:Name="ClickUpListId"
-                             Text="{Binding ClickUpListId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{DynamicResource TextBoxStyle}"
-                             Width="385"
-                             VerticalContentAlignment="Center" />
-                </StackPanel>
-                <StackPanel x:Name="Row3dColumns" Orientation="Horizontal"
-                            Visibility="{Binding EnableClickUpIntegration, Converter={StaticResource BoolToVis}}"
-                            Height="39">
-                    <Label x:Name="ClickUpAssigneeLabel" Content="ClickUp Assignee ID"
-                           VerticalContentAlignment="Center" Width="151" />
-                    <TextBox x:Name="ClickUpAssigneeId"
-                             Text="{Binding ClickUpAssigneeId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{DynamicResource TextBoxStyle}"
-                             Width="300"
-                             VerticalContentAlignment="Center" />
-                    <Button x:Name="TestClickUp" Content="Test"
-                            UseLayoutRounding="True"
-                            Click="TestClickUpButton_Click" Style="{DynamicResource ButtonStyle}" Width="80" />
+                <StackPanel Orientation="Vertical">
+                    <StackPanel x:Name="Row3bColumns" Orientation="Horizontal"
+                                Visibility="{Binding EnableClickUpIntegration, Converter={StaticResource BoolToVis}}">
+                        <Label x:Name="ClickUpTokenLabel" Content="ClickUp API Token"
+                               VerticalContentAlignment="Center" Width="151" />
+                        <TextBox x:Name="ClickUpToken"
+                                 Style="{DynamicResource TextBoxStyle}"
+                                 Text="{Binding ClickUpApiToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 VerticalContentAlignment="Center" Width="385" />
+                    </StackPanel>
+                    <StackPanel x:Name="Row3cColumns" Orientation="Horizontal"
+                                Visibility="{Binding EnableClickUpIntegration, Converter={StaticResource BoolToVis}}">
+                        <Label x:Name="ClickUpListLabel" Content="ClickUp List ID"
+                               Width="151"
+                               VerticalContentAlignment="Center" />
+                        <TextBox x:Name="ClickUpListId"
+                                 Text="{Binding ClickUpListId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{DynamicResource TextBoxStyle}"
+                                 Width="385"
+                                 VerticalContentAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel x:Name="Row3dColumns" Orientation="Horizontal"
+                                Visibility="{Binding EnableClickUpIntegration, Converter={StaticResource BoolToVis}}"
+                                Height="39">
+                        <Label x:Name="ClickUpAssigneeLabel" Content="ClickUp Assignee ID"
+                               VerticalContentAlignment="Center" Width="151" />
+                        <TextBox x:Name="ClickUpAssigneeId"
+                                 Text="{Binding ClickUpAssigneeId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{DynamicResource TextBoxStyle}"
+                                 Width="300"
+                                 VerticalContentAlignment="Center" />
+                        <Button x:Name="TestClickUp" Content="Test"
+                                UseLayoutRounding="True"
+                                Click="TestClickUpButton_Click" Style="{DynamicResource ButtonStyle}" Width="80" />
+                    </StackPanel>
                 </StackPanel>
             </StackPanel>
             <UniformGrid x:Name="Row4Columns" Columns="2">
