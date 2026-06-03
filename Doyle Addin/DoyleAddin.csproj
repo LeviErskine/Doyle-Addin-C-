@@ -90,6 +90,9 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <Page Include="Options\Themes\DarkTheme.xaml"/>
+        <Page Include="Options\Themes\Elements.xaml">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Page>
         <Page Include="Options\Themes\LightTheme.xaml"/>
         <EmbeddedResource Include="Resources\ObsoletePrint.svg"/>
         <EmbeddedResource Include="Resources\PrintUpdateIcon.svg"/>
