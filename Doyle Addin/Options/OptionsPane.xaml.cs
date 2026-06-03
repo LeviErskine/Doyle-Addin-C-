@@ -1,7 +1,9 @@
 ﻿namespace DoyleAddin.Options;
 
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Navigation;
 using Ookii.Dialogs.Wpf;
 using Themes;
 
@@ -57,6 +59,13 @@ public partial class UserOptionsWindow
 
 		// When ShowDialog() returns true, user has selected a folder
 		if (folderBrowser.ShowDialog(this).GetValueOrDefault()) targetTextBox.Text = folderBrowser.SelectedPath;
+	}
+
+	private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+	{
+		Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+		e.Handled = true;
+		Close();
 	}
 
 	private void BtnCncl_Click(object sender, RoutedEventArgs e)

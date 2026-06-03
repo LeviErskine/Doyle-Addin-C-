@@ -11,7 +11,7 @@
     ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True"
     WindowStartupLocation="CenterScreen" WindowStyle="None" SnapsToDevicePixels="True"
     ScrollViewer.VerticalScrollBarVisibility="Disabled" FontSize="16" UseLayoutRounding="True"
-    Background="#00000000" AllowsTransparency="True" FontFamily="Tahoma" MaxHeight="330" MaxWidth="565">
+    Background="#00000000" AllowsTransparency="True" FontFamily="Tahoma" MaxHeight="330" MaxWidth="565" Height="155">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -61,16 +61,26 @@
                             Width="{Binding ActualWidth, ElementName=BrowsePrint, Mode=OneWay}" />
                 </StackPanel>
             </StackPanel>
-            <StackPanel x:Name="Row3Columns">
-                <CheckBox x:Name="OboleteCkB"
-                          Content="Enable Obsolete Print"
-                          IsChecked="{Binding EnableObsoletePrint, Mode=TwoWay}"
-                          Style="{DynamicResource CheckBoxStyle}" VerticalContentAlignment="Center" />
-                <!--<CheckBox x:Name="ExChkBx"
+            <DockPanel>
+                <StackPanel x:Name="Row3Columns" d:LayoutOverrides="LeftPosition, RightPosition"
+                            VerticalAlignment="Center">
+                    <CheckBox x:Name="OboleteCkB"
+                              Content="Enable Obsolete Print"
+                              IsChecked="{Binding EnableObsoletePrint, Mode=TwoWay}"
+                              Style="{DynamicResource CheckBoxStyle}" VerticalContentAlignment="Center" />
+                    <!--<CheckBox x:Name="ExChkBx"
                           Content="Enable Explode iComponents"
                           IsChecked="{Binding EnableExplodeiComponents}" Style="{DynamicResource CheckBoxStyle}"
                           VerticalContentAlignment="Center" />-->
-            </StackPanel>
+                </StackPanel>
+                <TextBlock FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Hyperlink NavigateUri="https://forms.cloud.microsoft/r/nTzBPgpuYc"
+                               RequestNavigate="Hyperlink_RequestNavigate"
+                               Foreground="Blue">
+                        <Run Text="Report a bug" />
+                    </Hyperlink>
+                </TextBlock>
+            </DockPanel>
             <UniformGrid x:Name="Row4Columns" Columns="2">
                 <Button x:Name="Save" Content="Save" Click="BtnSave_Click"
                         Style="{DynamicResource ButtonStyle}"
