@@ -3,23 +3,22 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:options="clr-namespace:DoyleAddin.Options" x:Name="Options_Pane"
-    d:DataContext="{d:DesignInstance Type=options:UserOptions}"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     x:Class="DoyleAddin.Options.UserOptionsWindow"
     mc:Ignorable="d"
     Loaded="UserOptionsWindow_Loaded"
     ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True"
     WindowStartupLocation="CenterScreen" WindowStyle="None" SnapsToDevicePixels="True"
     ScrollViewer.VerticalScrollBarVisibility="Disabled" FontSize="16" UseLayoutRounding="True"
-    Background="#00000000" AllowsTransparency="True" FontFamily="Tahoma" MaxHeight="330" MaxWidth="565" Height="155">
-    <Window.Resources>
+    Background="#00000000" AllowsTransparency="True" FontFamily="Tahoma" MaxHeight="330" MaxWidth="565" Height="180">
+    <d:Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/DoyleAddin;component/Options/Themes/Elements.xaml" />
                 <ResourceDictionary Source="/DoyleAddin;component/Options/Themes/DarkTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-    </Window.Resources>
+    </d:Window.Resources>
     <Window.BorderBrush>
         <SolidColorBrush Color="#00000000" />
     </Window.BorderBrush>
@@ -67,6 +66,10 @@
                     <CheckBox x:Name="OboleteCkB"
                               Content="Enable Obsolete Print"
                               IsChecked="{Binding EnableObsoletePrint, Mode=TwoWay}"
+                              Style="{DynamicResource CheckBoxStyle}" VerticalContentAlignment="Center" />
+                    <CheckBox x:Name="BatchExportCkB"
+                              Content="Enable Batch Export"
+                              IsChecked="{Binding EnableBatchExport, Mode=TwoWay}"
                               Style="{DynamicResource CheckBoxStyle}" VerticalContentAlignment="Center" />
                     <!--<CheckBox x:Name="ExChkBx"
                           Content="Enable Explode iComponents"

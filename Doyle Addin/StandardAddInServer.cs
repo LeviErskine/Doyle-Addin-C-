@@ -15,6 +15,7 @@ using Inventor;
 using My_Project;
 using Optional_Features;
 using Options;
+using BatchExportForm = Optional_Features.BatchExport.BatchExportForm;
 using File = File;
 using Path = Path;
 
@@ -29,9 +30,13 @@ public class StandardAddInServer : ApplicationAddInServer
 	private static readonly string[] FlatPatternExit = ["id_PanelP_FlatPatternExit"];
 
 	private static readonly string[] AnnotateRevision = ["id_PanelD_AnnotateRevision"];
-	/*private static readonly string[] ManagePanels = ["id_PanelP_Manage", "id_PanelA_Manage"];*/
+	private static readonly string[] AssemblyManagePanel = ["id_PanelA_AssembleManage"];
 
 	private static PanelWrapper _geniusPanelWrapper;
+	private static PanelWrapper _batchExportPanelWrapper;
+
+	private readonly ButtonDefinitionSink_OnExecuteEventHandler _batchExportHandler;
+	/*private static readonly string[] stringArray = ["Part", "Assembly"];*/
 
 	// Event handler delegates to ensure proper unsubscription
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _dxfUpdateHandler;
@@ -57,6 +62,7 @@ public class StandardAddInServer : ApplicationAddInServer
 	public StandardAddInServer()
 	{
 		_dxfUpdateHandler      = _ => DXFUpdate_OnExecute();
+		_batchExportHandler    = _ => BatchExport_OnExecute();
 		_printUpdateHandler    = _ => PrintUpdate_OnExecute();
 		_optionsButtonHandler  = _ => OptionsButton_OnExecute();
 		_obsoleteButtonHandler = _ => ObsoleteButton_OnExecute();
@@ -76,6 +82,20 @@ public class StandardAddInServer : ApplicationAddInServer
 
 			field            =  value;
 			field?.OnExecute += _dxfUpdateHandler;
+		}
+	}
+
+	private ButtonDefinition BatchExport
+	{
+		[MethodImpl(MethodImplOptions.Synchronized)]
+		get;
+		[MethodImpl(MethodImplOptions.Synchronized)]
+		set
+		{
+			field?.OnExecute -= _batchExportHandler;
+
+			field            =  value;
+			field?.OnExecute += _batchExportHandler;
 		}
 	}
 
@@ -187,6 +207,12 @@ public class StandardAddInServer : ApplicationAddInServer
 						},
 						new
 						{
+							Name         = "BatchExport",
+							Icon         = "DoyleAddin.Resources.BatchExportIcon.svg",
+							InternalName = "BatchExport"
+						},
+						new
+						{
 							Name         = "Settings", Icon = "DoyleAddin.Resources.SettingsIcon.svg",
 							InternalName = "Settings"
 						},
@@ -194,12 +220,12 @@ public class StandardAddInServer : ApplicationAddInServer
 						{
 							Name         = "ObsoletePrint", Icon = "DoyleAddin.Resources.ObsoletePrint.svg",
 							InternalName = "ObsoletePrint"
-						},
+						}, /*,
 						new
 						{
 							Name         = "Explode iComponents", Icon = "DoyleAddin.Resources.ExplodeiPart.svg",
 							InternalName = "Explode iComponents"
-						},
+						}*/
 						new
 						{
 							Name         = "Genius Panel", Icon = "DoyleAddin.Resources.GeniusPanel.svg",
@@ -240,6 +266,13 @@ public class StandardAddInServer : ApplicationAddInServer
 							{
 								DxfUpdate = controlDefs.AddButtonDefinition("DXF" + '\n' + "Update", "DXFUpdate",
 									CommandTypesEnum.kShapeEditCmdType, Globals.AddInClientId(),
+									StandardIcon: smallIcon, LargeIcon: largeIcon);
+								break;
+							}
+							case "BatchExport":
+							{
+								BatchExport = controlDefs.AddButtonDefinition("Batch" + '\n' + "Export", "BatchExport",
+									CommandTypesEnum.kFileOperationsCmdType, Globals.AddInClientId(),
 									StandardIcon: smallIcon, LargeIcon: largeIcon);
 								break;
 							}
@@ -330,6 +363,16 @@ public class StandardAddInServer : ApplicationAddInServer
 
 		try
 		{
+			BatchExport?.Delete(); // Delete new button
+			BatchExport = null;
+		}
+		catch
+		{
+			// ignored
+		}
+
+		try
+		{
 			OptionsButton?.Delete();
 			OptionsButton = null;
 		}
@@ -401,7 +444,7 @@ public class StandardAddInServer : ApplicationAddInServer
 		}
 		catch (Exception ex)
 		{
-			Console.WriteLine(ex);
+			Debug.WriteLine(ex);
 			// Optionally log or show error
 		}
 
@@ -490,7 +533,7 @@ public class StandardAddInServer : ApplicationAddInServer
 		}
 		catch (Exception ex)
 		{
-			Console.WriteLine(ex);
+			Debug.WriteLine(ex);
 			// Optionally log or show error
 		}
 	}
@@ -537,6 +580,11 @@ public class StandardAddInServer : ApplicationAddInServer
 			Tuple.Create("id_TabTools", "DXFUpdate", DxfUpdate, ToolsOptions)
 		};
 
+		// Batch Export button - only add if feature is enabled
+		var batchExportButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>();
+		if (options.EnableBatchExport)
+			batchExportButtonConfigs.Add(Tuple.Create("id_TabManage", "BatchExport", BatchExport, AssemblyManagePanel));
+
 		// Option button appears on all document types
 		var optionsButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
 		{
@@ -571,6 +619,9 @@ public class StandardAddInServer : ApplicationAddInServer
 		foreach (var (ribbonName, ribbon) in ribbonMappings)
 		{
 			AddButtonsToRibbon(ribbon, ribbonName, "Part", dxfButtonConfigs);
+			if (options.EnableBatchExport)
+				AddButtonsToRibbon(ribbon, ribbonName, "Assembly", batchExportButtonConfigs);
+			AddButtonsToRibbon(ribbon, ribbonName, "Drawing", printButtonConfigs);
 			AddButtonsToRibbon(ribbon, ribbonName, "Assembly", geniusPanelConfigs);
 			AddButtonsToRibbon(ribbon, ribbonName, "Part", geniusPanelConfigs);
 			AddButtonsToRibbon(ribbon, ribbonName, "Drawing", printButtonConfigs);
@@ -689,6 +740,29 @@ public class StandardAddInServer : ApplicationAddInServer
 		DXFs.DxfUpdate.RunDxfUpdate();
 	}
 
+	private static void BatchExport_OnExecute() // New method to show BatchExportForm
+	{
+		try
+		{
+			if (ThisApplication.ActiveDocument is not AssemblyDocument)
+			{
+				MessageBox.Show("Batch Export can only be used when an assembly document is active.",
+					"Invalid Document Type", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+		}
+		catch
+		{
+			MessageBox.Show("No active document found. Please open an assembly document before exporting.",
+				"No Active Document", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+			return;
+		}
+
+		var batchExportForm = new BatchExportForm();
+		BatchExportForm.RequestClose += (_, _) => _batchExportPanelWrapper?.Close();
+		_batchExportPanelWrapper     =  new PanelWrapper(batchExportForm, "Batch DXF Export");
+	}
+
 	private static void PrintUpdate_OnExecute()
 	{
 		Prints.PrintUpdate.RunPrintUpdate();
@@ -741,7 +815,7 @@ public class StandardAddInServer : ApplicationAddInServer
 		}
 		catch (Exception ex)
 		{
-			Console.WriteLine(ex);
+			Debug.WriteLine(ex);
 		}
 	}
 
@@ -753,6 +827,10 @@ public class StandardAddInServer : ApplicationAddInServer
 			var buttonRemovalConfigs = new[]
 			{
 				new { RibbonName = "Drawing", TabName = "id_TabAnnotate", ButtonInternalName = "ObsoletePrint" },
+				new
+				{
+					RibbonName = "Assembly", TabName = "id_TabManage", ButtonInternalName = "BatchExport"
+				}, // Added for BatchExport
 				new { RibbonName = "Drawing", TabName = "id_TabAnnotate", ButtonInternalName = "Explode iComponents" }
 			};
 

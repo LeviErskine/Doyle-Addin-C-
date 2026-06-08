@@ -60,6 +60,17 @@ public class UserOptions : INotifyPropertyChanged
 		}
 	} = false;
 
+	public bool EnableBatchExport
+	{
+		get;
+		init
+		{
+			if (value == field) return;
+			field = value;
+			OnPropertyChanged(nameof(EnableBatchExport));
+		}
+	} = false;
+
 	/*/// <summary>
 	///     Specifies whether the "Explode iComponents" functionality is enabled in the application.
 	///     When set to true, the related options and buttons for exploding iComponents are made

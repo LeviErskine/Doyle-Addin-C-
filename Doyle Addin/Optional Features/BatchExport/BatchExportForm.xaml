@@ -1,0 +1,92 @@
+<UserControl
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:Class="DoyleAddin.Optional_Features.BatchExport.BatchExportForm"
+    mc:Ignorable="d" FontFamily="Tahoma" Background="{DynamicResource BackgroundColorBrush}"
+    BorderBrush="{DynamicResource BorderColorBrush}" Foreground="{DynamicResource ForegroundColorBrush}">
+    <d:UserControl.Resources>
+        <d:ResourceDictionary>
+            <d:ResourceDictionary.MergedDictionaries>
+                <d:ResourceDictionary Source="/DoyleAddin;component/Options/Themes/Elements.xaml" />
+                <d:ResourceDictionary Source="/DoyleAddin;component/Options/Themes/DarkTheme.xaml" />
+            </d:ResourceDictionary.MergedDictionaries>
+        </d:ResourceDictionary>
+    </d:UserControl.Resources>
+
+    <Grid Margin="8,8,8,8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+            <RowDefinition Height="Auto" MinHeight="34.483" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,12">
+            <TextBlock Text="Batch DXF Export" FontSize="16" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TreeView.Item.Foreground}" />
+            <TextBlock Text="Select sheet metal parts to export as DXF" FontSize="11"
+                       Foreground="{DynamicResource DisabledText}" Margin="0,2,0,0" />
+        </StackPanel>
+
+        <TreeView Style="{DynamicResource ThemedTreeViewStyle}" x:Name="treeViewParts" Grid.Row="1">
+            <d:TreeView.Items>
+                <TreeViewItem Header="Assembly 1" IsExpanded="True">
+                    <TreeViewItem Header="Part 1.1" Style="{DynamicResource ThemedTreeViewItemStyle}" />
+                    <TreeViewItem Header="Part 1.2" />
+                    <TreeViewItem Header="Part 1.3" />
+                </TreeViewItem>
+                <TreeViewItem Header="Assembly 2" IsExpanded="True">
+                    <TreeViewItem Header="Part 2.1" />
+                    <TreeViewItem Header="Part 2.2" />
+                </TreeViewItem>
+                <TreeViewItem Header="Assembly 3" IsExpanded="True">
+                    <TreeViewItem Header="Part 2.1" />
+                    <TreeViewItem Header="Part 2.2" />
+                </TreeViewItem>
+                <TreeViewItem Header="Assembly 4" IsExpanded="True">
+                    <TreeViewItem Header="Part 2.1" />
+                    <TreeViewItem Header="Part 2.2" />
+                </TreeViewItem>
+                <TreeViewItem Header="Assembly 5">
+                    <TreeViewItem Header="Part 2.1" IsExpanded="True">
+                        <TreeViewItem Header="Part 2.1" />
+                        <TreeViewItem Header="Part 2.2" />
+                    </TreeViewItem>
+                </TreeViewItem>
+                <TreeViewItem Header="Assembly 1" IsExpanded="True">
+                    <TreeViewItem Header="Part 1.1" />
+                    <TreeViewItem Header="Part 1.2" />
+                    <TreeViewItem Header="Part 1.3" />
+                </TreeViewItem>
+                <TreeViewItem Header="Assembly 2" IsExpanded="True">
+                    <TreeViewItem Header="Part 2.1" />
+                    <TreeViewItem Header="Part 2.2" />
+                </TreeViewItem>
+                <TreeViewItem Header="Assembly 3" IsExpanded="True">
+                    <TreeViewItem Header="Part 2.1" />
+                    <TreeViewItem Header="Part 2.2" />
+                </TreeViewItem>
+                <TreeViewItem Header="Assembly 4" IsExpanded="True">
+                    <TreeViewItem Header="Part 2.1" />
+                    <TreeViewItem Header="Part 2.2" />
+                </TreeViewItem>
+                <TreeViewItem Header="Assembly 5">
+                    <TreeViewItem Header="Part 2.1" IsExpanded="True">
+                        <TreeViewItem Header="Part 2.1" />
+                        <TreeViewItem Header="Part 2.2" />
+                    </TreeViewItem>
+                </TreeViewItem>
+            </d:TreeView.Items>
+        </TreeView>
+        <UniformGrid Columns="3" Grid.Row="2">
+            <Button x:Name="buttonSelectAll" Content="Select All"
+                    Click="buttonSelectAll_Click" Style="{DynamicResource ButtonStyle}"
+                    d:LayoutOverrides="LeftPosition, RightPosition, TopPosition, BottomPosition" />
+            <Button x:Name="buttonCancel" Content="Cancel"
+                    Click="buttonCancel_Click" Style="{DynamicResource ButtonStyle}" />
+            <Button x:Name="buttonExport" Content="Export"
+                    Click="buttonExport_Click" Style="{DynamicResource ButtonStyle}" />
+        </UniformGrid>
+    </Grid>
+</UserControl>

@@ -3,7 +3,7 @@
                     xmlns:forms="clr-namespace:DoyleAddin.Genius.Forms">
     <!--<ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/DoyleAddin;component/Options/Themes/DarkTheme.xaml" />
-    </ResourceDictionary.MergedDictionaries>-->
+        </ResourceDictionary.MergedDictionaries>-->
     <Style TargetType="{x:Type Label}">
         <Setter Property="Foreground" Value="{DynamicResource  TextBox.Foreground}" />
         <Setter Property="Background" Value="Transparent" />
@@ -16,6 +16,175 @@
         <Setter Property="Background" Value="{DynamicResource CheckBox.Background}" />
         <Setter Property="Foreground" Value="{DynamicResource CheckBox.Foreground}" />
         <Setter Property="BorderBrush" Value="{DynamicResource CheckBox.Border}" />
+    </Style>
+    <SolidColorBrush x:Key="ListBorder" Color="#828790" />
+    <Style x:Key="ThemedTreeViewItemStyle" TargetType="{x:Type TreeViewItem}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="HorizontalContentAlignment"
+                Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
+        <Setter Property="VerticalContentAlignment"
+                Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
+        <Setter Property="Padding" Value="6,4,6,4" />
+        <Setter Property="Foreground" Value="{DynamicResource TreeView.Item.Foreground}" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TreeViewItem}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}"
+                                CornerRadius="4"
+                                SnapsToDevicePixels="true"
+                                MinHeight="28">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="19" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <ToggleButton x:Name="Expander"
+                                              ClickMode="Press"
+                                              IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}">
+                                    <ToggleButton.Style>
+                                        <Style TargetType="{x:Type ToggleButton}">
+                                            <Setter Property="Focusable" Value="false" />
+                                            <Setter Property="Width" Value="16" />
+                                            <Setter Property="Height" Value="16" />
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                                                        <Border Background="Transparent" Width="16" Height="16">
+                                                            <Path x:Name="ExpandPath"
+                                                                  Data="M 5,4 L 9,8 L 5,12"
+                                                                  Stroke="{DynamicResource TreeView.Item.Arrow}"
+                                                                  StrokeThickness="1.5"
+                                                                  StrokeStartLineCap="Round"
+                                                                  StrokeEndLineCap="Round"
+                                                                  HorizontalAlignment="Center"
+                                                                  VerticalAlignment="Center"
+                                                                  RenderTransformOrigin="0.5,0.5">
+                                                                <Path.RenderTransform>
+                                                                    <RotateTransform Angle="0" />
+                                                                </Path.RenderTransform>
+                                                            </Path>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsChecked" Value="True">
+                                                                <Setter TargetName="ExpandPath"
+                                                                        Property="RenderTransform">
+                                                                    <Setter.Value>
+                                                                        <RotateTransform Angle="90" />
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </Trigger>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="ExpandPath" Property="Stroke"
+                                                                        Value="{DynamicResource BRTreeExpandCollapseSymbolMouseOver}" />
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ToggleButton.Style>
+                                </ToggleButton>
+                                <ContentPresenter x:Name="PART_Header"
+                                                  Grid.Column="1"
+                                                  ContentSource="Header"
+                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </Grid>
+                        </Border>
+                        <ItemsPresenter x:Name="ItemsHost" Grid.Row="1" Margin="19,0,0,0" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="HasItems" Value="false">
+                            <Setter TargetName="Expander" Property="Visibility" Value="Hidden" />
+                        </Trigger>
+                        <Trigger Property="IsExpanded" Value="false">
+                            <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="true" SourceName="Bd">
+                            <Setter TargetName="Bd" Property="Background"
+                                    Value="{DynamicResource NormalHoverBackground}" />
+                            <Setter TargetName="Bd" Property="BorderBrush"
+                                    Value="{DynamicResource NormalHoverBackground}" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="true">
+                            <Setter TargetName="Bd" Property="Background"
+                                    Value="{DynamicResource TreeView.Item.SelectedActive.Background}" />
+                            <Setter TargetName="Bd" Property="BorderBrush"
+                                    Value="{DynamicResource TreeView.Item.SelectedActive.Border}" />
+                            <Setter Property="Foreground" Value="{DynamicResource BRItemSelectedForeground}" />
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsSelected" Value="true" />
+                                <Condition Property="IsSelectionActive" Value="false" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="Background"
+                                    Value="{DynamicResource TreeView.Item.SelectedInactive.Background}" />
+                            <Setter TargetName="Bd" Property="BorderBrush"
+                                    Value="{DynamicResource TreeView.Item.SelectedInactive.Border}" />
+                        </MultiTrigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter Property="Foreground" Value="{DynamicResource DisabledText}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ThemedTreeViewStyle" TargetType="{x:Type TreeView}">
+        <Setter Property="Background" Value="{DynamicResource DataGrid.Background}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DataGrid.BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="{DynamicResource TreeView.Item.Foreground}" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+        <Setter Property="ScrollViewer.PanningMode" Value="Both" />
+        <Setter Property="Stylus.IsFlicksEnabled" Value="False" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TreeView}">
+                    <Border x:Name="Bd" CornerRadius="5" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
+                        <ScrollViewer x:Name="_tv_scrollviewer_" Background="{TemplateBinding Background}"
+                                      Focusable="false"
+                                      HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                      VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
+                                      Style="{DynamicResource DataGridScrollViewerStyle}">
+                            <ItemsPresenter />
+                        </ScrollViewer>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Resources>
+            <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource ThemedTreeViewItemStyle}" />
+        </Style.Resources>
+        <Style.Triggers>
+            <Trigger Property="VirtualizingPanel.IsVirtualizing" Value="true">
+                <Setter Property="ItemsPanel">
+                    <Setter.Value>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel />
+                        </ItemsPanelTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
     </Style>
     <Style x:Key="TabControlStyle" TargetType="{x:Type TabControl}">
         <Setter Property="Background" Value="{x:Null}" />
@@ -128,7 +297,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
-                    <Border x:Name="border"
+                    <Border x:Name="border" Background="{TemplateBinding Background}"
                             BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5"
                             SnapsToDevicePixels="True" BorderBrush="{DynamicResource BTNBorder}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -153,6 +322,16 @@
         <Setter Property="Background" Value="{DynamicResource Button.Static.Background}" />
         <Setter Property="Foreground" Value="{DynamicResource Button.Foreground}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BTNBorder}" />
+    </Style>
+
+    <Style x:Key="PrimaryButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource ButtonStyle}">
+        <Setter Property="Background" Value="{DynamicResource Active}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Active}" />
+        <Style.Resources>
+            <SolidColorBrush x:Key="Button.MouseOver.Border" Color="#00AEEF" />
+            <SolidColorBrush x:Key="Button.Pressed.Border" Color="#0078d7" />
+        </Style.Resources>
     </Style>
 
     <!-- DataGrid Row Style -->

@@ -27,6 +27,66 @@ internal static class DxfUpdate
 		}
 	}
 
+	public static void BatchExport(List<PartDocument> selectedParts)
+	{
+		var failedExports = new List<string>();
+		var successCount  = 0;
+		var userOptions   = UserOptions.Load();
+
+		try
+		{
+			foreach (var partDoc in selectedParts)
+				try
+				{
+					if (partDoc.ComponentDefinition is not SheetMetalComponentDefinition oDef)
+					{
+						failedExports.Add($"Skipped {partDoc.DisplayName} - not a sheet metal part");
+						continue;
+					}
+
+					var propertySets = partDoc.PropertySets["Design Tracking Properties"];
+					var partNumber   = propertySets["Part Number"].Value.ToString();
+					var fileName     = Path.Combine(userOptions.DxfExportLocation, partNumber + ".dxf");
+
+					if (!CreateFlatPattern(oDef, partNumber, failedExports))
+						continue;
+
+					if (!ValidateFlatPattern(oDef, partNumber, failedExports))
+						continue;
+
+					ExportDxf(oDef, fileName, partNumber, failedExports);
+					successCount++;
+				}
+				catch (Exception ex)
+				{
+					failedExports.Add($"Error processing {partDoc.DisplayName}: {ex.Message}");
+				}
+
+			// Show results summary
+			if (successCount > 0 || failedExports.Count > 0)
+			{
+				var message = $"Exported {successCount} of {selectedParts.Count} parts successfully.";
+				if (failedExports.Count > 0)
+				{
+					message += Environment.NewLine + Environment.NewLine + "Errors:" + Environment.NewLine +
+					           string.Join(Environment.NewLine, failedExports);
+					MessageBox.Show(message, "Batch Export Complete", MessageBoxButtons.OK,
+						MessageBoxIcon.Warning);
+				}
+				else
+				{
+					MessageBox.Show(message, "Batch Export Complete", MessageBoxButtons.OK,
+						MessageBoxIcon.Information);
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			MessageBox.Show($"Batch export failed: {ex.Message}", "Error", MessageBoxButtons.OK,
+				MessageBoxIcon.Error);
+		}
+	}
+
 	private static bool ValidateFlatPattern(SheetMetalComponentDefinition memberDef, string partNumber,
 		List<string> failedExports)
 	{
