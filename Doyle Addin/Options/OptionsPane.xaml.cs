@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
 using Ookii.Dialogs.Wpf;
+using Themes;
 using Services;
 using Themes;
 
