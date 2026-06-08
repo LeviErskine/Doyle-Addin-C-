@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using Inventor;
 using Options;
-using Application = Application;
 using Environment = Environment;
 using Path = Path;
 
@@ -25,6 +24,66 @@ internal static class DxfUpdate
 			Console.WriteLine(ex);
 			failedExports.Add("Failed to create flat pattern for: " + partName);
 			return false;
+		}
+	}
+
+	public static void BatchExport(List<PartDocument> selectedParts)
+	{
+		var failedExports = new List<string>();
+		var successCount  = 0;
+		var userOptions   = UserOptions.Load();
+
+		try
+		{
+			foreach (var partDoc in selectedParts)
+				try
+				{
+					if (partDoc.ComponentDefinition is not SheetMetalComponentDefinition oDef)
+					{
+						failedExports.Add($"Skipped {partDoc.DisplayName} - not a sheet metal part");
+						continue;
+					}
+
+					var propertySets = partDoc.PropertySets["Design Tracking Properties"];
+					var partNumber   = propertySets["Part Number"].Value.ToString();
+					var fileName     = Path.Combine(userOptions.DxfExportLocation, partNumber + ".dxf");
+
+					if (!CreateFlatPattern(oDef, partNumber, failedExports))
+						continue;
+
+					if (!ValidateFlatPattern(oDef, partNumber, failedExports))
+						continue;
+
+					ExportDxf(oDef, fileName, partNumber, failedExports);
+					successCount++;
+				}
+				catch (Exception ex)
+				{
+					failedExports.Add($"Error processing {partDoc.DisplayName}: {ex.Message}");
+				}
+
+			// Show results summary
+			if (successCount > 0 || failedExports.Count > 0)
+			{
+				var message = $"Exported {successCount} of {selectedParts.Count} parts successfully.";
+				if (failedExports.Count > 0)
+				{
+					message += Environment.NewLine + Environment.NewLine + "Errors:" + Environment.NewLine +
+					           string.Join(Environment.NewLine, failedExports);
+					MessageBox.Show(message, "Batch Export Complete", MessageBoxButtons.OK,
+						MessageBoxIcon.Warning);
+				}
+				else
+				{
+					MessageBox.Show(message, "Batch Export Complete", MessageBoxButtons.OK,
+						MessageBoxIcon.Information);
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			MessageBox.Show($"Batch export failed: {ex.Message}", "Error", MessageBoxButtons.OK,
+				MessageBoxIcon.Error);
 		}
 	}
 
@@ -91,13 +150,14 @@ internal static class DxfUpdate
 			oFactory.CreateMember(iPartTableRow);
 	}
 
-	private static void ProcessIPartMember(string filepath, Documents oDoc, List<string> failedExports)
+	private static void ProcessIPartMember(string filepath, Documents oDoc, List<string> failedExports,
+		UserOptions userOptions)
 	{
 		if (oDoc.Open(filepath) is not PartDocument openedDoc) return;
 
 		var memberDef  = openedDoc.ComponentDefinition as SheetMetalComponentDefinition;
 		var partNumber = openedDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString();
-		var oiFileName = Path.Combine(UserOptions.Load().DxfExportLocation, partNumber + ".dxf");
+		var oiFileName = Path.Combine(userOptions.DxfExportLocation, partNumber + ".dxf");
 
 		if (!ValidateFlatPattern(memberDef, partNumber, failedExports))
 		{
@@ -109,11 +169,11 @@ internal static class DxfUpdate
 		openedDoc.Close(true);
 	}
 
-	private static void ProcessIPartFactory(Application thisApplication, PartDocument oPartDoc,
-		SheetMetalComponentDefinition oDef, string pn, List<string> failedExports)
+	private static void ProcessIPartFactory(PartDocument oPartDoc,
+		SheetMetalComponentDefinition oDef, string pn, List<string> failedExports, UserOptions userOptions)
 	{
 		var oFactory = oDef.iPartFactory;
-		var oDoc     = thisApplication.Documents;
+		var oDoc     = ThisApplication.Documents;
 		var total    = oFactory.TableRows.Count;
 		oDoc.CloseAll(true);
 		oPartDoc.ReleaseReference();
@@ -136,7 +196,7 @@ internal static class DxfUpdate
 		}
 
 		foreach (var filepath in Directory.GetFiles(oFactory.MemberCacheDir))
-			ProcessIPartMember(filepath, oDoc, failedExports);
+			ProcessIPartMember(filepath, oDoc, failedExports, userOptions);
 
 		if (failedExports.Count > 0)
 			MessageBox.Show(failedExports.Count + " Members have errors and were skipped." +
@@ -165,8 +225,6 @@ internal static class DxfUpdate
 			{
 				// Activate the model state
 				modelState.Activate();
-
-				// Get the part number for this specific model state
 				var currentStatePartNumber =
 					oPartDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString();
 				var fileName = Path.Combine(Path.GetDirectoryName(oFileName) ?? "", $"{currentStatePartNumber}.dxf");
@@ -228,7 +286,7 @@ internal static class DxfUpdate
 
 		// Check if a part is a factory and delegate to the appropriate processor
 		if (oDef.IsiPartFactory)
-			ProcessIPartFactory(ThisApplication, oPartDoc, oDef, pn, failedExports);
+			ProcessIPartFactory(oPartDoc, oDef, pn, failedExports, userOptions);
 		else
 			ProcessNonIPart(oPartDoc, oDef, oFileName, failedExports);
 	}

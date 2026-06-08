@@ -14,7 +14,7 @@ using Inventor;
 using My_Project;
 using Optional_Features;
 using Options;
-using Application = Application;
+using BatchExportForm = Optional_Features.BatchExport.BatchExportForm;
 using File = File;
 using Path = Path;
 
@@ -23,23 +23,17 @@ using Path = Path;
 [Guid("513b9d7e-103e-4569-8eb5-ab3929cd33ad")]
 public class StandardAddInServer : ApplicationAddInServer
 {
-	private const string TabAnnotateId = "id_TabAnnotate";
-	private const string printupdate = "printUpdate";
-	private const string dxfupdate = "dxfUpdate";
-	private const string drawing = "Drawing";
-	private const string obsoleteprint = "ObsoletePrint";
-	private const string addIns = "Add-Ins";
-	private const string explodeicomponents = "explodeiComponents";
-
 	private static readonly string[] SheetMetalManageUnfold = ["id_PanelP_SheetMetalManageUnfold"];
-	private static readonly string[] ToolsOptions = ["id_PanelP_ToolsOptions", addIns];
-	private static readonly string[] CustomAddinTab = [addIns];
-	private static readonly string[] Item4Array2 = ["id_PanelP_ToolsOptions"];
+	private static readonly string[] ToolsOptions = ["id_PanelP_ToolsOptions", "id_PanelA_ToolsOptions"];
+	private static readonly string[] AddinTab = ["Add-Ins"];
 	private static readonly string[] FlatPatternExit = ["id_PanelP_FlatPatternExit"];
 
 	private static readonly string[] AnnotateRevision = ["id_PanelD_AnnotateRevision"];
-	/*private static readonly string[] ManagePanels = ["id_PanelP_Manage", "id_PanelA_Manage", addIns];*/
+	private static readonly string[] AssemblyManagePanel = ["id_PanelA_AssembleManage"];
 
+	private static PanelWrapper _batchExportPanelWrapper;
+
+	private readonly ButtonDefinitionSink_OnExecuteEventHandler _batchExportHandler;
 	/*private static readonly string[] stringArray = ["Part", "Assembly"];*/
 
 	// Event handler delegates to ensure proper unsubscription
@@ -50,9 +44,6 @@ public class StandardAddInServer : ApplicationAddInServer
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _optionsButtonHandler;
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _printUpdateHandler;
 	private readonly UserInterfaceEventsSink_OnResetRibbonInterfaceEventHandler _uiEventsResetRibbonInterfaceHandler;
-
-	// Instance field to store the Inventor application reference
-	private Application _application;
 
 	private UserInterfaceEvents uiEvents;
 
@@ -68,6 +59,7 @@ public class StandardAddInServer : ApplicationAddInServer
 	public StandardAddInServer()
 	{
 		_dxfUpdateHandler      = _ => DXFUpdate_OnExecute();
+		_batchExportHandler    = _ => BatchExport_OnExecute();
 		_printUpdateHandler    = _ => PrintUpdate_OnExecute();
 		_optionsButtonHandler  = _ => OptionsButton_OnExecute();
 		_obsoleteButtonHandler = _ => ObsoleteButton_OnExecute();
@@ -86,6 +78,20 @@ public class StandardAddInServer : ApplicationAddInServer
 
 			field            =  value;
 			field?.OnExecute += _dxfUpdateHandler;
+		}
+	}
+
+	private ButtonDefinition BatchExport
+	{
+		[MethodImpl(MethodImplOptions.Synchronized)]
+		get;
+		[MethodImpl(MethodImplOptions.Synchronized)]
+		set
+		{
+			field?.OnExecute -= _batchExportHandler;
+
+			field            =  value;
+			field?.OnExecute += _batchExportHandler;
 		}
 	}
 
@@ -153,17 +159,12 @@ public class StandardAddInServer : ApplicationAddInServer
 	{
 		try
 		{
-			// Initialize AddIn members.
-			_application = AddInSiteObject.Application;
-
-			// Initialize the static ThisApplication field for global access
-			Initialize(_application);
-
-			_ = CheckForUpdateAndDownloadAsync(_application).ConfigureAwait(false);
+			Initialize(AddInSiteObject.Application);
+			_ = CheckForUpdateAndDownloadAsync().ConfigureAwait(false);
 
 			// Get a reference to the ControlDefinitions object. 
-			var controlDefs   = _application.CommandManager.ControlDefinitions;
-			var oThemeManager = _application.ThemeManager;
+			var controlDefs   = ThisApplication.CommandManager.ControlDefinitions;
+			var oThemeManager = ThisApplication.ThemeManager;
 
 			var oTheme = oThemeManager.ActiveTheme;
 
@@ -179,28 +180,34 @@ public class StandardAddInServer : ApplicationAddInServer
 						new
 						{
 							Name         = "PrintUpdate", Icon = "DoyleAddin.Resources.PrintUpdateIcon.svg",
-							InternalName = printupdate
+							InternalName = "PrintUpdate"
 						},
 						new
 						{
 							Name         = "DXFUpdate", Icon = "DoyleAddin.Resources.DXFUpdateIcon.svg",
-							InternalName = dxfupdate
+							InternalName = "DXFUpdate"
+						},
+						new
+						{
+							Name         = "BatchExport",
+							Icon         = "DoyleAddin.Resources.BatchExportIcon.svg",
+							InternalName = "BatchExport"
 						},
 						new
 						{
 							Name         = "Settings", Icon = "DoyleAddin.Resources.SettingsIcon.svg",
-							InternalName = "userOptions"
+							InternalName = "Settings"
 						},
 						new
 						{
-							Name         = obsoleteprint, Icon = "DoyleAddin.Resources.ObsoletePrint.svg",
-							InternalName = obsoleteprint
-						},
+							Name         = "ObsoletePrint", Icon = "DoyleAddin.Resources.ObsoletePrint.svg",
+							InternalName = "ObsoletePrint"
+						} /*,
 						new
 						{
 							Name         = "Explode iComponents", Icon = "DoyleAddin.Resources.ExplodeiPart.svg",
-							InternalName = explodeicomponents
-						}
+							InternalName = "Explode iComponents"
+						}*/
 					};
 
 					foreach (var icon in icons)
@@ -228,28 +235,35 @@ public class StandardAddInServer : ApplicationAddInServer
 							case "PrintUpdate":
 							{
 								PrintUpdate = controlDefs.AddButtonDefinition("Print" + '\n' + "Update",
-									printupdate, CommandTypesEnum.kShapeEditCmdType, Globals.AddInClientId(),
+									"PrintUpdate", CommandTypesEnum.kShapeEditCmdType, Globals.AddInClientId(),
 									StandardIcon: smallIcon, LargeIcon: largeIcon);
 								break;
 							}
 							case "DXFUpdate":
 							{
-								DxfUpdate = controlDefs.AddButtonDefinition("DXF" + '\n' + "Update", dxfupdate,
+								DxfUpdate = controlDefs.AddButtonDefinition("DXF" + '\n' + "Update", "DXFUpdate",
 									CommandTypesEnum.kShapeEditCmdType, Globals.AddInClientId(),
+									StandardIcon: smallIcon, LargeIcon: largeIcon);
+								break;
+							}
+							case "BatchExport":
+							{
+								BatchExport = controlDefs.AddButtonDefinition("Batch" + '\n' + "Export", "BatchExport",
+									CommandTypesEnum.kFileOperationsCmdType, Globals.AddInClientId(),
 									StandardIcon: smallIcon, LargeIcon: largeIcon);
 								break;
 							}
 							case "Settings":
 							{
-								OptionsButton = controlDefs.AddButtonDefinition("Options", "userOptions",
+								OptionsButton = controlDefs.AddButtonDefinition("Options", "Settings",
 									CommandTypesEnum.kNonShapeEditCmdType, Globals.AddInClientId(),
 									StandardIcon: smallIcon, LargeIcon: largeIcon);
 								break;
 							}
-							case obsoleteprint:
+							case "ObsoletePrint":
 							{
 								ObsoleteButton = controlDefs.AddButtonDefinition("Obsolete" + '\n' + "Print",
-									obsoleteprint, CommandTypesEnum.kNonShapeEditCmdType, Globals.AddInClientId(),
+									"ObsoletePrint", CommandTypesEnum.kNonShapeEditCmdType, Globals.AddInClientId(),
 									StandardIcon: smallIcon, LargeIcon: largeIcon);
 								break;
 							}
@@ -257,7 +271,7 @@ public class StandardAddInServer : ApplicationAddInServer
 							{
 								ExplodeiComponentsButton = controlDefs.AddButtonDefinition(
 									"Explode" + '\n' + "iComponents",
-									explodeicomponents, CommandTypesEnum.kShapeEditCmdType, Globals.AddInClientId(),
+									"Explode iComponents", CommandTypesEnum.kShapeEditCmdType, Globals.AddInClientId(),
 									StandardIcon: smallIcon, LargeIcon: largeIcon);
 								break;
 							}*/
@@ -273,7 +287,7 @@ public class StandardAddInServer : ApplicationAddInServer
 			AddToUserInterface();
 
 			// Connect to the user-interface events to handle a ribbon reset.
-			SetUiEvents(_application.UserInterfaceManager.UserInterfaceEvents);
+			SetUiEvents(ThisApplication.UserInterfaceManager.UserInterfaceEvents);
 
 			// Ensure the option file exists with default values if it doesn't exist
 			if (File.Exists(UserOptions.OptionsFilePath)) return;
@@ -318,6 +332,16 @@ public class StandardAddInServer : ApplicationAddInServer
 
 		try
 		{
+			BatchExport?.Delete(); // Delete new button
+			BatchExport = null;
+		}
+		catch
+		{
+			// ignored
+		}
+
+		try
+		{
 			OptionsButton?.Delete();
 			OptionsButton = null;
 		}
@@ -348,7 +372,7 @@ public class StandardAddInServer : ApplicationAddInServer
 
 		// Release objects.
 		SetUiEvents(null);
-		_application = null;
+		ThisApplication = null;
 
 		// Check for pending update marker
 		var updateMarker = Path.Combine(GetAddInDirectory(), "pending_update.txt");
@@ -367,7 +391,7 @@ public class StandardAddInServer : ApplicationAddInServer
 		}
 		catch (Exception ex)
 		{
-			Console.WriteLine(ex);
+			Debug.WriteLine(ex);
 			// Optionally log or show error
 		}
 
@@ -406,7 +430,7 @@ public class StandardAddInServer : ApplicationAddInServer
 		return directory ?? throw new InvalidOperationException("Could not determine add-in directory");
 	}
 
-	private static async Task CheckForUpdateAndDownloadAsync(Application application)
+	private static async Task CheckForUpdateAndDownloadAsync()
 	{
 		try
 		{
@@ -443,7 +467,7 @@ public class StandardAddInServer : ApplicationAddInServer
 			{
 				await File.WriteAllTextAsync(
 					Path.Combine(GetAddInDirectory(), "pending_update.txt"), "update");
-				application.Quit();
+				ThisApplication.Quit();
 			}
 			else
 			{
@@ -456,7 +480,7 @@ public class StandardAddInServer : ApplicationAddInServer
 		}
 		catch (Exception ex)
 		{
-			Console.WriteLine(ex);
+			Debug.WriteLine(ex);
 			// Optionally log or show error
 		}
 	}
@@ -485,54 +509,68 @@ public class StandardAddInServer : ApplicationAddInServer
 		var options = UserOptions.Load();
 
 		// Cache frequently used objects
-		var uiManager = _application.UserInterfaceManager;
+		var uiManager = ThisApplication.UserInterfaceManager;
 
 		// Define ribbon mappings for each document type
 		var ribbonMappings = new Dictionary<string, Ribbon>
 		{
 			{ "Part", uiManager.Ribbons["Part"] }, { "Assembly", uiManager.Ribbons["Assembly"] },
-			{ drawing, uiManager.Ribbons[drawing] }, { "ZeroDoc", uiManager.Ribbons["ZeroDoc"] }
+			{ "Drawing", uiManager.Ribbons["Drawing"] }, { "ZeroDoc", uiManager.Ribbons["ZeroDoc"] }
 		};
 
 		// Define button configurations with document type specificity
 		// DXF button only appears on Part documents
 		var dxfButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
 		{
-			Tuple.Create("id_TabSheetMetal", dxfupdate, DxfUpdate, SheetMetalManageUnfold),
-			Tuple.Create("id_TabFlatPattern", dxfupdate, DxfUpdate, FlatPatternExit),
-			Tuple.Create("id_TabTools", dxfupdate, DxfUpdate, Item4Array2)
+			Tuple.Create("id_TabSheetMetal", "DXFUpdate", DxfUpdate, SheetMetalManageUnfold),
+			Tuple.Create("id_TabFlatPattern", "DXFUpdate", DxfUpdate, FlatPatternExit),
+			Tuple.Create("id_TabTools", "DXFUpdate", DxfUpdate, ToolsOptions)
 		};
+
+		// Batch Export button - only add if feature is enabled
+		var batchExportButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>();
+		if (options.EnableBatchExport)
+			batchExportButtonConfigs.Add(Tuple.Create("id_TabManage", "BatchExport", BatchExport, AssemblyManagePanel));
 
 		// Option button appears on all document types
 		var optionsButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
 		{
-			Tuple.Create("id_TabPlaceViews", printupdate, PrintUpdate, CustomAddinTab),
-			Tuple.Create(TabAnnotateId, printupdate, PrintUpdate, CustomAddinTab),
-			Tuple.Create("id_TabTools", "userOptions", OptionsButton, ToolsOptions)
+			Tuple.Create("id_TabTools", "Settings", OptionsButton, ToolsOptions)
 		};
 
-		/*// ExplodeiComponents button - appears on Part documents
+		// Print Update button appears on Drawings document types
+		var printButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
+		{
+			Tuple.Create("id_TabPlaceViews", "PrintUpdate", PrintUpdate, AddinTab),
+			Tuple.Create("id_TabAnnotate", "PrintUpdate", PrintUpdate, AddinTab)
+		};
+
+		/*// ExplodeiComponents button appears on Part documents
 		var explodeButtonConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
 		{
-			Tuple.Create("id_TabManage", explodeicomponents, ExplodeiComponentsButton, ManagePanels)
+			Tuple.Create("id_TabManage", "Explode iComponents", ExplodeiComponentsButton, ManagePanels)
 		};*/
 
 		// Obsolete Print button - only add if feature is enabled
 		var obsoletePrintConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>();
 		if (options.EnableObsoletePrint)
-			obsoletePrintConfigs.Add(Tuple.Create(TabAnnotateId, obsoleteprint, ObsoleteButton, AnnotateRevision));
+			obsoletePrintConfigs.Add(Tuple.Create("id_TabAnnotate", "ObsoletePrint", ObsoleteButton, AnnotateRevision));
 
 		// Add buttons to appropriate ribbons based on document context
 		foreach (var (ribbonName, ribbon) in ribbonMappings)
 		{
 			AddButtonsToRibbon(ribbon, ribbonName, "Part", dxfButtonConfigs);
+			if (options.EnableBatchExport)
+				AddButtonsToRibbon(ribbon, ribbonName, "Assembly", batchExportButtonConfigs);
+			AddButtonsToRibbon(ribbon, ribbonName, "Drawing", printButtonConfigs);
 			AddButtonsToRibbon(ribbon, ribbonName, null, optionsButtonConfigs);
 
 			/*if (options.EnableExplodeiComponents)
-				AddButtonsToRibbon(ribbon, ribbonName, stringArray, explodeButtonConfigs);*/
+				AddButtonsToRibbon(ribbon, ribbonName, "Part", explodeButtonConfigs);
+			AddButtonsToRibbon(ribbon, ribbonName, "Assembly", explodeButtonConfigs);*/
 
 			if (options.EnableObsoletePrint)
-				AddButtonsToRibbon(ribbon, ribbonName, drawing, obsoletePrintConfigs);
+				AddButtonsToRibbon(ribbon, ribbonName, "Drawing", obsoletePrintConfigs);
 		}
 	}
 
@@ -603,8 +641,8 @@ public class StandardAddInServer : ApplicationAddInServer
 	{
 		try
 		{
-			return fallbackPanel == addIns
-				? tab.RibbonPanels.Add(addIns, panelName, Globals.AddInClientId())
+			return fallbackPanel == "Add-Ins"
+				? tab.RibbonPanels.Add("Add-Ins", panelName, Globals.AddInClientId())
 				: tab.RibbonPanels[fallbackPanel];
 		}
 		catch
@@ -640,6 +678,29 @@ public class StandardAddInServer : ApplicationAddInServer
 		DXFs.DxfUpdate.RunDxfUpdate();
 	}
 
+	private static void BatchExport_OnExecute() // New method to show BatchExportForm
+	{
+		try
+		{
+			if (ThisApplication.ActiveDocument is not AssemblyDocument)
+			{
+				MessageBox.Show("Batch Export can only be used when an assembly document is active.",
+					"Invalid Document Type", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+		}
+		catch
+		{
+			MessageBox.Show("No active document found. Please open an assembly document before exporting.",
+				"No Active Document", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+			return;
+		}
+
+		var batchExportForm = new BatchExportForm();
+		BatchExportForm.RequestClose += (_, _) => _batchExportPanelWrapper?.Close();
+		_batchExportPanelWrapper     =  new PanelWrapper(batchExportForm, "Batch DXF Export");
+	}
+
 	private static void PrintUpdate_OnExecute()
 	{
 		Prints.PrintUpdate.RunPrintUpdate();
@@ -654,9 +715,9 @@ public class StandardAddInServer : ApplicationAddInServer
 		if (result is true) RefreshRibbon();
 	}
 
-	private void ObsoleteButton_OnExecute()
+	private static void ObsoleteButton_OnExecute()
 	{
-		new Action(() => ObsoletePrint.ApplyObsoletePrint(_application))();
+		ObsoletePrint.ApplyObsoletePrint();
 	}
 
 	/*private static void ExplodeiComponents_OnExecute()
@@ -669,28 +730,32 @@ public class StandardAddInServer : ApplicationAddInServer
 	{
 		try
 		{
-			RemoveButtons(_application);
+			RemoveButtons();
 			AddToUserInterface();
 		}
 		catch (Exception ex)
 		{
-			Console.WriteLine(ex);
+			Debug.WriteLine(ex);
 		}
 	}
 
 	// Generic helper method to remove buttons from specific ribbon/tab combinations
-	private static void RemoveButtons(Application application)
+	private static void RemoveButtons()
 	{
 		try
 		{
 			var buttonRemovalConfigs = new[]
 			{
-				new { RibbonName = drawing, TabName = TabAnnotateId, ButtonInternalName = obsoleteprint },
-				new { RibbonName = drawing, TabName = TabAnnotateId, ButtonInternalName = explodeicomponents }
+				new { RibbonName = "Drawing", TabName = "id_TabAnnotate", ButtonInternalName = "ObsoletePrint" },
+				new
+				{
+					RibbonName = "Assembly", TabName = "id_TabManage", ButtonInternalName = "BatchExport"
+				}, // Added for BatchExport
+				new { RibbonName = "Drawing", TabName = "id_TabAnnotate", ButtonInternalName = "Explode iComponents" }
 			};
 
 			foreach (var config in buttonRemovalConfigs)
-				RemoveButtonFromRibbonTab(application, config.RibbonName, config.TabName, config.ButtonInternalName);
+				RemoveButtonFromRibbonTab(config.RibbonName, config.TabName, config.ButtonInternalName);
 		}
 		catch (Exception ex)
 		{
@@ -699,12 +764,12 @@ public class StandardAddInServer : ApplicationAddInServer
 	}
 
 	// Generic method to remove a specific button from a ribbon tab
-	private static void RemoveButtonFromRibbonTab(Application application, string ribbonName, string tabName,
+	private static void RemoveButtonFromRibbonTab(string ribbonName, string tabName,
 		string buttonInternalName)
 	{
 		try
 		{
-			var ribbon = application.UserInterfaceManager.Ribbons[ribbonName];
+			var ribbon = ThisApplication.UserInterfaceManager.Ribbons[ribbonName];
 
 			var tab = ribbon?.RibbonTabs[tabName];
 			if (tab is null) return;

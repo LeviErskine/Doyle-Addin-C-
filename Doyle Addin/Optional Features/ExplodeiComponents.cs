@@ -137,9 +137,9 @@ public static class ExplodeiComponents
 				{
 					Debug.WriteLine($"--- Processing iPart member {i} of {totalCount} ---");
 
-					factory = factoryDoc.ComponentDefinition.iPartFactory; // Refresh factory reference
-					if (factory == null)
-						throw new InvalidOperationException("Could not access iPart factory.");
+					factory = factoryDoc.ComponentDefinition.iPartFactory ??
+					          throw new InvalidOperationException(
+						          "Could not access iPart factory."); // Refresh factory reference
 
 					var row = factory.TableRows[i];
 					factory.DefaultRow = row;
@@ -166,7 +166,6 @@ public static class ExplodeiComponents
 					dynamic workingDoc = (PartDocument)ThisApplication.Documents.Open(workingCopyPath, false);
 					workingDoc.Update();
 
-					// Set the part number iProperty to ensure it's retained
 					try
 					{
 						var designTrackingProps = workingDoc.PropertySets["Design Tracking Properties"];

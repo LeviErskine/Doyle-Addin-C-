@@ -35,7 +35,7 @@ public static class PdfToImage
 		}
 		catch (Exception ex)
 		{
-			Console.WriteLine(ex);
+			Debug.WriteLine(ex);
 		}
 	}
 
@@ -109,7 +109,7 @@ public static class PdfToImage
 		}
 		catch (Exception ex)
 		{
-			Console.WriteLine($"Failed to export multi-page images: {ex.Message}");
+			Debug.WriteLine($"Failed to export multi-page images: {ex.Message}");
 		}
 	}
 
