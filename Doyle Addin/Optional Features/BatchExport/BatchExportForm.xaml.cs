@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -60,22 +61,11 @@ public partial class BatchExportForm
 			if (stream == null) return null;
 
 			var svgDoc = SvgDocument.Open<SvgDocument>(stream);
-			var layer = svgDoc.Descendants().OfType<SvgGroup>().FirstOrDefault(g =>
-				(g.CustomAttributes.ContainsKey("inkscape:label") &&
-				 g.CustomAttributes["inkscape:label"] == "Dark") ||
-				(g.CustomAttributes.ContainsKey("http://www.inkscape.org/namespaces/inkscape:label") &&
-				 g.CustomAttributes["http://www.inkscape.org/namespaces/inkscape:label"] == "Dark"));
+			var layer  = svgDoc.Descendants().OfType<SvgGroup>().FirstOrDefault(IsDarkLayer);
 
-			SvgDocument docToRender;
-			if (layer != null)
-			{
-				docToRender = new SvgDocument { Width = svgDoc.Width, Height = svgDoc.Height };
-				docToRender.Children.Add(layer.DeepCopy());
-			}
-			else
-			{
-				docToRender = svgDoc;
-			}
+			var docToRender = layer != null
+				? CreateDocumentWithLayer(svgDoc, layer)
+				: svgDoc;
 
 			using var bitmap = docToRender.Draw(16, 16);
 			if (bitmap == null) return null;
@@ -95,6 +85,22 @@ public partial class BatchExportForm
 		{
 			return null;
 		}
+	}
+
+	private static bool IsDarkLayer(SvgGroup g)
+	{
+		const string inkscapeLabel     = "inkscape:label";
+		const string inkscapeNamespace = "http://www.inkscape.org/namespaces/inkscape:label";
+
+		return (g.CustomAttributes.TryGetValue(inkscapeLabel, out var value1) && value1 == "Dark") ||
+		       (g.CustomAttributes.TryGetValue(inkscapeNamespace, out var value2) && value2 == "Dark");
+	}
+
+	private static SvgDocument CreateDocumentWithLayer(SvgDocument svgDoc, SvgGroup layer)
+	{
+		var newDoc = new SvgDocument { Width = svgDoc.Width, Height = svgDoc.Height };
+		newDoc.Children.Add(layer.DeepCopy());
+		return newDoc;
 	}
 
 	[LibraryImport("gdi32.dll")]
@@ -138,6 +144,23 @@ public partial class BatchExportForm
 		return false;
 	}
 
+	private static void HandleTreeItemMouseClick(TreeViewItem item, MouseButtonEventArgs e)
+	{
+		if (FindParentCheckBox(e.OriginalSource as DependencyObject) != null)
+			return; // Let checkbox handle its own click
+
+		if (IsClickOnExpandCollapseButton(e.OriginalSource as DependencyObject))
+			return; // Let expand/collapse button work
+
+		// Only handle if click is on this item, not a child
+		var clickedItem = FindParentTreeViewItem(e.OriginalSource as DependencyObject);
+		if (clickedItem != item)
+			return;
+
+		item.IsSelected = true;
+		e.Handled       = true;
+	}
+
 	/// <summary>Populates <paramref name="nodes" /> and returns true if any sheet metal parts were added.</summary>
 	private bool PopulateTreeView(ComponentOccurrences occurrences,
 		ItemCollection nodes, ImageSource? partIcon, ImageSource? assemblyIcon,
@@ -174,26 +197,10 @@ public partial class BatchExportForm
 							Padding = new Thickness(2, 1, 2, 1)
 						};
 
-						// Clicking anywhere else on the item selects it in Inventor
-						treeItem.PreviewMouseLeftButtonDown += (_, e) =>
-						{
-							if (FindParentCheckBox(e.OriginalSource as DependencyObject) != null)
-								return; // Let checkbox handle its own click
-
-							if (IsClickOnExpandCollapseButton(e.OriginalSource as DependencyObject))
-								return; // Let expand/collapse button work
-
-							// Only handle if click is on this item, not a child
-							var clickedItem = FindParentTreeViewItem(e.OriginalSource as DependencyObject);
-							if (clickedItem != treeItem)
-								return;
-
-							treeItem.IsSelected = true;
-							e.Handled           = true;
-						};
-						checkBox.Checked       += (_, _) => UpdateParentCheckboxesUpTheTree(treeItem);
-						checkBox.Unchecked     += (_, _) => UpdateParentCheckboxesUpTheTree(treeItem);
-						checkBox.Indeterminate += (_, _) => UpdateParentCheckboxesUpTheTree(treeItem);
+						treeItem.PreviewMouseLeftButtonDown += (_, e) => HandleTreeItemMouseClick(treeItem, e);
+						checkBox.Checked                    += (_, _) => UpdateParentCheckboxesUpTheTree(treeItem);
+						checkBox.Unchecked                  += (_, _) => UpdateParentCheckboxesUpTheTree(treeItem);
+						checkBox.Indeterminate              += (_, _) => UpdateParentCheckboxesUpTheTree(treeItem);
 
 						treeItem.Selected += (_, args) =>
 						{
@@ -237,22 +244,7 @@ public partial class BatchExportForm
 						assemblyNode.Header        =  CreateHeaderStackPanel(assemblyIcon, assemblyCheckBox);
 
 						var capturedOccurrence = occurrence;
-						assemblyNode.PreviewMouseLeftButtonDown += (_, e) =>
-						{
-							if (FindParentCheckBox(e.OriginalSource as DependencyObject) != null)
-								return;
-
-							if (IsClickOnExpandCollapseButton(e.OriginalSource as DependencyObject))
-								return; // Let expand/collapse button work
-
-							// Only handle if click is on this item, not a child
-							var clickedItem = FindParentTreeViewItem(e.OriginalSource as DependencyObject);
-							if (clickedItem != assemblyNode)
-								return;
-
-							assemblyNode.IsSelected = true;
-							e.Handled               = true;
-						};
+						assemblyNode.PreviewMouseLeftButtonDown += (_, e) => HandleTreeItemMouseClick(assemblyNode, e);
 
 						assemblyNode.Selected += (_, args) =>
 						{
@@ -310,24 +302,35 @@ public partial class BatchExportForm
 	{
 		if (parent?.Header is not StackPanel sp) return;
 
-		var parentCb = sp.Children.OfType<CheckBox>().FirstOrDefault();
+		var parentCb = GetCheckBoxFromStackPanel(sp);
 		if (parentCb == null) return;
 
+		var (checkedCount, total) = CountCheckedChildren(parent);
+		var newState = checkedCount == 0 ? false :
+			checkedCount == total        ? true : (bool?)null;
+
+		parentCb.SetCurrentValue(ToggleButton.IsCheckedProperty, newState);
+	}
+
+	private static CheckBox? GetCheckBoxFromStackPanel(StackPanel sp)
+	{
+		return sp.Children.OfType<CheckBox>().FirstOrDefault();
+	}
+
+	private static (int checkedCount, int total) CountCheckedChildren(TreeViewItem parent)
+	{
 		var checkedCount = 0;
 		var total        = 0;
 
 		foreach (TreeViewItem child in parent.Items)
 			if (child.Header is StackPanel childSp)
 			{
-				var childCb = childSp.Children.OfType<CheckBox>().FirstOrDefault();
+				var childCb = GetCheckBoxFromStackPanel(childSp);
 				if (childCb?.IsChecked == true) checkedCount++;
 				total++;
 			}
 
-		var newState = checkedCount == 0 ? false :
-			checkedCount == total        ? true : (bool?)null;
-
-		parentCb.SetCurrentValue(ToggleButton.IsCheckedProperty, newState);
+		return (checkedCount, total);
 	}
 
 	/// <summary>
@@ -473,7 +476,7 @@ public partial class BatchExportForm
 		{
 			if (node.Header is StackPanel sp)
 			{
-				var cb = sp.Children.OfType<CheckBox>().FirstOrDefault();
+				var cb = GetCheckBoxFromStackPanel(sp);
 				cb?.SetCurrentValue(ToggleButton.IsCheckedProperty, (bool?)isChecked);
 			}
 
@@ -514,7 +517,7 @@ public partial class BatchExportForm
 		{
 			if (node.Header is StackPanel stackPanel)
 			{
-				var checkBox = stackPanel.Children.OfType<CheckBox>().FirstOrDefault();
+				var checkBox = GetCheckBoxFromStackPanel(stackPanel);
 				if (checkBox is { IsChecked: true, Tag: PartDocument partDoc })
 					selectedParts.Add(partDoc);
 			}
