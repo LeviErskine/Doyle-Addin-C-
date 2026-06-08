@@ -56,7 +56,7 @@ internal static class DxfUpdate
 					if (!ValidateFlatPattern(oDef, partNumber, failedExports))
 						continue;
 
-					ExportDxf(oDef, fileName, partNumber, failedExports);
+					ExportDxf(oDef, fileName, partNumber, failedExports, userOptions);
 					successCount++;
 				}
 				catch (Exception ex)
@@ -140,7 +140,7 @@ internal static class DxfUpdate
 
 			// Create ClickUp task after successful DXF export if enabled
 			if (userOptions.EnableClickUpIntegration)
-				_ = Task.Run(async () => await ClickUpService.CreateDxfExportTaskAsync(partNumber));
+				_ = Task.Run(() => ClickUpService.CreateDxfExportTaskAsync(partNumber));
 		}
 		catch (Exception ex)
 		{

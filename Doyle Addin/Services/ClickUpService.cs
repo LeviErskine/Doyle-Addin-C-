@@ -212,7 +212,8 @@ public static class ClickUpService
 			["status"] = "TO DO"
 		};
 
-		if (!string.IsNullOrWhiteSpace(assigneeId)) taskData["assignees"] = new[] { int.Parse(assigneeId) };
+		if (!string.IsNullOrWhiteSpace(assigneeId) && int.TryParse(assigneeId, out var assigneeIdInt))
+			taskData["assignees"] = new[] { assigneeIdInt };
 
 		var json    = JsonSerializer.Serialize(taskData);
 		var content = new StringContent(json, Encoding.UTF8, "application/json");

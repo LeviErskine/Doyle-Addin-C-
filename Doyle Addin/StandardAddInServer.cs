@@ -39,7 +39,8 @@ public class StandardAddInServer : ApplicationAddInServer
 
 	// Event handler delegates to ensure proper unsubscription
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _dxfUpdateHandler;
-	private readonly ButtonDefinitionSink_OnExecuteEventHandler _explodeiComponentsHandler;
+
+	/*private readonly ButtonDefinitionSink_OnExecuteEventHandler _explodeiComponentsHandler;*/
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _obsoleteButtonHandler;
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _optionsButtonHandler;
 	private readonly ButtonDefinitionSink_OnExecuteEventHandler _printUpdateHandler;
@@ -58,12 +59,12 @@ public class StandardAddInServer : ApplicationAddInServer
 	/// </remarks>
 	public StandardAddInServer()
 	{
-		_dxfUpdateHandler                    = _ => DXFUpdate_OnExecute();
+		_dxfUpdateHandler      = _ => DXFUpdate_OnExecute();
 		_batchExportHandler    = _ => BatchExport_OnExecute();
-		_printUpdateHandler                  = _ => PrintUpdate_OnExecute();
-		_optionsButtonHandler                = _ => OptionsButton_OnExecute();
-		_obsoleteButtonHandler               = _ => ObsoleteButton_OnExecute();
-		_explodeiComponentsHandler           = _ => ExplodeiComponents_OnExecute();
+		_printUpdateHandler    = _ => PrintUpdate_OnExecute();
+		_optionsButtonHandler  = _ => OptionsButton_OnExecute();
+		_obsoleteButtonHandler = _ => ObsoleteButton_OnExecute();
+		/*_explodeiComponentsHandler           = _ => ExplodeiComponents_OnExecute();*/
 		_uiEventsResetRibbonInterfaceHandler = UiEvents_OnResetRibbonInterface;
 	}
 
@@ -206,8 +207,8 @@ public class StandardAddInServer : ApplicationAddInServer
 						new
 						{
 							Name         = "Explode iComponents", Icon = "DoyleAddin.Resources.ExplodeiPart.svg",
-							InternalName = explodeicomponents
-						}
+							InternalName = "explodeicomponents"
+						}*/
 					};
 
 					foreach (var icon in icons)
@@ -562,7 +563,6 @@ public class StandardAddInServer : ApplicationAddInServer
 			AddButtonsToRibbon(ribbon, ribbonName, "Part", dxfButtonConfigs);
 			if (options.EnableBatchExport)
 				AddButtonsToRibbon(ribbon, ribbonName, "Assembly", batchExportButtonConfigs);
-			AddButtonsToRibbon(ribbon, ribbonName, "Drawing", printButtonConfigs);
 			AddButtonsToRibbon(ribbon, ribbonName, "Drawing", printButtonConfigs);
 			AddButtonsToRibbon(ribbon, ribbonName, null, optionsButtonConfigs);
 
