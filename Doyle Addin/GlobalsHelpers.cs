@@ -12,7 +12,7 @@ namespace DoyleAddin;
 internal static class GlobalsHelpers
 {
 	// Inventor application object.
-	internal static Application ThisApplication { get; private set; }
+	internal static Application ThisApplication { get; set; }
 
 	/// <summary>
 	///     Initializes the ThisApplication static field with the Inventor application instance
@@ -20,6 +20,6 @@ internal static class GlobalsHelpers
 	/// <param name="application">The Inventor application instance</param>
 	internal static void Initialize(Application application)
 	{
-		ThisApplication = application ?? throw new ArgumentNullException(nameof(application));
+		ThisApplication = application;
 	}
 }

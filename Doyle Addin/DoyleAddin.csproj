@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows8.0</TargetFramework>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <OutputType>Library</OutputType>
     <MyType>Windows</MyType>
@@ -23,7 +23,7 @@
     <UseWPF>true</UseWPF>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
     <Title>Doyle Addin</Title>
-    <FileVersion>7.1.2.0</FileVersion>
+    <FileVersion>7.2.0.0</FileVersion>
     <Description>Doyle Addin for print and dxf updates</Description>
     <Company>Doyle MFG.</Company>
     <Product>Doyle Macro</Product>
@@ -32,7 +32,7 @@
     <LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>7.1.2.0</AssemblyVersion>
+    <AssemblyVersion>7.2.0.0</AssemblyVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DocumentationFile>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin.xml</DocumentationFile>
@@ -72,10 +72,13 @@
     <Compile Include="DXFs\dxfUpdate.cs" />
     <Compile Include="GlobalsHelpers.cs" />
     <Compile Include="My Project\AssemblyInfo.cs" />
+    <Compile Include="My Project\PanelWrapper.cs" />
     <Compile Include="My Project\SVGconvert.cs" />
+    <Compile Include="Optional Features\BatchExport\BatchExportForm.xaml.cs" />
     <Compile Include="Optional Features\ExplodeiComponents.cs" />
     <Compile Include="Optional Features\ObsoletePrint.cs" />
     <Compile Include="Options\OptionsPane.xaml.cs" />
+    <Compile Include="Options\Themes\ThemeManager.cs" />
     <Compile Include="Prints\PDFToJPG.cs" />
     <Compile Include="Prints\printUpdate.cs" />
     <Compile Include="StandardAddInServer.cs" />
@@ -87,6 +90,13 @@
     <None Include="Autodesk.DoyleAddin.Inventor.addin">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Page Include="Optional Features\BatchExport\BatchExportForm.xaml" />
+    <Page Include="Options\Themes\DarkTheme.xaml" />
+    <Page Include="Options\Themes\Elements.xaml" />
+    <Page Include="Options\Themes\LightTheme.xaml" />
+    <EmbeddedResource Include="Resources\BatchExportIcon.svg" />
+    <EmbeddedResource Include="Resources\Icons\AssemblyIcon.svg" />
+    <EmbeddedResource Include="Resources\Icons\PartIcon.svg" />
     <EmbeddedResource Include="Resources\ObsoletePrint.svg" />
     <EmbeddedResource Include="Resources\PrintUpdateIcon.svg" />
     <EmbeddedResource Include="Resources\DXFUpdateIcon.svg" />
@@ -117,7 +127,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autodesk.Inventor.Sdk" Version="1.0.3" />
-    <PackageReference Include="ClosedXML" Version="0.104.2" />
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
     <PackageReference Include="Docnet.Core" Version="2.7.0-alpha.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="5.0.0">
       <PrivateAssets>all</PrivateAssets>
@@ -125,22 +135,27 @@
     </PackageReference>
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
     <PackageReference Include="Svg" Version="3.4.7" />
-    <PackageReference Include="WPF-UI" Version="4.2.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.9.1" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
   </ItemGroup>
+  <PropertyGroup>
+    <InventorVersion>2025</InventorVersion>
+  </PropertyGroup>
   <ItemGroup>
     <Import Include="Docnet.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Options\Themes\DarkTheme.xaml" />
-    <Page Include="Options\Themes\LightTheme.xaml" />
+    <None Include="Options\Themes\*.xaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <Page Include="Options\OptionsPane.xaml" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\ExplodeiPart.svg" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Doyle Addin Installer.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <Content Include="Doyle Addin Installer.bat" />
   </ItemGroup>
 </Project>
