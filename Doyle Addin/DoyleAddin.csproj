@@ -77,7 +77,6 @@
         <Compile Include="Genius\Forms\GeniusiPart.xaml.cs"/>
         <Compile Include="Genius\Forms\GeniusPart.xaml.cs"/>
         <Compile Include="Genius\Geniusinfo.cs"/>
-        <Compile Include="Genius\PanelWrapper.cs"/>
         <Compile Include="Genius\PropertyExtractor.cs"/>
         <Compile Include="Genius\SqlDataManager.cs"/>
         <Compile Include="Genius\ThumbnailHelper.cs"/>
@@ -108,9 +107,6 @@
     <EmbeddedResource Include="Resources\BatchExportIcon.svg" />
     <EmbeddedResource Include="Resources\Icons\AssemblyIcon.svg" />
     <EmbeddedResource Include="Resources\Icons\PartIcon.svg" />
-        <Page Include="Options\Themes\DarkTheme.xaml"/>
-        <Page Include="Options\Themes\Elements.xaml"/>
-        <Page Include="Options\Themes\LightTheme.xaml"/>
         <EmbeddedResource Include="Resources\GeniusPanel.svg"/>
         <EmbeddedResource Include="Resources\ObsoletePrint.svg"/>
         <EmbeddedResource Include="Resources\PrintUpdateIcon.svg"/>
@@ -152,8 +148,6 @@
         <PackageReference Include="Svg" Version="3.4.7"/>
     <PackageReference Include="System.Data.SqlClient" Version="4.9.1" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
-        <PackageReference Include="System.Data.SqlClient" Version="4.9.1"/>
-        <PackageReference Include="System.Drawing.Common" Version="8.0.0"/>
         <PackageReference Include="WPF-UI" Version="4.2.0"/>
     </ItemGroup>
   <PropertyGroup>
@@ -161,16 +155,6 @@
   </PropertyGroup>
     <ItemGroup>
         <Import Include="Docnet.Core"/>
-    </ItemGroup>
-    <ItemGroup>
-    <None Include="Options\Themes\*.xaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-        <None Include="Options\Themes\*.xaml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
     </ItemGroup>
     <ItemGroup>
         <Page Include="Genius\Forms\GeniusAssembly.xaml"/>
@@ -183,7 +167,9 @@
         <EmbeddedResource Include="Resources\ExplodeiPart.svg"/>
     </ItemGroup>
     <ItemGroup>
-    <Content Include="Doyle Addin Installer.bat" />
+        <None Include="Options\Themes\*.xaml">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
         <None Update="Options\Themes\scrollbarstyle.xaml">
             <Generator>MSBuild:Compile</Generator>
         </None>

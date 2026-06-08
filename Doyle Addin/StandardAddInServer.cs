@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Genius;
+using Genius.Forms;
 using Inventor;
 using My_Project;
 using Optional_Features;
@@ -796,8 +796,58 @@ public class StandardAddInServer : ApplicationAddInServer
 			// Clean up existing wrapper if it exists and is disposed
 			if (_geniusPanelWrapper is { IsDisposed: true }) _geniusPanelWrapper = null;
 
-			// Always create a new instance for the panel
-			_geniusPanelWrapper = new PanelWrapper();
+			// Get the active document and create the appropriate panel
+			var activeDocument = ThisApplication.ActiveDocument;
+			if (activeDocument == null)
+			{
+				MessageBox.Show("No active document. Please open a part or assembly document.",
+					"No Active Document", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+
+			// Create the appropriate panel based on document type
+			switch (activeDocument)
+			{
+				case AssemblyDocument asmDoc:
+				{
+					// Check if it's an i-Assembly (iLogic factory)
+					if (asmDoc.ComponentDefinition.IsiAssemblyFactory)
+					{
+						var geniusiAssemblyPanel = new GeniusiAssembly();
+						_geniusPanelWrapper = new PanelWrapper(geniusiAssemblyPanel, "Genius - i-Assembly");
+					}
+					else
+					{
+						var geniusAssemblyPanel = new GeniusAssembly();
+						_geniusPanelWrapper = new PanelWrapper(geniusAssemblyPanel, "Genius - Assembly");
+					}
+
+					break;
+				}
+				case PartDocument partDoc:
+				{
+					// Check if it's an i-Part (iLogic factory)
+					if (partDoc.ComponentDefinition.IsiPartFactory)
+					{
+						var geniusiPartPanel = new GeniusiPart();
+						_geniusPanelWrapper = new PanelWrapper(geniusiPartPanel, "Genius - i-Part");
+					}
+					else
+					{
+						var geniusPartPanel = new GeniusPart();
+						_geniusPanelWrapper = new PanelWrapper(geniusPartPanel, "Genius - Part");
+					}
+
+					break;
+				}
+				default:
+				{
+					MessageBox.Show(
+						"The active document type is not supported. Please open a part or assembly document.",
+						"Unsupported Document Type", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+					break;
+				}
+			}
 		}
 		catch (Exception ex)
 		{
