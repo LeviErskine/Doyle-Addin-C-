@@ -5,6 +5,7 @@ An Inventor Addin designed to automate the export of prints and DXF files. It in
 ## Features
 
 *   **Automated DXF Export**: Quickly export DXF files from your Inventor models.
+*   **Batch DXF Export** Export all sheet metal DXF in a given assembly.
 *   **Automated Print Export**: Generate prints of your designs with ease.
 *   **Customizable Options**: Configure export locations and other settings through a dedicated options window.
 *   **Ribbon Integration**: Access addin functionalities directly from the Inventor ribbon with intuitive buttons for "Print Update", "DXF Update", and "Options".
