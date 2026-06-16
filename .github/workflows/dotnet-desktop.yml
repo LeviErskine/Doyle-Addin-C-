@@ -38,21 +38,23 @@ jobs:
           $currentVersion = if ($currentVersionNode.FileVersion) { $currentVersionNode.FileVersion } else { "0.0.0.0" }
           $labels = '${{ toJson(github.event.pull_request.labels.*.name) }}' | ConvertFrom-Json
           $labelsLower = $labels | ForEach-Object { $_.ToLower() }
-          $bumpType = "patch"
+          $bumpType = "revision"
           if ($labelsLower -contains "major") { $bumpType = "major" }
           elseif ($labelsLower -contains "minor") { $bumpType = "minor" }
+          elseif ($labelsLower -contains "patch") { $bumpType = "patch" }
           Write-Host "Current: $currentVersion | Bump: $bumpType"
           if ($currentVersion -match '^(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?') {
             $major = [int]$matches[1]
             $minor = [int]$matches[2]
             $patch = [int]$matches[3]
-            $build = if ($matches[4]) { [int]$matches[4] } else { 0 }
+            $revision = if ($matches[4]) { [int]$matches[4] } else { 0 }
             switch ($bumpType) {
-              "major" { $major++; $minor=0; $patch=0; $build=0 }
-              "minor" { $minor++; $patch=0; $build=0 }
-              "patch" { $patch++; $build=0 }
+              "major" { $major++; $minor=0; $patch=0; $revision=0 }
+              "minor" { $minor++; $patch=0; $revision=0 }
+              "patch" { $patch++; $revision=0 }
+              "revision" { $revision++ }
             }
-            $newVersion = "$major.$minor.$patch.$build"
+            $newVersion = "$major.$minor.$patch.$revision"
           } else {
             $newVersion = "0.0.0.0"
           }
@@ -75,7 +77,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `✅ Version automatically bumped to **${{ env.NEW_VERSION || 'N/A' }}** based on the PR label.`
+              body: `✅ Version automatically bumped to **${process.env.NEW_VERSION || 'N/A'}** based on the PR label.`
             })
   release:
     if: github.event.action == 'closed' && github.event.pull_request.merged == true && !contains(join(github.event.pull_request.labels.*.name, ','), 'no-release')
