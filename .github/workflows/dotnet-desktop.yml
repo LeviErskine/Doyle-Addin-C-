@@ -8,16 +8,8 @@ jobs:
   version-bump:
     if: |
       (
-        (github.event.action == 'labeled' &&
-         (github.event.label.name == 'major' || github.event.label.name == 'minor' || github.event.label.name == 'patch') &&
-         github.event.label.name != 'no-release'
-        ) ||
-        (github.event.action == 'synchronize' &&
-         (contains(join(github.event.pull_request.labels.*.name, ','), 'major') ||
-          contains(join(github.event.pull_request.labels.*.name, ','), 'minor') ||
-          contains(join(github.event.pull_request.labels.*.name, ','), 'patch')) &&
-         !contains(join(github.event.pull_request.labels.*.name, ','), 'no-release')
-        )
+        github.event.action == 'labeled' ||
+        github.event.action == 'synchronize'
       )
     runs-on: windows-latest
     permissions:
@@ -32,6 +24,11 @@ jobs:
       - name: Bump version in csproj (on feature branch)
         shell: pwsh
         run: |
+          $lastCommitMessage = git log -1 --pretty=format:"%s"
+          if ($lastCommitMessage -match "via PR label") {
+            Write-Host "Last commit was a version bump, skipping to prevent loop"
+            exit 0
+          }
           $csprojPath = "Doyle Addin/DoyleAddin.csproj"
           [xml]$xml = Get-Content $csprojPath
           $currentVersionNode = $xml.Project.PropertyGroup | Where-Object { $_.FileVersion } | Select-Object -First 1
