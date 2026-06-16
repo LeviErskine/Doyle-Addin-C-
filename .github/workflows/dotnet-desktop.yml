@@ -50,7 +50,7 @@ jobs:
             switch ($bumpType) {
               "major" { $major++; $minor=0; $patch=0; $build=0 }
               "minor" { $minor++; $patch=0; $build=0 }
-              "patch" { $patch++; $build=0 }
+              "patch" { $patch++; $build++ }
             }
             $newVersion = "$major.$minor.$patch.$build"
           } else {
