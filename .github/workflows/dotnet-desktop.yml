@@ -9,14 +9,13 @@ jobs:
     if: |
       (
         (github.event.action == 'labeled' &&
-         (github.event.label.name == 'major' || github.event.label.name == 'minor' || github.event.label.name == 'patch') &&
-         github.event.label.name != 'no-release'
+         (github.event.label.name == 'major' || github.event.label.name == 'minor' || github.event.label.name == 'patch' || github.event.label.name == 'no-release')
         ) ||
         (github.event.action == 'synchronize' &&
          (contains(join(github.event.pull_request.labels.*.name, ','), 'major') ||
           contains(join(github.event.pull_request.labels.*.name, ','), 'minor') ||
-          contains(join(github.event.pull_request.labels.*.name, ','), 'patch')) &&
-         !contains(join(github.event.pull_request.labels.*.name, ','), 'no-release')
+          contains(join(github.event.pull_request.labels.*.name, ','), 'patch') ||
+          contains(join(github.event.pull_request.labels.*.name, ','), 'no-release'))
         )
       )
     runs-on: windows-latest
@@ -38,9 +37,11 @@ jobs:
           $currentVersion = if ($currentVersionNode.FileVersion) { $currentVersionNode.FileVersion } else { "0.0.0.0" }
           $labels = '${{ toJson(github.event.pull_request.labels.*.name) }}' | ConvertFrom-Json
           $labelsLower = $labels | ForEach-Object { $_.ToLower() }
-          $bumpType = "patch"
+          $bumpType = "none"
           if ($labelsLower -contains "major") { $bumpType = "major" }
           elseif ($labelsLower -contains "minor") { $bumpType = "minor" }
+          elseif ($labelsLower -contains "patch") { $bumpType = "patch" }
+          elseif ($labelsLower -contains "no-release") { $bumpType = "build" }
           Write-Host "Current: $currentVersion | Bump: $bumpType"
           if ($currentVersion -match '^(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?') {
             $major = [int]$matches[1]
@@ -51,6 +52,7 @@ jobs:
               "major" { $major++; $minor=0; $patch=0; $build=0 }
               "minor" { $minor++; $patch=0; $build=0 }
               "patch" { $patch++; $build++ }
+              "build" { $build++ }
             }
             $newVersion = "$major.$minor.$patch.$build"
           } else {
