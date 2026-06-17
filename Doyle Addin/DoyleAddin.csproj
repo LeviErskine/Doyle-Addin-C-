@@ -23,53 +23,53 @@
     <UseWPF>true</UseWPF>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
     <Title>Doyle Addin</Title>
-    <FileVersion>7.2.0.0</FileVersion>
-        <Description>Doyle Addin for print and dxf updates</Description>
-        <Company>Doyle MFG.</Company>
-        <Product>Doyle Macro</Product>
-        <Copyright>Copyright ©2025 Autodesk, Inc.</Copyright>
-        <DefaultItemExcludes>$(DefaultItemExcludes);$(ProjectDir)**\*.vb</DefaultItemExcludes>
-        <LangVersion>latest</LangVersion>
-        <IsPackable>false</IsPackable>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>7.2.0.0</AssemblyVersion>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-        <DocumentationFile>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin.xml</DocumentationFile>
-        <NoWarn>42016,42017,42018,42019,42032,42353,42354,42355</NoWarn>
-        <RegisterForComInterop>False</RegisterForComInterop>
-        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-        <OutputPath>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin</OutputPath>
-        <DebugType>full</DebugType>
-        <PlatformTarget>x64</PlatformTarget>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-        <DocumentationFile>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin.xml</DocumentationFile>
-        <NoWarn>42016,42017,42018,42019,42032,42353,42354,42355</NoWarn>
-        <DebugType>none</DebugType>
-        <RegisterForComInterop>False</RegisterForComInterop>
-        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-        <OutputPath>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin</OutputPath>
-        <DebugSymbols>false</DebugSymbols>
-        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-        <PlatformTarget>x64</PlatformTarget>
-    </PropertyGroup>
-    <PropertyGroup>
-        <EnableDefaultItems>false</EnableDefaultItems>
-        <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-        <PackageReadmeFile>Readme.md</PackageReadmeFile>
-        <ImportedNamespaces>Docnet.Core=False,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,System.Xml.Linq=True,System.Threading.Tasks=True,Doyle Addin=True</ImportedNamespaces>
-        <NeutralLanguage>en</NeutralLanguage>
-    </PropertyGroup>
-    <ItemGroup>
-        <Reference Update="System">
-            <Name>System</Name>
-        </Reference>
-    </ItemGroup>
-    <ItemGroup>
-        <Compile Include="DXFs\dxfUpdate.cs"/>
+    <FileVersion>7.2.1.2</FileVersion>
+    <Description>Doyle Addin for print and dxf updates</Description>
+    <Company>Doyle MFG.</Company>
+    <Product>Doyle Macro</Product>
+    <Copyright>Copyright ©2025 Autodesk, Inc.</Copyright>
+    <DefaultItemExcludes>$(DefaultItemExcludes);$(ProjectDir)**\*.vb</DefaultItemExcludes>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyVersion>7.2.1.2</AssemblyVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DocumentationFile>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin.xml</DocumentationFile>
+    <NoWarn>42016,42017,42018,42019,42032,42353,42354,42355</NoWarn>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <OutputPath>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin</OutputPath>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DocumentationFile>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin.xml</DocumentationFile>
+    <NoWarn>42016,42017,42018,42019,42032,42353,42354,42355</NoWarn>
+    <DebugType>none</DebugType>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <OutputPath>C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin</OutputPath>
+    <DebugSymbols>false</DebugSymbols>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <PackageReadmeFile>Readme.md</PackageReadmeFile>
+    <ImportedNamespaces>Docnet.Core=False,System=True,System.Collections=True,System.Collections.Generic=True,System.Diagnostics=True,System.Linq=True,System.Xml.Linq=True,System.Threading.Tasks=True,Doyle Addin=True</ImportedNamespaces>
+    <NeutralLanguage>en</NeutralLanguage>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Update="System">
+      <Name>System</Name>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DXFs\dxfUpdate.cs" />
         <Compile Include="Genius\CalculateProps.cs"/>
         <Compile Include="Genius\Forms\GeniusAssembly.xaml.cs"/>
         <Compile Include="Genius\Forms\GeniusFormsHelper.cs"/>
@@ -80,26 +80,26 @@
         <Compile Include="Genius\PropertyExtractor.cs"/>
         <Compile Include="Genius\SqlDataManager.cs"/>
         <Compile Include="Genius\ThumbnailHelper.cs"/>
-        <Compile Include="GlobalsHelpers.cs"/>
-        <Compile Include="My Project\AssemblyInfo.cs"/>
+    <Compile Include="GlobalsHelpers.cs" />
+    <Compile Include="My Project\AssemblyInfo.cs" />
     <Compile Include="My Project\PanelWrapper.cs" />
-        <Compile Include="My Project\SVGconvert.cs"/>
+    <Compile Include="My Project\SVGconvert.cs" />
     <Compile Include="Optional Features\BatchExport\BatchExportForm.xaml.cs" />
-        <Compile Include="Optional Features\ExplodeiComponents.cs"/>
-        <Compile Include="Optional Features\ObsoletePrint.cs"/>
+    <Compile Include="Optional Features\ExplodeiComponents.cs" />
+    <Compile Include="Optional Features\ObsoletePrint.cs" />
     <Compile Include="Options\OptionsPane.xaml.cs" />
     <Compile Include="Options\Themes\ThemeManager.cs" />
-        <Compile Include="Prints\PDFToJPG.cs"/>
-        <Compile Include="Prints\printUpdate.cs"/>
-        <Compile Include="StandardAddInServer.cs"/>
-    </ItemGroup>
-    <ItemGroup>
-        <Compile Include="Options\UserOptions.cs"/>
-    </ItemGroup>
-    <ItemGroup>
-        <None Include="Autodesk.DoyleAddin.Inventor.addin">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
+    <Compile Include="Prints\PDFToJPG.cs" />
+    <Compile Include="Prints\printUpdate.cs" />
+    <Compile Include="StandardAddInServer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Options\UserOptions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Autodesk.DoyleAddin.Inventor.addin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Page Include="Optional Features\BatchExport\BatchExportForm.xaml" />
     <Page Include="Options\Themes\DarkTheme.xaml" />
     <Page Include="Options\Themes\Elements.xaml" />
@@ -108,76 +108,69 @@
     <EmbeddedResource Include="Resources\Icons\AssemblyIcon.svg" />
     <EmbeddedResource Include="Resources\Icons\PartIcon.svg" />
         <EmbeddedResource Include="Resources\GeniusPanel.svg"/>
-        <EmbeddedResource Include="Resources\ObsoletePrint.svg"/>
-        <EmbeddedResource Include="Resources\PrintUpdateIcon.svg"/>
-        <EmbeddedResource Include="Resources\DXFUpdateIcon.svg"/>
-        <EmbeddedResource Include="Resources\SettingsIcon.svg"/>
-        <None Include="Resources\ObsoleteLibrary.idw">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Include="Updater.bat">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
-    <ItemGroup>
-        <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
-            <Visible>False</Visible>
-            <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
-            <Install>false</Install>
-        </BootstrapperPackage>
-        <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-            <Visible>False</Visible>
-            <ProductName>.NET Framework 3.5 SP1</ProductName>
-            <Install>true</Install>
-        </BootstrapperPackage>
-        <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
-            <Visible>False</Visible>
-            <ProductName>Windows Installer 3.1</ProductName>
-            <Install>true</Install>
-        </BootstrapperPackage>
-    </ItemGroup>
-    <ItemGroup>
-        <PackageReference Include="Autodesk.Inventor.Sdk" Version="1.0.3"/>
+    <EmbeddedResource Include="Resources\ObsoletePrint.svg" />
+    <EmbeddedResource Include="Resources\PrintUpdateIcon.svg" />
+    <EmbeddedResource Include="Resources\DXFUpdateIcon.svg" />
+    <EmbeddedResource Include="Resources\SettingsIcon.svg" />
+    <None Include="Resources\ObsoleteLibrary.idw">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Updater.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Autodesk.Inventor.Sdk" Version="1.0.3" />
     <PackageReference Include="ClosedXML" Version="0.105.0" />
-        <PackageReference Include="Docnet.Core" Version="2.7.0-alpha.1"/>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="5.0.0">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1"/>
-        <PackageReference Include="Svg" Version="3.4.7"/>
+    <PackageReference Include="Docnet.Core" Version="2.7.0-alpha.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="5.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
+    <PackageReference Include="Svg" Version="3.4.7" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.1" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
         <PackageReference Include="WPF-UI" Version="4.2.0"/>
-    </ItemGroup>
+  </ItemGroup>
   <PropertyGroup>
     <InventorVersion>2025</InventorVersion>
   </PropertyGroup>
-    <ItemGroup>
-        <Import Include="Docnet.Core"/>
-    </ItemGroup>
-    <ItemGroup>
-        <Page Include="Genius\Forms\GeniusAssembly.xaml"/>
-        <Page Include="Genius\Forms\GeniusiAssembly.xaml"/>
-        <Page Include="Genius\Forms\GeniusiPart.xaml"/>
-        <Page Include="Genius\Forms\GeniusPart.xaml"/>
-        <Page Include="Options\OptionsPane.xaml"/>
-    </ItemGroup>
-    <ItemGroup>
-        <EmbeddedResource Include="Resources\ExplodeiPart.svg"/>
-    </ItemGroup>
-    <ItemGroup>
-        <None Include="Options\Themes\*.xaml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Options\Themes\scrollbarstyle.xaml">
-            <Generator>MSBuild:Compile</Generator>
-        </None>
-    </ItemGroup>
-    <ItemGroup>
-        <Content Include="Doyle Addin Installer.bat"/>
+  <ItemGroup>
+    <Import Include="Docnet.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Options\Themes\*.xaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Options\OptionsPane.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ExplodeiPart.svg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Doyle Addin Installer.bat" />
         <Content Include="Libs\AdUIModel.dll"/>
         <Content Include="Libs\Autodesk.DataManagement.Client.Framework.Forms.dll"/>
         <Content Include="Libs\InvUIModelPropertyPanel.dll"/>
-    </ItemGroup>
+  </ItemGroup>
 </Project>
