@@ -139,7 +139,7 @@
     <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
   </ItemGroup>
   <PropertyGroup>
-    <InventorVersion>2025</InventorVersion>
+    <InventorVersion>2026</InventorVersion>
   </PropertyGroup>
   <ItemGroup>
     <Import Include="Docnet.Core" />
