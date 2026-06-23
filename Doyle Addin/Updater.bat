@@ -1,6 +1,20 @@
 @echo off
 SETLOCAL EnableDelayedExpansion
-timeout /t 5 /nobreak
+
+REM --- Optional: Inventor process ID to wait for before deleting ---
+SET "INVENTOR_PID=%~1"
+
+REM --- Wait for Inventor to fully exit before touching its files ---
+IF NOT "%INVENTOR_PID%"=="" (
+    ECHO Waiting for Inventor process %INVENTOR_PID% to exit...
+    :WAIT_FOR_EXIT
+    timeout /t 2 /nobreak >NUL
+    tasklist /FI "PID eq %INVENTOR_PID%" 2>NUL | find /I "Inventor.exe" >NUL
+    IF NOT ERRORLEVEL 1 GOTO WAIT_FOR_EXIT
+    ECHO Inventor process exited. Proceeding with update.
+)
+
+timeout /t 3 /nobreak
 REM --- Configuration ---
 SET GITHUB_USER=LeviErskine
 SET GITHUB_REPO=Doyle-AddIn-C-
