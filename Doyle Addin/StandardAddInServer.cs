@@ -380,10 +380,12 @@ public class StandardAddInServer : ApplicationAddInServer
 		if (!File.Exists(updateMarker) || !File.Exists(updaterBat)) return;
 		try
 		{
-			// Start Updater.bat in a detached process
+			// Start Updater.bat in a detached process, passing the current process ID
+			// so it can wait for Inventor to fully exit before deleting locked files.
 			var psi = new ProcessStartInfo
 			{
 				FileName        = updaterBat,
+				Arguments       = Process.GetCurrentProcess().Id.ToString(),
 				WindowStyle     = ProcessWindowStyle.Normal,
 				UseShellExecute = true
 			};
