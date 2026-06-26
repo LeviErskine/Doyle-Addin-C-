@@ -48,6 +48,20 @@
         <IsWebBootstrapper>true</IsWebBootstrapper>
         <UseApplicationTrust>false</UseApplicationTrust>
         <BootstrapperEnabled>true</BootstrapperEnabled>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <UseWPF>true</UseWPF>
+    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+    <Title>Doyle Addin</Title>
+    <FileVersion>7.2.3.0</FileVersion>
+    <Description>Doyle Addin for print and dxf updates</Description>
+    <Company>Doyle MFG.</Company>
+    <Product>Doyle Macro</Product>
+    <Copyright>Copyright ©2025 Autodesk, Inc.</Copyright>
+    <DefaultItemExcludes>$(DefaultItemExcludes);$(ProjectDir)**\*.vb</DefaultItemExcludes>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyVersion>7.2.3.0</AssemblyVersion>
     </PropertyGroup>
 
     <!-- Debug Configuration -->
@@ -101,6 +115,7 @@
     <!-- Compile Items -->
     <ItemGroup>
         <Compile Include="DXFs\dxfUpdate.cs"/>
+    <Compile Include="GlobalUsings.cs" />
         <Compile Include="Genius\CalculateProps.cs"/>
         <Compile Include="Genius\ConnectionStringProvider.cs"/>
         <Compile Include="Genius\Forms\AskFamily.xaml.cs"/>
@@ -215,6 +230,9 @@
         <PackageReference Include="System.Drawing.Common" Version="8.0.0"/>
         <PackageReference Include="WPF-UI" Version="4.2.0"/>
     </ItemGroup>
+  <PropertyGroup>
+    <InventorVersion>2026</InventorVersion>
+  </PropertyGroup>
 
     <!-- Global Usings / Imports -->
     <ItemGroup>
