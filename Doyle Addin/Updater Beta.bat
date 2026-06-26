@@ -19,23 +19,20 @@ REM --- Configuration ---
 SET GITHUB_USER=LeviErskine
 SET GITHUB_REPO=Doyle-AddIn-C-
 SET ADDIN_NAME=DoyleAddin
-REM This should be the base name of your add-in files (e.g., DoyleAddin.dll, DoyleAddin.addin)
 
 REM --- Instructions ---
 REM This script is designed to be placed directly inside the Add-in's installation folder
-REM (e.g., C:\ProgramData\Autodesk\Inventor Addins\DoyleAddin) and run from there.
-REM It will automatically detect its location and update the contents of that folder.
+REM and run from there. It will automatically detect its location and update the contents.
 
 REM --- Define target directory (automatically detected from this script's location) ---
 SET "TARGET_ADDINS_PATH=%~dp0"
-REM Clean up the trailing backslash from the path for consistency
 IF "%TARGET_ADDINS_PATH:~-1%"=="\" SET "TARGET_ADDINS_PATH=%TARGET_ADDINS_PATH:~0,-1%"
 
 REM --- Get the name of this script to ensure it is not deleted during cleanup ---
 SET "SCRIPT_FILENAME=%~nx0"
 
 ECHO.
-ECHO Updating %ADDIN_NAME% Add-in...
+ECHO Updating %ADDIN_NAME% Add-in (BETA channel)...
 ECHO Target directory: "%TARGET_ADDINS_PATH%"
 ECHO Installer script: "!SCRIPT_FILENAME!"
 ECHO.
@@ -43,15 +40,15 @@ ECHO.
 REM --- Clean up existing installation (deletes all files/folders except this script) ---
 ECHO Removing existing add-in files...
 
-REM Delete all files in the current directory, EXCEPT for this running script.
 FOR /F "delims=" %%i IN ('dir /b /a-d "%TARGET_ADDINS_PATH%"') DO (
     IF /I NOT "%%i" == "!SCRIPT_FILENAME!" (
-        ECHO  - Deleting file: %%i
-        DEL /F /Q "%TARGET_ADDINS_PATH%\%%i"
+        IF /I NOT "%%i" == "Updater.bat" (
+            ECHO  - Deleting file: %%i
+            DEL /F /Q "%TARGET_ADDINS_PATH%\%%i"
+        )
     )
 )
 
-REM Delete all subdirectories in the current directory.
 FOR /D %%i IN ("%TARGET_ADDINS_PATH%\*") DO (
     ECHO  - Deleting folder: %%i
     RMDIR /S /Q "%%i"
@@ -59,24 +56,41 @@ FOR /D %%i IN ("%TARGET_ADDINS_PATH%\*") DO (
 ECHO Cleanup of old files complete.
 ECHO.
 
-REM --- Download the latest release ZIP from GitHub directly to the target folder ---
+REM --- Find the latest pre-release via GitHub API ---
+ECHO Looking up latest pre-release...
+SET API_URL=https://api.github.com/repos/%GITHUB_USER%/%GITHUB_REPO%/releases
+
+powershell -Command "try { $r = Invoke-RestMethod -Uri '%API_URL%' -UseBasicParsing | Where-Object { $_.prerelease -eq $true } | Select-Object -First 1; if ($r) { $a = $r.assets | Where-Object { $_.name -eq '%ADDIN_NAME%.zip' } | Select-Object -First 1; if ($a) { Write-Output $a.browser_download_url } else { Write-Output 'ASSET_NOT_FOUND' } } else { Write-Output 'NO_PRERELEASE' } } catch { Write-Output 'API_ERROR' }" > "%TEMP%\gh_download_url.txt"
+SET /P DOWNLOAD_URL=<"%TEMP%\gh_download_url.txt"
+
+IF "%DOWNLOAD_URL%"=="NO_PRERELEASE" (
+    ECHO ERROR: No pre-release found for this repository.
+    PAUSE
+    GOTO :EOF
+)
+IF "%DOWNLOAD_URL%"=="ASSET_NOT_FOUND" (
+    ECHO ERROR: Pre-release found but %ADDIN_NAME%.zip asset is missing.
+    PAUSE
+    GOTO :EOF
+)
+IF "%DOWNLOAD_URL%"=="API_ERROR" (
+    ECHO ERROR: Failed to query GitHub API. Check your internet connection.
+    PAUSE
+    GOTO :EOF
+)
+
 SET ZIP_FILENAME=%ADDIN_NAME%.zip
-SET DOWNLOAD_URL="https://github.com/%GITHUB_USER%/%GITHUB_REPO%/releases/latest/download/%ZIP_FILENAME%"
 SET TARGET_ZIP_PATH="%TARGET_ADDINS_PATH%\%ZIP_FILENAME%"
 
-ECHO Downloading latest release from %DOWNLOAD_URL%...
+ECHO Downloading latest pre-release from %DOWNLOAD_URL%...
 powershell -Command "Invoke-WebRequest -Uri '%DOWNLOAD_URL%' -OutFile '%TARGET_ZIP_PATH%' -UseBasicParsing"
 IF %ERRORLEVEL% NEQ 0 (
-    ECHO ERROR: Failed to download the zip file. Check your internet connection or the GitHub URL.
+    ECHO ERROR: Failed to download the zip file.
     PAUSE
     GOTO :EOF
 )
 
 ECHO Download complete. Extracting new files...
-
-REM --- Extract the ZIP file directly into the target directory ---
-REM The -DestinationPath will extract the contents of the ZIP to TARGET_ADDINS_PATH.
-REM IMPORTANT: Ensure your ZIP file contains the DLL and .addin at its root.
 powershell -Command "Expand-Archive -LiteralPath '%TARGET_ZIP_PATH%' -DestinationPath '%TARGET_ADDINS_PATH%' -Force"
 IF %ERRORLEVEL% NEQ 0 (
     ECHO ERROR: Failed to extract the zip file.
@@ -85,15 +99,14 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 ECHO.
-ECHO %ADDIN_NAME% Add-in updated successfully!
+ECHO %ADDIN_NAME% Add-in (BETA) updated successfully!
 ECHO It should load next time Inventor starts.
 ECHO.
 
 :CLEANUP_ZIP
-REM Delete the downloaded zip file after extraction
 IF EXIST "%TARGET_ZIP_PATH%" (
     ECHO Deleting temporary zip file...
-    DEL /Q %TARGET_ZIP_PATH%
+    DEL /Q "%TARGET_ZIP_PATH%"
 )
 
 ECHO Update process finished.

@@ -16,7 +16,7 @@ public class UserOptions : INotifyPropertyChanged
 	///     This file contains serialized user settings and preferences.
 	/// </summary>
 	public static readonly string OptionsFilePath =
-		Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DoyleAddinOptions.xml");
+		Combine(GetFolderPath(SpecialFolder.ApplicationData), "DoyleAddinOptions.xml");
 
 	/// <summary>
 	///     Specifies the directory path where PDF files will be exported during the print update process.
@@ -68,6 +68,17 @@ public class UserOptions : INotifyPropertyChanged
 			if (value == field) return;
 			field = value;
 			OnPropertyChanged(nameof(EnableBatchExport));
+		}
+	} = false;
+
+	public bool IsBetaEnabled
+	{
+		get;
+		set
+		{
+			if (value == field) return;
+			field = value;
+			OnPropertyChanged(nameof(IsBetaEnabled));
 		}
 	} = false;
 

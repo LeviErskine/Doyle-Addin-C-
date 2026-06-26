@@ -4,6 +4,12 @@ on:
     types: [labeled, synchronize, closed]
     branches:
       - master
+  workflow_dispatch:
+    inputs:
+      version_override:
+        description: 'Optional version (e.g. 1.2.3.4). Leave blank to use csproj version.'
+        required: false
+        type: string
 jobs:
   version-bump:
     if: |
@@ -67,7 +73,7 @@ jobs:
           git push origin ${{ github.head_ref }}
           echo "NEW_VERSION=$newVersion" >> $env:GITHUB_ENV
   release:
-    if: github.event.action == 'closed' && github.event.pull_request.merged == true && !contains(join(github.event.pull_request.labels.*.name, ','), 'no-release')
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true && !contains(join(github.event.pull_request.labels.*.name, ','), 'no-release') && !contains(join(github.event.pull_request.labels.*.name, ','), 'Pre-Release')
     runs-on: windows-latest
     permissions:
       contents: write
@@ -99,6 +105,54 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: Release v${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: |
+            DoyleAddin.zip
+            Doyle.Addin.Installer.bat
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  pre-release:
+    if: |
+      (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && contains(join(github.event.pull_request.labels.*.name, ','), 'Pre-Release'))
+      || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Get version
+        id: version
+        shell: pwsh
+        run: |
+          $override = '${{ inputs.version_override }}'
+          if ($override -ne '') {
+            echo "version=$override" >> $env:GITHUB_OUTPUT
+          } else {
+            [xml]$xml = Get-Content "Doyle Addin/DoyleAddin.csproj"
+            $ver = ($xml.Project.PropertyGroup | Where-Object { $_.FileVersion } | Select-Object -First 1).FileVersion
+            echo "version=$ver" >> $env:GITHUB_OUTPUT
+          }
+      - name: Publish
+        run: |
+          dotnet publish DoyleAddin.sln -c Release -o ./publish/DoyleAddin
+      - name: Zip
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "./publish/DoyleAddin/*" -DestinationPath "DoyleAddin.zip" -Force
+      - name: Create Pre-Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Pre-Release v${{ steps.version.outputs.version }}
+          prerelease: true
           generate_release_notes: true
           files: |
             DoyleAddin.zip
