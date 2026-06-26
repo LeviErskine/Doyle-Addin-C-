@@ -2,10 +2,7 @@
 
 using System.Collections.Generic;
 using System.Windows.Forms;
-using Inventor;
 using Options;
-using Environment = Environment;
-using Path = Path;
 
 internal static class DxfUpdate
 {
@@ -46,7 +43,7 @@ internal static class DxfUpdate
 
 					var propertySets = partDoc.PropertySets["Design Tracking Properties"];
 					var partNumber   = propertySets["Part Number"].Value.ToString();
-					var fileName     = Path.Combine(userOptions.DxfExportLocation, partNumber + ".dxf");
+					var fileName     = Combine(userOptions.DxfExportLocation, partNumber + ".dxf");
 
 					if (!CreateFlatPattern(oDef, partNumber, failedExports))
 						continue;
@@ -68,8 +65,8 @@ internal static class DxfUpdate
 				var message = $"Exported {successCount} of {selectedParts.Count} parts successfully.";
 				if (failedExports.Count > 0)
 				{
-					message += Environment.NewLine + Environment.NewLine + "Errors:" + Environment.NewLine +
-					           string.Join(Environment.NewLine, failedExports);
+					message += NewLine + NewLine + "Errors:" + NewLine +
+					           string.Join(NewLine, failedExports);
 					MessageBox.Show(message, "Batch Export Complete", MessageBoxButtons.OK,
 						MessageBoxIcon.Warning);
 				}
@@ -157,7 +154,7 @@ internal static class DxfUpdate
 
 		var memberDef  = openedDoc.ComponentDefinition as SheetMetalComponentDefinition;
 		var partNumber = openedDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString();
-		var oiFileName = Path.Combine(userOptions.DxfExportLocation, partNumber + ".dxf");
+		var oiFileName = Combine(userOptions.DxfExportLocation, partNumber + ".dxf");
 
 		if (!ValidateFlatPattern(memberDef, partNumber, failedExports))
 		{
@@ -200,7 +197,7 @@ internal static class DxfUpdate
 
 		if (failedExports.Count > 0)
 			MessageBox.Show(failedExports.Count + " Members have errors and were skipped." +
-			                Environment.NewLine + string.Join(Environment.NewLine, failedExports));
+			                NewLine + string.Join(NewLine, failedExports));
 		else
 			MessageBox.Show("Created " + total + " DXFs. All exports succeeded.");
 	}
@@ -210,8 +207,8 @@ internal static class DxfUpdate
 	{
 		if (oPartDoc._ComatoseNodesCount > 0 || oPartDoc._SickNodesCount > 0)
 		{
-			MessageBox.Show(oPartDoc.DisplayName + " has errors, fix before export." + Environment.NewLine +
-			                string.Join(Environment.NewLine, failedExports));
+			MessageBox.Show(oPartDoc.DisplayName + " has errors, fix before export." + NewLine +
+			                string.Join(NewLine, failedExports));
 			return;
 		}
 
@@ -227,7 +224,7 @@ internal static class DxfUpdate
 				modelState.Activate();
 				var currentStatePartNumber =
 					oPartDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString();
-				var fileName = Path.Combine(Path.GetDirectoryName(oFileName) ?? "", $"{currentStatePartNumber}.dxf");
+				var fileName = Combine(GetDirectoryName(oFileName) ?? "", $"{currentStatePartNumber}.dxf");
 
 				if (!CreateFlatPattern(oDef, currentStatePartNumber, failedExports))
 				{
@@ -247,9 +244,9 @@ internal static class DxfUpdate
 		// Show results
 		if (failedExports.Count > 0)
 		{
-			MessageBox.Show($"{exportCount} of {totalCount} model states exported successfully." + Environment.NewLine +
-			                $"{failedExports.Count} errors:" + Environment.NewLine +
-			                string.Join(Environment.NewLine, failedExports),
+			MessageBox.Show($"{exportCount} of {totalCount} model states exported successfully." + NewLine +
+			                $"{failedExports.Count} errors:" + NewLine +
+			                string.Join(NewLine, failedExports),
 				"Export Results", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 		}
 		else
@@ -282,7 +279,7 @@ internal static class DxfUpdate
 		var propertySets  = oPartDoc.PropertySets["Design Tracking Properties"];
 		var pn            = propertySets["Part Number"].Value.ToString();
 		var userOptions   = UserOptions.Load();
-		var oFileName     = Path.Combine(userOptions.DxfExportLocation, pn + ".dxf");
+		var oFileName     = Combine(userOptions.DxfExportLocation, pn + ".dxf");
 
 		// Check if a part is a factory and delegate to the appropriate processor
 		if (oDef.IsiPartFactory)

@@ -2,11 +2,7 @@
 
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
-using Inventor;
-using Path = Path;
 
 /// <summary>
 ///     Provides a centralized location for constant values used throughout the Genius plugin,
@@ -26,7 +22,6 @@ public static class GeniusConstants
 
 	public const string DesignTrackingProperties = "Design Tracking Properties";
 	public const string UserDefinedProperties = "Inventor User Defined Properties";
-	public const string SummaryInformation = "Inventor Summary Information";
 
 	public static readonly string[] StandardProps = ["Part Number", "Description", "Cost Center"];
 
@@ -49,8 +44,6 @@ public static class Geniusinfo
 		IAssembly
 	}
 
-	public const string DefaultConnectionString = GeniusConstants.DefaultConnectionString;
-
 	private static readonly Dictionary<string, string> InventorToSqlColumnMap = new(StringComparer.OrdinalIgnoreCase)
 	{
 		["Part Number"]   = "Item",
@@ -66,19 +59,41 @@ public static class Geniusinfo
 		["RMQTY"]         = "RMQTY"
 	};
 
+	/// <summary>
+	///     Reverse mapping from SQL column names to Inventor property names, built once for O(1) lookups.
+	/// </summary>
+	private static readonly Dictionary<string, string> SqlToInventorColumnMap;
+
+	static Geniusinfo()
+	{
+		SqlToInventorColumnMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+		foreach (var kvp in InventorToSqlColumnMap)
+			// If multiple Inventor properties map to the same SQL column, the last one wins (consistent behavior).
+			SqlToInventorColumnMap[kvp.Value] = kvp.Key;
+	}
+
+	/// <summary>
+	///     Returns true if the given panel type represents a table-driven (iPart/iAssembly) document.
+	/// </summary>
+	public static bool IsTableDriven(PanelType panelType)
+	{
+		return panelType is PanelType.IPart or PanelType.IAssembly;
+	}
+
 	public static string GetSqlColumnName(string inventorPropertyName)
 	{
-		return string.IsNullOrEmpty(inventorPropertyName)
-			? inventorPropertyName
-			: InventorToSqlColumnMap.GetValueOrDefault(inventorPropertyName, inventorPropertyName);
+		return !string.IsNullOrEmpty(inventorPropertyName) &&
+		       InventorToSqlColumnMap.TryGetValue(inventorPropertyName, out var sqlColumn)
+			? sqlColumn
+			: inventorPropertyName;
 	}
 
 	public static string GetInventorPropertyName(string sqlColumnName)
 	{
-		if (string.IsNullOrEmpty(sqlColumnName)) return sqlColumnName;
-		return InventorToSqlColumnMap
-		       .FirstOrDefault(kvp => kvp.Value.Equals(sqlColumnName, StringComparison.OrdinalIgnoreCase)).Key ??
-		       sqlColumnName;
+		return !string.IsNullOrEmpty(sqlColumnName) &&
+		       SqlToInventorColumnMap.TryGetValue(sqlColumnName, out var inventorProperty)
+			? inventorProperty
+			: sqlColumnName;
 	}
 
 	public static PanelType GetPanelType(Document doc = null)
@@ -90,24 +105,33 @@ public static class Geniusinfo
 
 			return targetDoc switch
 			{
-				PartDocument partDoc => partDoc.ComponentDefinition.iPartFactory != null ||
-				                        partDoc.ComponentDefinition.ModelStates?.Count > 1
+				PartDocument partDoc => HasMultipleModelStatesOrFactory(partDoc.ComponentDefinition)
 					? PanelType.IPart
 					: PanelType.Part,
-				AssemblyDocument assyDoc => assyDoc.ComponentDefinition.iAssemblyFactory != null ||
-				                            assyDoc.ComponentDefinition.ModelStates?.Count > 1
+				AssemblyDocument assyDoc => HasMultipleModelStatesOrFactory(assyDoc.ComponentDefinition)
 					? PanelType.IAssembly
 					: PanelType.Assembly,
 				_ => PanelType.Part
 			};
 		}
-		catch
+		catch (Exception ex) when (ex is NullReferenceException or InvalidCastException)
 		{
+			Debug.WriteLine($"GetPanelType: {ex.Message}");
 			return PanelType.Part;
 		}
 	}
 
-	public static DataTable GetAllAssemblyChildren()
+	private static bool HasMultipleModelStatesOrFactory(PartComponentDefinition compDef)
+	{
+		return compDef.iPartFactory != null || compDef.ModelStates?.Count > 1;
+	}
+
+	private static bool HasMultipleModelStatesOrFactory(AssemblyComponentDefinition compDef)
+	{
+		return compDef.iAssemblyFactory != null || compDef.ModelStates?.Count > 1;
+	}
+
+	public static DataTable GetAllAssemblyChildren(AssemblyDocument assemblyDoc = null)
 	{
 		var childrenTable = new DataTable();
 		childrenTable.Columns.Add("Level", typeof(int));
@@ -118,14 +142,16 @@ public static class Geniusinfo
 		childrenTable.Columns.Add("FullPath", typeof(string));
 		childrenTable.Columns.Add("IsPurchased", typeof(bool));
 
-		if (ThisApplication.ActiveDocument is not AssemblyDocument assemblyDoc) return childrenTable;
+		assemblyDoc ??= ThisApplication.ActiveDocument as AssemblyDocument;
+		if (assemblyDoc == null) return childrenTable;
 
+		var compDef            = assemblyDoc.ComponentDefinition;
 		var processedDocuments = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		var parentPath         = assemblyDoc.FullFileName;
 
 		try
 		{
-			ProcessOccurrences(assemblyDoc.ComponentDefinition.Occurrences, 1);
+			GetOccurrences(compDef.Occurrences, 1);
 		}
 		catch (Exception ex)
 		{
@@ -134,18 +160,28 @@ public static class Geniusinfo
 
 		return childrenTable;
 
-		void ProcessOccurrences(ComponentOccurrences occurrences, int level)
+		void GetOccurrences(ComponentOccurrences occurrences, int level)
 		{
-			foreach (var occ in occurrences.Cast<ComponentOccurrence>().Where(occ =>
-				         !occ.Suppressed && !occ.Excluded && (int)occ.BOMStructure is not (2 or 4)))
+			foreach (ComponentOccurrence occ in occurrences)
 			{
+				try
+				{
+					if (occ.Suppressed || occ.Excluded) continue;
+					if ((int)occ.BOMStructure is 2 or 4) continue;
+					if (occ.IsiAssemblyMember || occ.IsiPartMember) continue;
+				}
+				catch
+				{
+					continue;
+				}
+
 				string    path;
 				_Document doc = null;
 				try
 				{
-					if (occ.Definition.Document is _Document d)
+					if (occ.Definition.Document is _Document document)
 					{
-						doc  = d;
+						doc  = document;
 						path = doc.FullFileName;
 					}
 					else
@@ -177,7 +213,7 @@ public static class Geniusinfo
 						/* ignore */
 					}
 
-					if (string.IsNullOrEmpty(partNumber)) partNumber = Path.GetFileNameWithoutExtension(path);
+					if (string.IsNullOrEmpty(partNumber)) partNumber = GetFileNameWithoutExtension(path);
 				}
 				else
 				{
@@ -189,18 +225,24 @@ public static class Geniusinfo
 				childrenTable.Rows.Add(level, partNumber, description, docType, false, path, isPurchased);
 
 				if (occ.DefinitionDocumentType == kAssemblyDocumentObject &&
-				    occ.Definition is AssemblyComponentDefinition subDef &&
+				    occ.Definition is AssemblyComponentDefinition assemblyComponentDefinition &&
 				    !isPurchased)
-					ProcessOccurrences(subDef.Occurrences, level + 1);
+					GetOccurrences(assemblyComponentDefinition.Occurrences, level + 1);
 			}
 		}
 	}
 }
 
-public interface IPropertyComparator;
-
-public class PropertyComparator(ISqlDataManager sqlDataManager) : IPropertyComparator
+public class PropertyComparator(ISqlDataManager sqlDataManager)
 {
+	/// <summary>
+	///     Custom property names to include for non-assembly documents (cached to avoid re-allocation).
+	/// </summary>
+	private static readonly string[] NonAssemblyCustomProps =
+	[
+		"Thickness", "Extent_Width", "Extent_Length", "Extent_Area", "RM", "RMUNIT", "RMQTY"
+	];
+
 	public ISqlDataManager SqlDataManager { get; } = sqlDataManager;
 
 	public async Task<DataTable> ComparePropertiesAsync(Document document = null)
@@ -228,11 +270,9 @@ public class PropertyComparator(ISqlDataManager sqlDataManager) : IPropertyCompa
 			var sqlData   = await SqlDataManager.GetSqlDataAsync(partNumber);
 			var panelType = Geniusinfo.GetPanelType(document);
 
-			var customProps = new List<string> { "GeniusMass" };
-			if (panelType is not (Geniusinfo.PanelType.Assembly or Geniusinfo.PanelType.IAssembly))
-				customProps.AddRange([
-					"Thickness", "Extent_Width", "Extent_Length", "Extent_Area", "RM", "RMUNIT", "RMQTY"
-				]);
+			var customProps = new List<string>(1 + NonAssemblyCustomProps.Length) { "GeniusMass" };
+			if (!Geniusinfo.IsTableDriven(panelType) && panelType != Geniusinfo.PanelType.Assembly)
+				customProps.AddRange(NonAssemblyCustomProps);
 
 			foreach (var prop in GeniusConstants.StandardProps.Concat(customProps))
 			{

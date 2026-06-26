@@ -1,32 +1,26 @@
 namespace DoyleAddin.Genius;
 
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using Forms;
-using Inventor;
-using Path = Path;
-
-/// <summary>
-///     Defines operations for extracting properties from Inventor documents.
-/// </summary>
-public interface IPropertyExtractor;
 
 /// <summary>
 ///     Retrieves custom iProperties and standard properties from Inventor documents.
 /// </summary>
-public abstract class PropertyExtractor : IPropertyExtractor
+public static class PropertyExtractor
 {
-	public static Dictionary<string, string> GetAllProperties()
+	public static IReadOnlyDictionary<string, string> GetAllProperties()
 	{
-		return ThisApplication.ActiveDocument is { } doc ? GetPropertiesFromDocumentStatic(doc) : [];
+		return ThisApplication.ActiveDocument is { } doc
+			? GetPropertiesFromDocumentStatic(doc)
+			: new Dictionary<string, string>();
 	}
 
-	public static Dictionary<string, string> GetPropertiesFromDocumentStatic(Document document)
+	public static IReadOnlyDictionary<string, string> GetPropertiesFromDocumentStatic(Document document)
 	{
+		ArgumentNullException.ThrowIfNull(document);
+
 		var properties = new Dictionary<string, string>();
-		if (document == null) return properties;
 
 		try
 		{
@@ -40,7 +34,7 @@ public abstract class PropertyExtractor : IPropertyExtractor
 		}
 		catch (Exception ex)
 		{
-			Debug.WriteLine($"Error in GetPropertiesFromDocumentStatic: {ex.Message}");
+			Debug.WriteLine($"Error in {nameof(GetPropertiesFromDocumentStatic)}: {ex.Message}");
 		}
 
 		return properties;
@@ -58,8 +52,9 @@ public abstract class PropertyExtractor : IPropertyExtractor
 			{
 				if (!namesToFind.Contains(prop.Name)) continue;
 
-				var value                                               = prop.Value?.ToString();
-				if (!string.IsNullOrEmpty(value)) properties[prop.Name] = value;
+				var value = prop.Value?.ToString();
+				if (!string.IsNullOrEmpty(value))
+					properties[prop.Name] = value;
 
 				namesToFind.Remove(prop.Name);
 				if (namesToFind.Count == 0) break;
@@ -73,10 +68,45 @@ public abstract class PropertyExtractor : IPropertyExtractor
 
 	public static Document FindDocumentByPartNumber(string partNumber)
 	{
-		return ThisApplication?.Documents.Cast<Document>().FirstOrDefault(doc =>
-			string.Equals(doc.DisplayName, partNumber, StringComparison.OrdinalIgnoreCase) ||
-			string.Equals(Path.GetFileNameWithoutExtension(doc.FullFileName), partNumber,
+		var doc = ThisApplication?.Documents.Cast<Document>().FirstOrDefault(d =>
+			string.Equals(d.DisplayName, partNumber, StringComparison.OrdinalIgnoreCase) ||
+			string.Equals(GetFileNameWithoutExtension(d.FullFileName), partNumber,
 				StringComparison.OrdinalIgnoreCase));
+		if (doc != null) return doc;
+
+		var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		var active  = ThisApplication?.ActiveDocument;
+		if (active == null) return null;
+
+		var queue = new Queue<Document>();
+		queue.Enqueue(active);
+		visited.Add(active.FullFileName ?? string.Empty);
+
+		while (queue.Count > 0)
+		{
+			var current = queue.Dequeue();
+			if (current.FullFileName == null) continue;
+
+			try
+			{
+				foreach (var referenced in current.ReferencedFiles.Cast<Document>().Where(referenced =>
+					         referenced?.FullFileName != null && visited.Add(referenced.FullFileName)))
+				{
+					if (string.Equals(referenced.DisplayName, partNumber, StringComparison.OrdinalIgnoreCase) ||
+					    string.Equals(GetFileNameWithoutExtension(referenced.FullFileName), partNumber,
+						    StringComparison.OrdinalIgnoreCase))
+						return referenced;
+
+					queue.Enqueue(referenced);
+				}
+			}
+			catch
+			{
+				// Skip documents whose referenced files can't be enumerated
+			}
+		}
+
+		return null;
 	}
 
 	public static async Task<(List<PropertyRow> geniusRows, List<PropertyRow> invRows)> LoadPropertiesForPart(
@@ -89,52 +119,51 @@ public abstract class PropertyExtractor : IPropertyExtractor
 			var panelType  = Geniusinfo.GetPanelType(document);
 			var isAssembly = panelType is Geniusinfo.PanelType.Assembly or Geniusinfo.PanelType.IAssembly;
 
-			var excludedProps = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-			if (isAssembly)
-			{
-				excludedProps.Add("Thickness");
-				excludedProps.Add("Extent_Width");
-				excludedProps.Add("Extent_Length");
-				excludedProps.Add("Extent_Area");
-			}
-
-			var geniusRows = sqlData.Select(kvp =>
-			{
-				var invName = GeniusFormsHelper.MapSqlColumnToInventorProperty(kvp.Key);
-				if (excludedProps.Contains(invName)) return null;
-
-				var invVal = invProps.GetValueOrDefault(invName, "");
-				return new PropertyRow
+			var excludedProps = isAssembly
+				? new HashSet<string>(StringComparer.OrdinalIgnoreCase)
 				{
-					Property           = invName,
-					["SQL Value"]      = kvp.Value,
-					["Inventor Value"] = invVal,
-					HasDifference      = !GeniusFormsHelper.ValuesAreEqual(kvp.Value, invVal)
-				};
-			}).Where(row => row != null).ToList();
+					"Thickness", "Extent_Width", "Extent_Length", "Extent_Area"
+				}
+				: new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+			var geniusRows = sqlData
+			                 .Where(kvp =>
+				                 !excludedProps.Contains(GeniusFormsHelper.MapSqlColumnToInventorProperty(kvp.Key)))
+			                 .Select(kvp =>
+			                 {
+				                 var invName = GeniusFormsHelper.MapSqlColumnToInventorProperty(kvp.Key);
+				                 var invVal  = invProps.GetValueOrDefault(invName, "");
+				                 return new PropertyRow
+				                 {
+					                 Property           = invName,
+					                 ["SQL Value"]      = kvp.Value,
+					                 ["Inventor Value"] = invVal
+				                 };
+			                 })
+			                 .ToList();
 
 			if (geniusRows.Count == 0)
 				geniusRows.Add(new PropertyRow { Property = "Info", ["SQL Value"] = "No data found" });
 
-			var invRows = invProps.Select(kvp =>
-			{
-				if (excludedProps.Contains(kvp.Key)) return null;
-
-				var sqlVal = sqlData.GetValueOrDefault(Geniusinfo.GetSqlColumnName(kvp.Key), "");
-				return new PropertyRow
-				{
-					Property           = kvp.Key,
-					["Inventor Value"] = kvp.Value,
-					["SQL Value"]      = sqlVal,
-					HasDifference      = !GeniusFormsHelper.ValuesAreEqual(sqlVal, kvp.Value)
-				};
-			}).Where(row => row != null).ToList();
+			var invRows = invProps
+			              .Where(kvp => !excludedProps.Contains(kvp.Key))
+			              .Select(kvp =>
+			              {
+				              var sqlVal = sqlData.GetValueOrDefault(Geniusinfo.GetSqlColumnName(kvp.Key), "");
+				              return new PropertyRow
+				              {
+					              Property           = kvp.Key,
+					              ["Inventor Value"] = kvp.Value,
+					              ["SQL Value"]      = sqlVal
+				              };
+			              })
+			              .ToList();
 
 			return (geniusRows, invRows);
 		}
 		catch (Exception ex)
 		{
-			Debug.WriteLine($"GeniusiAssembly: Load properties error: {ex.Message}");
+			Debug.WriteLine($"{nameof(PropertyExtractor)}: Load properties error: {ex.Message}");
 		}
 
 		return ([], []);
@@ -147,8 +176,9 @@ public abstract class PropertyExtractor : IPropertyExtractor
 			result = sets[setName];
 			return true;
 		}
-		catch
+		catch (Exception ex) when (ex is NullReferenceException or IndexOutOfRangeException)
 		{
+			// The property set does not exist in this document; this is expected for some document types.
 			result = null;
 			return false;
 		}

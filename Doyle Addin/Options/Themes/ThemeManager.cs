@@ -1,6 +1,5 @@
 namespace DoyleAddin.Options.Themes;
 
-using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Markup;
@@ -112,12 +111,12 @@ public static class ThemeManager
 		try
 		{
 			var asmLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? ".";
-			var resourcePath = Path.Combine(asmLocation, ThemesFolder.Replace('/', Path.DirectorySeparatorChar),
+			var resourcePath = Combine(asmLocation, ThemesFolder.Replace('/', DirectorySeparatorChar),
 				resourceName + ThemeFileExtension);
 
 			if (!File.Exists(resourcePath)) return null;
 
-			using var fs = File.OpenRead(resourcePath);
+			using var fs = OpenRead(resourcePath);
 			return (ResourceDictionary)XamlReader.Load(fs);
 		}
 		catch
@@ -149,10 +148,10 @@ public static class ThemeManager
 	{
 		// Only remove existing dictionaries with the same name, not all theme dictionaries
 
-		var resourceName = Path.GetFileNameWithoutExtension(resourceDictionary.Source?.OriginalString);
+		var resourceName = GetFileNameWithoutExtension(resourceDictionary.Source?.OriginalString);
 		var toRemove = element.Resources.MergedDictionaries.Where(md =>
 		{
-			var sourceName = Path.GetFileNameWithoutExtension(md.Source?.OriginalString);
+			var sourceName = GetFileNameWithoutExtension(md.Source?.OriginalString);
 			return sourceName == resourceName;
 		}).ToList();
 

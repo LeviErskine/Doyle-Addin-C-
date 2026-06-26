@@ -1,6 +1,5 @@
 namespace DoyleAddin.Prints;
 
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Reflection;
@@ -102,9 +101,9 @@ public static class PdfToImage
 				// Export this page as an image with the page-specific part number
 				ExportPageAsImage(docReader, pageIndex,
 					!string.IsNullOrEmpty(pagePartNumber)
-						? Path.Combine(outputPath, pagePartNumber + ".jpg")
+						? Combine(outputPath, pagePartNumber + ".jpg")
 						// Fallback to drawing part number if page-specific part number not found
-						: Path.Combine(outputPath, drawingPartNumber + $"_page{pageIndex + 1}.jpg"));
+						: Combine(outputPath, drawingPartNumber + $"_page{pageIndex + 1}.jpg"));
 			}
 		}
 		catch (Exception ex)
@@ -123,7 +122,7 @@ public static class PdfToImage
 
 		public PathManager()
 		{
-			_originalPath = Environment.GetEnvironmentVariable("PATH");
+			_originalPath = GetEnvironmentVariable("PATH");
 
 			try
 			{
@@ -131,11 +130,11 @@ public static class PdfToImage
 				var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
 				if (assemblyLocation == null) return;
-				var nativeDllPath = Path.Combine(assemblyLocation, "runtimes", "win-x64", "native");
+				var nativeDllPath = Combine(assemblyLocation, "runtimes", "win-x64", "native");
 
 				if (Directory.Exists(nativeDllPath))
 					// Add the native DLL path to the beginning of the PATH environment variable
-					Environment.SetEnvironmentVariable("PATH", nativeDllPath + ";" + _originalPath);
+					SetEnvironmentVariable("PATH", nativeDllPath + ";" + _originalPath);
 			}
 			catch
 			{
@@ -148,7 +147,7 @@ public static class PdfToImage
 			if (_disposed) return;
 			// Restore the full original PATH
 			if (!string.IsNullOrEmpty(_originalPath))
-				Environment.SetEnvironmentVariable("PATH", _originalPath);
+				SetEnvironmentVariable("PATH", _originalPath);
 			_disposed = true;
 		}
 	}

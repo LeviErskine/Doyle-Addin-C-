@@ -3,11 +3,8 @@
 using System.Windows.Forms;
 using Docnet.Core;
 using Docnet.Core.Models;
-using Inventor;
 using Options;
-using Environment = Environment;
-using File = File;
-using Path = Path;
+using static Path;
 
 internal static class PrintUpdate
 {
@@ -31,16 +28,16 @@ internal static class PrintUpdate
 		var pn        = oDDoc.PropertySets["Design Tracking Properties"]["Part Number"].Value.ToString();
 
 		// Check if Part Number matches Filename
-		var fileNameWithoutExt = Path.GetFileNameWithoutExtension(oDDoc.FullFileName);
+		var fileNameWithoutExt = GetFileNameWithoutExtension(oDDoc.FullFileName);
 		if (!string.IsNullOrEmpty(fileNameWithoutExt) &&
 		    !string.Equals(pn, fileNameWithoutExt, StringComparison.OrdinalIgnoreCase))
 		{
 			var result = MessageBox.Show(
 				$"The document's Part Number '{pn}' does not match the filename '{fileNameWithoutExt}'." +
-				Environment.NewLine +
+				NewLine +
 				"Update to match the filename?" +
-				Environment.NewLine +
-				Environment.NewLine +
+				NewLine +
+				NewLine +
 				"If this was intentional select 'No'",
 				"Part Number Mismatch",
 				MessageBoxButtons.YesNoCancel,
@@ -62,13 +59,13 @@ internal static class PrintUpdate
 		if (string.IsNullOrEmpty(oFilePath))
 		{
 			MessageBox.Show(
-				"This file has not been saved yet or save location cannot be found" + Environment.NewLine,
+				"This file has not been saved yet or save location cannot be found" + NewLine,
 				"Save error", MessageBoxButtons.OK, MessageBoxIcon.Information);
 			return;
 		}
 
 		var fileName = pn + ".pdf";
-		var pdfPath  = Path.Combine(oFilePath, fileName);
+		var pdfPath  = Combine(oFilePath, fileName);
 		var oPdfAddin =
 			(TranslatorAddIn)ThisApplication.ApplicationAddIns.ItemById["{0AC6FD96-2F4D-42CE-8BE0-8AEA580399E4}"];
 		Document oDocument = ThisApplication.ActiveDocument;
@@ -89,7 +86,7 @@ internal static class PrintUpdate
 		{
 			// Publish document
 			oPdfAddin.SaveCopyAs(oDocument, oContext, oOptions, oDataMedium);
-			PdfToImage.ExportFirstPageAsImage(pdfPath, Path.Combine(oFilePath, pn + ".jpg"));
+			PdfToImage.ExportFirstPageAsImage(pdfPath, Combine(oFilePath, pn + ".jpg"));
 		}
 		catch
 		{
@@ -118,8 +115,8 @@ internal static class PrintUpdate
 			if (pageCount == 1)
 			{
 				// Single page - use existing logic
-				PdfToImage.ExportFirstPageAsImage(pdfPath, Path.Combine(oFilePath, pn + ".jpg"));
-				if (File.Exists(pdfPath)) File.Delete(pdfPath);
+				PdfToImage.ExportFirstPageAsImage(pdfPath, Combine(oFilePath, pn + ".jpg"));
+				if (Exists(pdfPath)) Delete(pdfPath);
 			}
 			else
 			{

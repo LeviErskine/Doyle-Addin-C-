@@ -1,12 +1,9 @@
 ﻿namespace DoyleAddin.Optional_Features;
 
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using ClosedXML.Excel;
-using Inventor;
 using IOFile = File;
 using IOPath = Path;
 
@@ -159,7 +156,7 @@ public static class ExplodeiComponents
 					}
 
 					var workingCopyPath =
-						IOPath.Combine(IOPath.GetTempPath(), $"iPart_WorkingCopy_{Guid.NewGuid():N}.ipt");
+						Combine(GetTempPath(), $"iPart_WorkingCopy_{Guid.NewGuid():N}.ipt");
 					Debug.WriteLine($"Creating working copy: {workingCopyPath}");
 					factoryDoc.SaveAs(workingCopyPath, true);
 
@@ -242,7 +239,7 @@ public static class ExplodeiComponents
 						try
 						{
 							if (IOFile.Exists(workingCopyPath))
-								IOFile.Delete(workingCopyPath);
+								Delete(workingCopyPath);
 						}
 						catch (Exception ex)
 						{
@@ -353,7 +350,7 @@ public static class ExplodeiComponents
 	{
 		if (string.IsNullOrWhiteSpace(outputDirectory)) return string.Empty;
 
-		var tempPath = IOPath.Combine(outputDirectory, $"iComponent_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+		var tempPath = Combine(outputDirectory, $"iComponent_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
 
 		try
 		{
@@ -413,9 +410,9 @@ public static class ExplodeiComponents
 	private static string GetComponentDirectory(Document factoryDoc)
 	{
 		var fullFileName = factoryDoc.FullFileName ?? string.Empty;
-		var factoryDir   = IOPath.GetDirectoryName(fullFileName);
-		var factoryBase  = IOPath.GetFileNameWithoutExtension(fullFileName);
-		return IOPath.Combine(factoryDir ?? string.Empty, factoryBase);
+		var factoryDir   = GetDirectoryName(fullFileName);
+		var factoryBase  = GetFileNameWithoutExtension(fullFileName);
+		return Combine(factoryDir ?? string.Empty, factoryBase);
 	}
 
 	/// <summary>
@@ -426,7 +423,7 @@ public static class ExplodeiComponents
 		Debug.WriteLine($"SaveAsStandard called with path: {filePath}");
 
 		// Ensure directory exists
-		var directory = IOPath.GetDirectoryName(filePath);
+		var directory = GetDirectoryName(filePath);
 		Debug.WriteLine($"Target directory: {directory}");
 
 		if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
@@ -437,12 +434,12 @@ public static class ExplodeiComponents
 
 		// Save as copy using temp file to avoid SaveAs issues
 		Debug.WriteLine("Saving document to " + filePath);
-		var tempFilePath = IOPath.Combine(IOPath.GetTempPath(), $"Export_{Guid.NewGuid():N}.{extension}");
+		var tempFilePath = Combine(GetTempPath(), $"Export_{Guid.NewGuid():N}.{extension}");
 		Debug.WriteLine("Saving document to temp path " + tempFilePath);
 		doc.SaveAs(tempFilePath, true);
 		Debug.WriteLine("Temp save successful; copying to target");
-		IOFile.Copy(tempFilePath, filePath, true);
-		IOFile.Delete(tempFilePath);
+		Copy(tempFilePath, filePath, true);
+		Delete(tempFilePath);
 		Debug.WriteLine("Copy to target successful");
 	}
 
@@ -585,18 +582,18 @@ public static class ExplodeiComponents
 			var sanitized           = SanitizeFileName(raw);
 			return !string.IsNullOrWhiteSpace(sanitized)
 				? sanitized
-				: SanitizeFileName(IOPath.GetFileNameWithoutExtension(doc.FullFileName ?? string.Empty));
+				: SanitizeFileName(GetFileNameWithoutExtension(doc.FullFileName ?? string.Empty));
 		}
 		catch
 		{
-			return SanitizeFileName(IOPath.GetFileNameWithoutExtension(doc.FullFileName ?? string.Empty)) ?? "Member";
+			return SanitizeFileName(GetFileNameWithoutExtension(doc.FullFileName ?? string.Empty)) ?? "Member";
 		}
 	}
 
 	private static string SanitizeFileName(string value)
 	{
 		if (string.IsNullOrWhiteSpace(value)) return string.Empty;
-		value = IOPath.GetInvalidFileNameChars().Aggregate(value, (current, c) => current.Replace(c, '_'));
+		value = GetInvalidFileNameChars().Aggregate(value, (current, c) => current.Replace(c, '_'));
 		return value.Trim();
 	}
 }

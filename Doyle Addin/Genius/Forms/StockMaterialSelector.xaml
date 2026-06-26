@@ -1,0 +1,155 @@
+<UserControl
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    x:Class="DoyleAddin.Genius.Forms.StockMaterialSelector"
+    FontFamily="Tahoma" FontSize="12" Foreground="{DynamicResource Menu.Static.Foreground}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/DoyleAddin;component/Options/Themes/DarkTheme.xaml" />
+                <ResourceDictionary Source="/DoyleAddin;component/Options/Themes/Elements.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <Style x:Key="WatermarkedTextBox" TargetType="TextBox">
+                <Setter Property="Background" Value="{DynamicResource TextBox.Background}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource TextBox.Static.Border}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBox.Foreground}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="5">
+                                <Grid>
+                                    <TextBlock x:Name="Placeholder"
+                                               Text="{TemplateBinding Tag}"
+                                               Foreground="Gray"
+                                               IsHitTestVisible="False"
+                                               Visibility="Collapsed"
+                                               Margin="5"
+                                               VerticalAlignment="Center" />
+                                    <ScrollViewer x:Name="PART_ContentHost" />
+                                </Grid>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="Text" Value="">
+                                    <Setter TargetName="Placeholder" Property="Visibility" Value="Visible" />
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="Placeholder" Property="Visibility" Value="Collapsed" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid Background="{DynamicResource BackgroundColorBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <GroupBox Header="Detected Part Information" Grid.Row="0" Margin="5,5,5,10"
+                  Style="{DynamicResource GroupBox Style}">
+            <StackPanel Margin="5">
+                <TextBlock Text="Stock Type:" FontWeight="Bold" Foreground="{DynamicResource TextBox.Foreground}" />
+                <TextBlock x:Name="StockTypeText" Margin="5,0,0,5" xml:space="preserve" />
+
+                <TextBlock Text="Part Number:" FontWeight="Bold" Margin="0,5,0,0"
+                           Foreground="{DynamicResource TextBox.Foreground}" />
+                <TextBlock x:Name="PartNumberText" Margin="5,0,0,5" xml:space="preserve" />
+
+                <StackPanel x:Name="RoundStockTypePanel" Margin="0,5,0,5" Visibility="Collapsed">
+                    <TextBlock Text="Material Type:" FontWeight="Bold"
+                               Foreground="{DynamicResource TextBox.Foreground}" />
+                    <ComboBox x:Name="RoundStockTypeComboBox"
+                              Style="{DynamicResource ComboBoxStyle}"
+                              Margin="5,5,0,0"
+                              Height="25"
+                              DisplayMemberPath="DisplayName"
+                              SelectionChanged="RoundStockTypeComboBox_SelectionChanged" Width="150"
+                              HorizontalAlignment="Left" />
+                </StackPanel>
+
+                <TextBlock Text="Dimensions:" FontWeight="Bold" Margin="0,5,0,0"
+                           Foreground="{DynamicResource TextBox.Foreground}" />
+                <TextBlock x:Name="DimensionsText" Margin="5,0,0,5" xml:space="preserve" />
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Grid.Row="1" Margin="5,0,5,10" Style="{DynamicResource GroupBox Style}"
+                  Header="Select the Family for this part:">
+            <Grid UseLayoutRounding="True">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200*" />
+                    <ColumnDefinition Width="147*" />
+                </Grid.ColumnDefinitions>
+                <ComboBox x:Name="CostCenterComboBox"
+                          Style="{DynamicResource ComboBoxStyle}" Margin="5,5,5,5" Height="25" />
+                <CheckBox x:Name="SearchAllFamiliesCheckBox"
+                          Content="Search All Families"
+                          Foreground="{DynamicResource TextBox.Foreground}" Style="{DynamicResource CheckBoxStyle}"
+                          Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" />
+            </Grid>
+        </GroupBox>
+        <GroupBox Style="{DynamicResource GroupBox Style}"
+                  Header="Multiple matching materials found. Please select the correct one:" Grid.Row="2"
+                  Margin="5,0,5,10">
+            <Grid d:LayoutOverrides="Width">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="138*" />
+                    <ColumnDefinition Width="200*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="200*" />
+                    <RowDefinition Height="200*" />
+                </Grid.RowDefinitions>
+                <TextBox x:Name="SearchTextBox"
+                         Style="{StaticResource WatermarkedTextBox}"
+                         Tag="Search materials..."
+                         ToolTip="Search materials"
+                         GotFocus="SearchTextBox_GotFocus"
+                         LostFocus="SearchTextBox_LostFocus" Grid.Column="1" Margin="5,5,5,5" Height="25"
+                         Padding="5,5,5,5" VerticalContentAlignment="Center" Visibility="Collapsed" />
+                <CheckBox Grid.Row="0" Grid.Column="0" x:Name="ShowAllMaterialsCheckBox"
+                          Content="Show All Materials" Style="{DynamicResource CheckBoxStyle}" Margin="5,0,5,0"
+                          d:LayoutOverrides="Height" Padding="5,0,0,0" VerticalAlignment="Center" />
+                <CheckBox x:Name="MadeFromAnotherPartCheckBox"
+                          Content="Made From Another Part" Style="{DynamicResource CheckBoxStyle}" Grid.Row="1"
+                          Grid.Column="0" Margin="5,0,5,5" Padding="4,0,0,0" VerticalAlignment="Center"
+                          Visibility="Collapsed" />
+            </Grid>
+        </GroupBox>
+
+        <DataGrid x:Name="MatchesDataGrid"
+                  Grid.Row="3"
+                  Style="{DynamicResource StockDataGridStyle}" d:ItemsSource="{d:SampleData ItemCount=5}"
+                  IsReadOnly="True"
+                  Margin="5,0,5,10" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Item Number" Binding="{Binding [RM]}" Width="Auto" />
+                <DataGridTextColumn Header="Description" Binding="{Binding [Description1]}" Width="250" />
+                <DataGridTextColumn Header="Thickness" Binding="{Binding [Thickness]}" Width="*" />
+                <DataGridTextColumn Header="Width" Binding="{Binding [Width]}" Width="*" />
+                <DataGridTextColumn Header="Length" Binding="{Binding [Length]}" Width="*" />
+                <DataGridTextColumn Header="Diameter" Binding="{Binding [Diameter]}" Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="SelectButton" Content="Select" Width="75" Height="25" Margin="0,0,5,0"
+                    Click="SelectButton_Click" Style="{DynamicResource ButtonStyle}" />
+            <Button x:Name="CancelButton" Content="Cancel" Width="75" Height="25"
+                    Click="CancelButton_Click" Style="{DynamicResource ButtonStyle}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -6,8 +6,8 @@
     xmlns:data="clr-namespace:System.Data;assembly=System.Data"
     mc:Ignorable="d"
     x:Class="DoyleAddin.Genius.Forms.GeniusPart"
-    d:DataContext="{d:DesignInstance Type=data:DataRowView, IsDesignTimeCreatable=False}" d:DesignWidth="305"
-    d:DesignHeight="446" FontFamily="Tahoma" UseLayoutRounding="True">
+    d:DataContext="{d:DesignInstance Type=data:DataRowView, IsDesignTimeCreatable=False}" d:DesignWidth="430"
+    d:DesignHeight="605" FontFamily="Tahoma" UseLayoutRounding="True">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -16,59 +16,115 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid x:Name="grid">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200*" />
-        </Grid.ColumnDefinitions>
+    <Grid Background="{DynamicResource BackgroundColorBrush}" RenderTransformOrigin="0.5,0.5" UseLayoutRounding="False">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="VisualStateGroup">
+                <VisualState x:Name="Regular_Parts">
+                    <Storyboard>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="IPart_StopButton"
+                                                       Storyboard.TargetProperty="(UIElement.Visibility)">
+                            <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="{x:Static Visibility.Collapsed}" />
+                        </ObjectAnimationUsingKeyFrames>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CalculateEachMember"
+                                                       Storyboard.TargetProperty="(UIElement.Visibility)">
+                            <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="{x:Static Visibility.Collapsed}" />
+                        </ObjectAnimationUsingKeyFrames>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="MemberPanel"
+                                                       Storyboard.TargetProperty="(UIElement.Visibility)">
+                            <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="{x:Static Visibility.Collapsed}" />
+                        </ObjectAnimationUsingKeyFrames>
+                        <Int32AnimationUsingKeyFrames Storyboard.TargetName="Grids"
+                                                      Storyboard.TargetProperty="(UniformGrid.Columns)">
+                            <EasingInt32KeyFrame KeyTime="00:00:00" Value="1" />
+                        </Int32AnimationUsingKeyFrames>
+                        <Int32AnimationUsingKeyFrames Storyboard.TargetName="RegularButtons"
+                                                      Storyboard.TargetProperty="(UniformGrid.Columns)">
+                            <EasingInt32KeyFrame KeyTime="00:00:00" Value="3" />
+                        </Int32AnimationUsingKeyFrames>
+                    </Storyboard>
+                </VisualState>
+                <VisualState x:Name="iParts" />
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
         <Grid.RowDefinitions>
-            <RowDefinition Height="20" />
-            <RowDefinition Height="50*" />
-            <RowDefinition Height="20" />
-            <RowDefinition Height="50*" />
-            <RowDefinition Height="33" />
+            <RowDefinition />
+            <RowDefinition Height="30" />
         </Grid.RowDefinitions>
-        <Label Content="Genius Properties" Foreground="{DynamicResource NormalText}" VerticalContentAlignment="Center"
-               HorizontalAlignment="Left" Padding="0,0,0,0" VerticalAlignment="Bottom" Margin="5,0,0,0"
-               FontSize="14" />
-
-        <DataGrid x:Name="SqlDataGrid"
-                  Style="{DynamicResource CompleteDataGridStyle}" d:ItemsSource="{d:SampleData ItemCount=5}"
-                  Grid.Row="1" Margin="5,5,5,5">
-
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Property" Binding="{Binding [Property]}" IsReadOnly="True" />
-                <DataGridTextColumn Header="Genius Value" Binding="{Binding [SQL Value]}" IsReadOnly="True"
-                                    CanUserSort="False" Width="*" />
-            </DataGrid.Columns>
-        </DataGrid>
-
-        <Label Content="Inventor Properties" Foreground="{DynamicResource NormalText}"
-               VerticalContentAlignment="Center" Grid.Row="2" HorizontalAlignment="Left" Padding="0,0,0,0"
-               VerticalAlignment="Bottom" Margin="5,0,0,0"
-               FontSize="14" />
-
-        <DataGrid x:Name="InventorDataGrid"
-                  Style="{DynamicResource CompleteDataGridStyle}" d:ItemsSource="{d:SampleData ItemCount=5}"
-                  Height="{Binding Height, ElementName=SqlDataGrid}" Width="{Binding Width, ElementName=SqlDataGrid}"
-                  Grid.Row="3" Margin="5,5,5,5" CellEditEnding="InventorDataGrid_CellEditEnding">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Property" Binding="{Binding [Property]}" IsReadOnly="True" />
-                <DataGridTextColumn Header="Inventor Value" Binding="{Binding [Inventor Value]}"
-                                    IsReadOnly="False" Width="*" />
-            </DataGrid.Columns>
-        </DataGrid>
-
-        <StackPanel x:Name="Buttons" Orientation="Horizontal" Grid.Row="4" HorizontalAlignment="Center">
-
-            <Button x:Name="CalculatePropsButton" Content="Calculate Properties"
-                    Click="CalculatePropsButton_Click" Height="20" Width="115" Margin="5,5,5,5"
-                    Style="{DynamicResource ButtonStyle}" />
+        <UniformGrid x:Name="RegularButtons" Visibility="Visible" Columns="5" Grid.Row="1">
+            <Button x:Name="CalculateEachMember" Content="Get All Props"
+                    Style="{DynamicResource ButtonStyle}"
+                    Click="CalculateEachMember_Click" Margin="5,5,2.5,5" />
+            <Button x:Name="CalculatePropsButton" Content="Get Properties"
+                    Click="CalculatePropsButton_Click"
+                    Style="{DynamicResource ButtonStyle}" Margin="2.5,5,2.5,5" />
+            <Button x:Name="IPart_StopButton" Content="Stop" Click="StopButton_Click"
+                    IsEnabled="False"
+                    Style="{DynamicResource ButtonStyle}" Margin="2.5,5,2.5,5" />
             <Button x:Name="SaveButton" Content="Save" Click="SaveButton_Click"
-                    IsEnabled="False" Height="20" Width="80" Margin="0,5,0,5"
-                    Style="{DynamicResource ButtonStyle}" />
+                    IsEnabled="False"
+                    Style="{DynamicResource ButtonStyle}" Margin="2.5,5,2.5,5" />
             <Button x:Name="CancelButton" Content="Cancel" Click="CancelButton_Click"
-                    IsEnabled="False" Height="20" Width="80" Margin="5,5,5,5"
-                    Style="{DynamicResource ButtonStyle}" />
-        </StackPanel>
+                    IsEnabled="False"
+                    Style="{DynamicResource ButtonStyle}" Margin="2.5,5,5,5" />
+        </UniformGrid>
+        <UniformGrid x:Name="Grids" Grid.Row="0" Columns="2">
+            <DockPanel x:Name="MemberPanel">
+                <Label Content="Members" Foreground="{DynamicResource NormalText}" UseLayoutRounding="True"
+                       FontSize="14" DockPanel.Dock="Top" Margin="5,5,5,3" Padding="0,0,0,0" HorizontalAlignment="Left" />
+                <DataGrid x:Name="Members"
+                          ScrollViewer.CanContentScroll="True"
+                          ScrollViewer.VerticalScrollBarVisibility="Visible"
+                          ScrollViewer.HorizontalScrollBarVisibility="Visible"
+                          d:ItemsSource="{d:SampleData ItemCount=30}" AlternationCount="0"
+                          Style="{DynamicResource CompleteDataGridStyle}"
+                          SelectionChanged="ChildrenDataGrid_SelectionChanged" DockPanel.Dock="Bottom"
+                          UseLayoutRounding="False" Margin="5,0,2.5,0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Part Number" Binding="{Binding PartNumber}" IsReadOnly="True"
+                                            CanUserSort="True" SortDirection="Ascending" />
+                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" IsReadOnly="True"
+                                            CanUserSort="False" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+            <UniformGrid Rows="2">
+                <DockPanel>
+                    <Label Content="Genius Properties" Foreground="{DynamicResource NormalText}"
+                           VerticalContentAlignment="Center" Padding="0,0,0,0" FontSize="14" DockPanel.Dock="Top"
+                           Margin="2.5,5,5,3" UseLayoutRounding="False" HorizontalAlignment="Left" />
+                    <DataGrid x:Name="SqlDataGrid"
+                              Style="{DynamicResource CompleteDataGridStyle}"
+                              d:ItemsSource="{d:SampleData ItemCount=5}" DockPanel.Dock="Bottom" Margin="2.5,0,5,0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Property" Binding="{Binding Property}" IsReadOnly="True" />
+                            <DataGridTextColumn Header="Genius Value" Binding="{Binding [SQL Value]}" IsReadOnly="True"
+                                                CanUserSort="False" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                </DockPanel>
+                <DockPanel UseLayoutRounding="False">
+                    <Label Content="Inventor Properties"
+                           Foreground="{DynamicResource NormalText}" VerticalContentAlignment="Center"
+                           Padding="0,0,0,0"
+                           FontSize="14" DockPanel.Dock="Top" Margin="2.5,5,5,0" HorizontalAlignment="Left" />
+                    <DataGrid x:Name="InventorDataGrid"
+                              Style="{DynamicResource CompleteDataGridStyle}"
+                              d:ItemsSource="{d:SampleData ItemCount=5}"
+                              CellEditEnding="InventorDataGrid_CellEditEnding" DockPanel.Dock="Bottom"
+                              Margin="2.5,0,5,0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Property" Binding="{Binding Property}" IsReadOnly="True" />
+                            <DataGridTextColumn Header="Inventor Value" Binding="{Binding [Inventor Value]}"
+                                                IsReadOnly="False" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                </DockPanel>
+
+            </UniformGrid>
+
+        </UniformGrid>
+
     </Grid>
 </UserControl>

@@ -1,128 +1,89 @@
 namespace DoyleAddin.Genius;
 
-using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Linq;
-using System.Reflection;
-using System.Windows.Forms;
 using System.Windows.Media.Imaging;
-using Inventor;
-using Image = System.Drawing.Image;
+using OpenMcdf;
 
-/// <summary>
-///     Provides utility methods for working with Inventor document thumbnails.
-/// </summary>
 public static class ThumbnailHelper
 {
-	/// <summary>
-	///     Retrieves the raw thumbnail object (IPictureDisp) from an Inventor document.
-	/// </summary>
-	public static object GetThumbnailRaw(Document document)
+	public static BitmapSource GetThumbnail(Document document)
 	{
-		if (document == null) return null;
+		if (document == null)
+		{
+			Debug.WriteLine("ThumbnailHelper.GetThumbnail: document is null");
+			return null;
+		}
+
+		string filePath;
+		try
+		{
+			filePath = document.FullFileName;
+		}
+		catch
+		{
+			filePath = null;
+		}
+
+		if (string.IsNullOrEmpty(filePath) || !Path.Exists(filePath))
+		{
+			Debug.WriteLine($"ThumbnailHelper.GetThumbnail: no file path for '{document.DisplayName}'");
+			return null;
+		}
 
 		try
 		{
-			// Try getting thumbnail via PropertySets (Summary Information)
-			var summaryProps = document.PropertySets.Cast<PropertySet>()
-			                           .FirstOrDefault(ps =>
-				                           ps.InternalName == "{F29F5501-2E01-11D0-A6E1-00A0C922E752}" ||
-				                           ps.Name == GeniusConstants.SummaryInformation);
-
-			if (summaryProps == null) return document.GetType().GetProperty("Thumbnail")?.GetValue(document);
-			foreach (var prop in summaryProps.Cast<Property>()
-			                                 .Where(prop => prop.Name == "Thumbnail" && prop.Value != null))
-				return prop.Value;
-
-			// Fallback: direct property access
-			return document.GetType().GetProperty("Thumbnail")?.GetValue(document);
+			return ExtractThumbnailFromFile(filePath);
 		}
 		catch (Exception ex)
 		{
-			Debug.WriteLine($"ThumbnailHelper: Error getting raw thumbnail: {ex.Message}");
+			Debug.WriteLine($"ThumbnailHelper.GetThumbnail: file extraction failed: {ex.Message}");
 			return null;
 		}
 	}
 
-	/// <summary>
-	///     Converts an IPictureDisp object to System.Drawing.Image.
-	/// </summary>
-	public static Image ConvertIPictureToImage(object pictureDisp)
+	private static BitmapFrame ExtractThumbnailFromFile(string filePath)
 	{
-		if (pictureDisp == null) return null;
+		using var root = RootStorage.OpenRead(filePath);
 
-		try
+		foreach (var entry in root.EnumerateEntries())
 		{
-			var      axHostType  = typeof(AxHost);
-			string[] methodNames = ["GetImageFromIPicture", "GetImageFromIPictureDisp", "GetPicture"];
-
-			foreach (var methodName in methodNames)
+			if (entry.Name is not { Length: > 0 } || entry.Name[0] != '\u0005') continue;
+			if (!root.TryOpenStream(entry.Name, out var stream) || stream.Length < 100)
 			{
-				var method = axHostType.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Static);
-				if (method == null) continue;
-				try
-				{
-					if (method.Invoke(null, [pictureDisp]) is Image img) return img;
-				}
-				catch
-				{
-					/* continue */
-				}
+				stream?.Dispose();
+				continue;
 			}
 
-			// Brute force search
-			return axHostType.GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
-			                 .Where(m => m.Name.Contains("Image") || m.Name.Contains("Picture"))
-			                 .Select(m =>
-			                 {
-				                 try
-				                 {
-					                 return m.Invoke(null, [pictureDisp]) as Image;
-				                 }
-				                 catch
-				                 {
-					                 return null;
-				                 }
-			                 })
-			                 .FirstOrDefault(img => img != null);
+			byte[] raw;
+			using (stream)
+			using (var ms = new MemoryStream((int)stream.Length))
+			{
+				stream.CopyTo(ms);
+				raw = ms.ToArray();
+			}
+
+			var pngOffset = IndexOfPattern(raw, [0x89, 0x50, 0x4E, 0x47]);
+			if (pngOffset < 0) continue;
+
+			using var pngStream = new MemoryStream(raw, pngOffset, raw.Length - pngOffset);
+			var       decoder   = BitmapDecoder.Create(pngStream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+			var       frame     = decoder.Frames[0];
+			if (frame.CanFreeze) frame.Freeze();
+			return frame;
 		}
-		catch (Exception ex)
-		{
-			Debug.WriteLine($"ThumbnailHelper: Error converting IPicture: {ex.Message}");
-			return null;
-		}
+
+		return null;
 	}
 
-	/// <summary>
-	///     Converts a System.Drawing.Image to WPF BitmapImage.
-	/// </summary>
-	public static BitmapImage ConvertToBitmapImage(Image image)
+	private static int IndexOfPattern(byte[] data, byte[] pattern)
 	{
-		if (image == null) return null;
-
-		try
+		if (data.Length < pattern.Length) return -1;
+		for (var i = 0; i <= data.Length - pattern.Length; i++)
 		{
-			using var memoryStream = new MemoryStream();
-			using (var clone = new Bitmap(image))
-			{
-				clone.Save(memoryStream, ImageFormat.Png);
-			}
+			var match = !pattern.Where((t, j) => data[i + j] != t).Any();
 
-			memoryStream.Position = 0;
+			if (match) return i;
+		}
 
-			var bitmapImage = new BitmapImage();
-			bitmapImage.BeginInit();
-			bitmapImage.StreamSource = memoryStream;
-			bitmapImage.CacheOption  = BitmapCacheOption.OnLoad;
-			bitmapImage.EndInit();
-			if (bitmapImage.CanFreeze) bitmapImage.Freeze();
-			return bitmapImage;
-		}
-		catch (Exception ex)
-		{
-			Debug.WriteLine($"ThumbnailHelper: Error converting to BitmapImage: {ex.Message}");
-			return null;
-		}
+		return -1;
 	}
 }

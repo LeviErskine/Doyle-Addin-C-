@@ -3,7 +3,6 @@ namespace DoyleAddin.Optional_Features.BatchExport;
 
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -14,9 +13,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DXFs;
-using Inventor;
 using Svg;
-using Path = Path;
 using ThemeManager = Options.Themes.ThemeManager;
 
 public partial class BatchExportForm
@@ -184,7 +181,7 @@ public partial class BatchExportForm
 
 						var checkBox = new CheckBox
 						{
-							Content           = Path.GetFileNameWithoutExtension(partDoc.FullFileName),
+							Content           = GetFileNameWithoutExtension(partDoc.FullFileName),
 							IsChecked         = false,
 							Tag               = partDoc,
 							VerticalAlignment = VerticalAlignment.Center

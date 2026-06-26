@@ -1,11 +1,6 @@
 ﻿namespace DoyleAddin.Optional_Features;
 
-using System.Linq;
 using System.Reflection;
-using Inventor;
-using Environment = Environment;
-using File = File;
-using Path = Path;
 
 internal static class ObsoletePrint
 {
@@ -16,7 +11,7 @@ internal static class ObsoletePrint
 	private static string GetAddInDirectory()
 	{
 		var assemblyLocation = Assembly.GetExecutingAssembly().Location;
-		var directory        = Path.GetDirectoryName(assemblyLocation);
+		var directory        = GetDirectoryName(assemblyLocation);
 		return directory ?? throw new InvalidOperationException("Could not determine add-in directory");
 	}
 
@@ -147,8 +142,8 @@ internal static class ObsoletePrint
 	// Returns the full path to the copied file if successful, or empty string if failed
 	private static string CopyObsoleteLibrary()
 	{
-		var sourcePath = Path.Combine(GetAddInDirectory(), "Resources", "ObsoleteLibrary.idw");
-		var destinationPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments),
+		var sourcePath = Combine(GetAddInDirectory(), "Resources", "ObsoleteLibrary.idw");
+		var destinationPath = Combine(GetFolderPath(SpecialFolder.CommonDocuments),
 			"Autodesk", "Inventor 2025", "Design Data", "Symbol Library", "ObsoleteLibrary.idw");
 
 		try
@@ -157,13 +152,13 @@ internal static class ObsoletePrint
 			if (!File.Exists(sourcePath)) return string.Empty;
 
 			// Ensure destination directory exists
-			var destinationDir = Path.GetDirectoryName(destinationPath);
+			var destinationDir = GetDirectoryName(destinationPath);
 			if (!Directory.Exists(destinationDir))
 				if (destinationDir != null)
 					Directory.CreateDirectory(destinationDir);
 
 			// Copy the file (overwrite if exists)
-			File.Copy(sourcePath, destinationPath, true);
+			Copy(sourcePath, destinationPath, true);
 			return destinationPath;
 		}
 		catch

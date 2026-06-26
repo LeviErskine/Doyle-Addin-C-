@@ -1,0 +1,147 @@
+﻿<Window x:Name="window" x:Class="DoyleAddin.Genius.Forms.AskPurchased"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        mc:Ignorable="d" Width="332" ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Tahoma" FontSize="12"
+        Foreground="{DynamicResource ThemedForegroundColor}" UseLayoutRounding="True" Topmost="True"
+        SizeToContent="Height" Background="{DynamicResource BackgroundColorBrush}" WindowStyle="None"
+        ShowInTaskbar="False">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/DoyleAddin;component/Options/Themes/DarkTheme.xaml" />
+                <ResourceDictionary Source="/DoyleAddin;component/Options/Themes/Elements.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <Storyboard x:Key="OpenTransition">
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PurchasedPanel"
+                                               Storyboard.TargetProperty="(FrameworkElement.LayoutTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+                    <EasingDoubleKeyFrame KeyTime="00:00:00" Value="0" />
+                    <EasingDoubleKeyFrame KeyTime="00:00:00.1000000" Value="1" />
+                </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+            <Storyboard x:Key="CloseTransition">
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PurchasedPanel"
+                                               Storyboard.TargetProperty="(FrameworkElement.LayoutTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)">
+                    <SplineDoubleKeyFrame KeyTime="00:00:00" Value="1" />
+                    <SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="0" />
+                </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Border x:Name="RoundCorners" CornerRadius="6,6,6,6" BorderThickness="2,2,2,2"
+            BorderBrush="{DynamicResource BorderColorBrush}" d:LayoutOverrides="Width" Padding="5,5,5,5">
+        <Grid UseLayoutRounding="False" Background="{x:Null}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="100" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="4" x:Name="PurchasedPanel" BorderThickness="1"
+                    CornerRadius="5" Padding="1,1,1,1" UseLayoutRounding="True"
+                    BorderBrush="{DynamicResource BorderColorBrush}" VerticalAlignment="Center" Grid.ColumnSpan="2">
+                <Border.LayoutTransform>
+                    <TransformGroup>
+                        <ScaleTransform ScaleY="0" />
+                        <SkewTransform />
+                        <RotateTransform />
+                        <TranslateTransform />
+                    </TransformGroup>
+                </Border.LayoutTransform>
+                <StackPanel Margin="5,5,5,5">
+                    <StackPanel.LayoutTransform>
+                        <TransformGroup>
+                            <ScaleTransform ScaleY="1" />
+                            <SkewTransform />
+                            <RotateTransform />
+                            <TranslateTransform />
+                        </TransformGroup>
+                    </StackPanel.LayoutTransform>
+                    <TextBlock Text="Select a Cost Center:" FontWeight="Bold"
+                               Foreground="{DynamicResource ForegroundColorBrush}" Margin="0,0,0,8"
+                               HorizontalAlignment="Left" />
+                    <UniformGrid Columns="2">
+                        <ComboBox x:Name="CostCenterComboBox"
+                                  Style="{DynamicResource ComboBoxStyle}" Height="25"
+                                  d:LayoutOverrides="LeftPosition, RightPosition" VerticalContentAlignment="Center">
+                            <ComboBox.LayoutTransform>
+                                <TransformGroup>
+                                    <ScaleTransform ScaleY="1" />
+                                    <SkewTransform />
+                                    <RotateTransform />
+                                    <TranslateTransform />
+                                </TransformGroup>
+                            </ComboBox.LayoutTransform>
+                        </ComboBox>
+                        <CheckBox x:Name="SearchAllFamiliesCheckBox"
+                                  Content="Search All Families"
+                                  Foreground="{DynamicResource TextBox.Foreground}"
+                                  Style="{DynamicResource CheckBoxStyle}" Width="119" VerticalContentAlignment="Center" />
+                    </UniformGrid>
+                    <Button x:Name="SelectFamilyButton" Content="Select" Width="100" Height="28"
+                            HorizontalAlignment="Right" Margin="0,10,0,0"
+                            Click="SelectFamilyButton_Click" Style="{DynamicResource ButtonStyle}" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Is this Purchased?" FontSize="16" FontWeight="Bold"
+                       Foreground="{DynamicResource TextBox.Foreground}" Margin="0,0,0,10"
+                       d:LayoutOverrides="LeftMargin, RightMargin, TopMargin, BottomMargin" />
+
+            <TextBlock Grid.Row="1" Grid.Column="0" TextWrapping="Wrap" Margin="0,0,5,8"
+                       Foreground="{DynamicResource TextBox.Foreground}"
+                       Text="This Component has no set Cost Center, or we can't get the material." />
+
+            <Border Grid.Row="2" Grid.Column="0" BorderThickness="1"
+                    CornerRadius="5" Margin="0,0,5,5" BorderBrush="{DynamicResource BorderColorBrush}">
+                <UniformGrid Margin="5,6,5,6" Rows="2">
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center" d:LayoutOverrides="Width">
+                        <TextBlock FontWeight="Bold"
+                                   Foreground="{DynamicResource TextBox.Foreground}" Height="14"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <Run Text="Part Number:" /><LineBreak /><Run />
+                        </TextBlock>
+                        <TextBlock x:Name="PartNumberVal"
+                                   Foreground="{DynamicResource TextBox.Foreground}" Width="100"
+                                   VerticalAlignment="Center" Margin="5,0,0,0" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal"
+                                d:LayoutOverrides="Width" VerticalAlignment="Top">
+                        <TextBlock Text="Current Value:" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextBox.Foreground}" Height="14"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center" />
+                        <TextBlock x:Name="CostCenterVal"
+                                   Foreground="{DynamicResource TextBox.Foreground}" Width="100"
+                                   VerticalAlignment="Center" Margin="5,0,0,0" />
+                    </StackPanel>
+                </UniformGrid>
+            </Border>
+            <UniformGrid Grid.Row="3" Columns="2" Grid.ColumnSpan="2" Grid.Column="0">
+                <Button x:Name="YesButton" Content="Yes" Width="90" Margin="0,5,0,5"
+                        Click="YesButton_Click" Style="{DynamicResource ButtonStyle}" />
+                <Button x:Name="NoButton" Content="No" Width="90" Margin="0,5,0,5"
+                        Click="NoButton_Click" Style="{DynamicResource ButtonStyle}" />
+            </UniformGrid>
+            <Border x:Name="ImageBorder" BorderBrush="{DynamicResource ImgBackground}" BorderThickness="2,2,2,2"
+                    Grid.Row="0" Grid.Column="1" CornerRadius="3,3,3,3" Width="96" Height="96"
+                    d:LayoutOverrides="Width" Grid.RowSpan="3">
+                <Image x:Name="image" Width="96" Height="96" Stretch="Uniform" HorizontalAlignment="Left"
+                       VerticalAlignment="Top" />
+            </Border>
+            <ContentControl Grid.Row="0" Grid.Column="0" Content="{DynamicResource OpenTransition}"
+                            Visibility="Collapsed" />
+            <ContentControl Grid.Row="0" Grid.Column="0" Content="{DynamicResource CloseTransition}"
+                            Visibility="Collapsed" />
+        </Grid>
+    </Border>
+</Window>

@@ -1,8 +1,6 @@
 ﻿namespace DoyleAddin;
 
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -11,13 +9,10 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Genius.Forms;
-using Inventor;
 using My_Project;
 using Optional_Features;
 using Options;
 using BatchExportForm = Optional_Features.BatchExport.BatchExportForm;
-using File = File;
-using Path = Path;
 
 /// <inheritdoc />
 [ProgId("DoyleAddin.StandardAddInServer")]
@@ -321,7 +316,7 @@ public class StandardAddInServer : ApplicationAddInServer
 			SetUiEvents(ThisApplication.UserInterfaceManager.UserInterfaceEvents);
 
 			// Ensure the option file exists with default values if it doesn't exist
-			if (File.Exists(UserOptions.OptionsFilePath)) return;
+			if (Path.Exists(UserOptions.OptionsFilePath)) return;
 			var defaultOptions = new UserOptions
 			{
 				PrintExportLocation = @"P:\",
@@ -428,9 +423,9 @@ public class StandardAddInServer : ApplicationAddInServer
 		ThisApplication = null;
 
 		// Check for pending update marker
-		var updateMarker = Path.Combine(GetAddInDirectory(), "pending_update.txt");
-		var updaterBat   = Path.Combine(GetAddInDirectory(), "Updater.bat");
-		if (!File.Exists(updateMarker) || !File.Exists(updaterBat)) return;
+		var updateMarker = Combine(GetAddInDirectory(), "pending_update.txt");
+		var updaterBat   = Combine(GetAddInDirectory(), "Updater.bat");
+		if (!Path.Exists(updateMarker) || !Path.Exists(updaterBat)) return;
 		try
 		{
 			// Start Updater.bat in a detached process, passing the current process ID
@@ -451,7 +446,7 @@ public class StandardAddInServer : ApplicationAddInServer
 		}
 
 		// Remove marker
-		File.Delete(updateMarker);
+		Delete(updateMarker);
 	}
 
 	// This property is provided to allow the AddIn to expose an API of its own to other 
@@ -481,7 +476,7 @@ public class StandardAddInServer : ApplicationAddInServer
 	private static string GetAddInDirectory()
 	{
 		var assemblyLocation = Assembly.GetExecutingAssembly().Location;
-		var directory        = Path.GetDirectoryName(assemblyLocation);
+		var directory        = GetDirectoryName(assemblyLocation);
 		return directory ?? throw new InvalidOperationException("Could not determine add-in directory");
 	}
 
@@ -520,14 +515,14 @@ public class StandardAddInServer : ApplicationAddInServer
 					"Update Available", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 			if (result == DialogResult.Yes)
 			{
-				await File.WriteAllTextAsync(
-					Path.Combine(GetAddInDirectory(), "pending_update.txt"), "update");
+				await WriteAllTextAsync(
+					Combine(GetAddInDirectory(), "pending_update.txt"), "update");
 				ThisApplication.Quit();
 			}
 			else
 			{
-				await File.WriteAllTextAsync(
-					Path.Combine(GetAddInDirectory(), "pending_update.txt"), "update");
+				await WriteAllTextAsync(
+					Combine(GetAddInDirectory(), "pending_update.txt"), "update");
 				MessageBox.Show("The update will be installed after you close Inventor.", "Update Scheduled",
 					MessageBoxButtons.OK, MessageBoxIcon.Information);
 			}
@@ -606,10 +601,17 @@ public class StandardAddInServer : ApplicationAddInServer
 			Tuple.Create("id_TabManage", "Explode iComponents", ExplodeiComponentsButton, ManagePanels)
 		};*/
 
-		// Genius Panel button appears on all document types
-		var geniusPanelConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
+		// Genius Panel button appears on Part and Assembly document types
+		var geniusPanelPartConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
 		{
-			Tuple.Create("id_TabTools", "Genius Panel", GeniusPanelButton, ToolsOptions)
+			Tuple.Create("id_TabManage", "id_PanelP_ToolsAuthor", GeniusPanelButton, ToolsOptions),
+			Tuple.Create("id_TabModel", "id_PanelA_AssembleIPartIAssembly", GeniusPanelButton, ToolsOptions)
+		};
+
+		var geniusPanelAssemblyConfigs = new List<Tuple<string, string, ButtonDefinition, string[]>>
+		{
+			Tuple.Create("id_TabManage", "id_PanelA_ToolsAuthor", GeniusPanelButton, ToolsOptions),
+			Tuple.Create("id_TabAssemble", "id_PanelA_AssembleIPartIAssembly", GeniusPanelButton, ToolsOptions)
 		};
 
 		// Obsolete Print button - only add if feature is enabled
@@ -624,8 +626,8 @@ public class StandardAddInServer : ApplicationAddInServer
 			if (options.EnableBatchExport)
 				AddButtonsToRibbon(ribbon, ribbonName, "Assembly", batchExportButtonConfigs);
 			AddButtonsToRibbon(ribbon, ribbonName, "Drawing", printButtonConfigs);
-			AddButtonsToRibbon(ribbon, ribbonName, "Assembly", geniusPanelConfigs);
-			AddButtonsToRibbon(ribbon, ribbonName, "Part", geniusPanelConfigs);
+			AddButtonsToRibbon(ribbon, ribbonName, "Part", geniusPanelPartConfigs);
+			AddButtonsToRibbon(ribbon, ribbonName, "Assembly", geniusPanelAssemblyConfigs);
 			AddButtonsToRibbon(ribbon, ribbonName, "Drawing", printButtonConfigs);
 			AddButtonsToRibbon(ribbon, ribbonName, null, optionsButtonConfigs);
 
@@ -810,35 +812,17 @@ public class StandardAddInServer : ApplicationAddInServer
 			// Create the appropriate panel based on document type
 			switch (activeDocument)
 			{
-				case AssemblyDocument asmDoc:
+				case AssemblyDocument _:
 				{
-					// Check if it's an i-Assembly (iLogic factory)
-					if (asmDoc.ComponentDefinition.IsiAssemblyFactory)
-					{
-						var geniusiAssemblyPanel = new GeniusiAssembly();
-						_geniusPanelWrapper = new PanelWrapper(geniusiAssemblyPanel, "Genius - i-Assembly");
-					}
-					else
-					{
-						var geniusAssemblyPanel = new GeniusAssembly();
-						_geniusPanelWrapper = new PanelWrapper(geniusAssemblyPanel, "Genius - Assembly");
-					}
+					var geniusAssemblyPanel = new GeniusAssembly();
+					_geniusPanelWrapper = new PanelWrapper(geniusAssemblyPanel, geniusAssemblyPanel.PanelTitle);
 
 					break;
 				}
-				case PartDocument partDoc:
+				case PartDocument:
 				{
-					// Check if it's an i-Part (iLogic factory)
-					if (partDoc.ComponentDefinition.IsiPartFactory)
-					{
-						var geniusiPartPanel = new GeniusiPart();
-						_geniusPanelWrapper = new PanelWrapper(geniusiPartPanel, "Genius - i-Part");
-					}
-					else
-					{
-						var geniusPartPanel = new GeniusPart();
-						_geniusPanelWrapper = new PanelWrapper(geniusPartPanel, "Genius - Part");
-					}
+					var geniusPartPanel = new GeniusPart();
+					_geniusPanelWrapper = new PanelWrapper(geniusPartPanel, "Genius - Part");
 
 					break;
 				}

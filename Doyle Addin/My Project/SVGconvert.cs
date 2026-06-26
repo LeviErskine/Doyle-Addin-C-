@@ -2,7 +2,6 @@ namespace DoyleAddin.My_Project;
 
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using Svg;

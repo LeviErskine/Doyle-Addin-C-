@@ -3,7 +3,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:data="clr-namespace:System.Data;assembly=System.Data" x:Name="GeniusAssemblyPanel"
+    xmlns:data="clr-namespace:System.Data;assembly=System.Data"
+    xmlns:local="clr-namespace:DoyleAddin.Genius.Forms" x:Name="GeniusAssemblyPanel"
     mc:Ignorable="d"
     x:Class="DoyleAddin.Genius.Forms.GeniusAssembly"
     d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type={x:Type data:DataRowView}}" FontFamily="Tahoma"
@@ -17,55 +18,200 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="AssemblyStateGroup">
+                <VisualState x:Name="RegularAssembly">
+                    <Storyboard>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="MembersTab"
+                                                       Storyboard.TargetProperty="(UIElement.Visibility)">
+                            <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="{x:Static Visibility.Collapsed}" />
+                        </ObjectAnimationUsingKeyFrames>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CalculatePropsButton"
+                                                       Storyboard.TargetProperty="(ContentControl.Content)">
+                            <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="Get Props" />
+                        </ObjectAnimationUsingKeyFrames>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CalculateAllPartsButton"
+                                                       Storyboard.TargetProperty="(ContentControl.Content)">
+                            <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="Get All Props" />
+                        </ObjectAnimationUsingKeyFrames>
+                        <ThicknessAnimationUsingKeyFrames Storyboard.TargetName="AssembliesTab"
+                                                          Storyboard.TargetProperty="(FrameworkElement.Margin)">
+                            <EasingThicknessKeyFrame KeyTime="00:00:00" Value="-2,0,0,0" />
+                        </ThicknessAnimationUsingKeyFrames>
+                    </Storyboard>
+                </VisualState>
+                <VisualState x:Name="IAssembly">
+                    <Storyboard>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="AssembliesTab"
+                                                       Storyboard.TargetProperty="(HeaderedContentControl.Header)">
+                            <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="Children" />
+                        </ObjectAnimationUsingKeyFrames>
+                    </Storyboard>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200*" />
             <ColumnDefinition Width="200*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="125" />
+            <RowDefinition Height="105" />
             <RowDefinition />
-            <RowDefinition Height="55" />
+            <RowDefinition Height="45" />
         </Grid.RowDefinitions>
-        <TabControl x:Name="tabControl" Grid.RowSpan="3" Style="{DynamicResource TabControlStyle}" Grid.Column="0">
-            <TabItem x:Name="AssembliesTab" Header="Assemblies" BorderBrush="{x:Null}"
-                     Foreground="{DynamicResource Menu.Static.Foreground}"
-                     Background="{x:Null}">
-                <DataGrid x:Name="Assemblies"
+        <TabControl x:Name="tabControl" Style="{DynamicResource TabControlStyle}" Grid.Column="0"
+                    HorizontalContentAlignment="Center" Grid.RowSpan="2">
+            <TabItem x:Name="MembersTab" Header="Members" Padding="2,5,2,5">
+                <DataGrid x:Name="Members"
                           ScrollViewer.CanContentScroll="True"
                           ScrollViewer.VerticalScrollBarVisibility="Visible"
                           ScrollViewer.HorizontalScrollBarVisibility="Visible"
                           AlternationCount="0"
-                          SelectionChanged="SubassembliesDataGrid_SelectionChanged"
+                          SelectionChanged="MembersDataGrid_SelectionChanged"
                           Style="{DynamicResource CompleteDataGridStyle}" d:ItemsSource="{d:SampleData ItemCount=35}"
+                          Margin="0,0,2.5,0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Part Number" Binding="{Binding PartNumber}" IsReadOnly="True"
+                                            CanUserSort="True" SortDirection="Ascending" />
+                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" IsReadOnly="True"
+                                            CanUserSort="False" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+            <TabItem x:Name="AssembliesTab" Header="Assemblies" Padding="2,5,2,5" Margin="0,0,0,0">
+                <TreeView x:Name="AssembliesTreeView"
+                          d:ItemsSource="{d:SampleData ItemCount=35}"
+                          ScrollViewer.CanContentScroll="True"
+                          ScrollViewer.VerticalScrollBarVisibility="Visible"
+                          ScrollViewer.HorizontalScrollBarVisibility="Visible"
+                          Style="{DynamicResource ThemedTreeViewStyle}"
+                          SelectedItemChanged="AssembliesTreeView_SelectedItemChanged"
                           Margin="0,0,5,5">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Part Number" Binding="{Binding PartNumber}" IsReadOnly="True"
-                                            CanUserSort="True" SortDirection="Ascending" />
-                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" IsReadOnly="True"
-                                            CanUserSort="False" Width="*" />
-                    </DataGrid.Columns>
-                </DataGrid>
+                    <TreeView.Resources>
+                        <HierarchicalDataTemplate DataType="{x:Type local:ChildInfo}"
+                                                  ItemsSource="{Binding Children}">
+                            <TextBlock Text="{Binding PartNumber}" FontSize="12"
+                                       VerticalAlignment="Center" />
+                        </HierarchicalDataTemplate>
+                        <Style TargetType="TreeViewItem">
+                            <Setter Property="IsExpanded" Value="True" />
+                            <Setter Property="Background"
+                                    Value="{DynamicResource DataGrid.RowBackground}" />
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource DataGrid.Foreground}" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="MinHeight" Value="20" />
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="TreeViewItem">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition />
+                                            </Grid.RowDefinitions>
+                                            <Border x:Name="Bd"
+                                                    Background="{TemplateBinding Background}"
+                                                    BorderThickness="0"
+                                                    Padding="{TemplateBinding Padding}"
+                                                    SnapsToDevicePixels="true"
+                                                    MinHeight="{TemplateBinding MinHeight}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="19" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <ToggleButton x:Name="Expander"
+                                                                  ClickMode="Press"
+                                                                  IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}">
+                                                        <ToggleButton.Style>
+                                                            <Style TargetType="ToggleButton">
+                                                                <Setter Property="Focusable" Value="false" />
+                                                                <Setter Property="Width" Value="16" />
+                                                                <Setter Property="Height" Value="16" />
+                                                                <Setter Property="Template">
+                                                                    <Setter.Value>
+                                                                        <ControlTemplate TargetType="ToggleButton">
+                                                                            <Border Background="Transparent"
+                                                                                    Width="16" Height="16">
+                                                                                <Path x:Name="ExpandPath"
+                                                                                    Data="M 5,4 L 9,8 L 5,12"
+                                                                                    Stroke="{DynamicResource TreeView.Item.Arrow}"
+                                                                                    StrokeThickness="1.5"
+                                                                                    StrokeStartLineCap="Round"
+                                                                                    StrokeEndLineCap="Round"
+                                                                                    HorizontalAlignment="Center"
+                                                                                    VerticalAlignment="Center"
+                                                                                    RenderTransformOrigin="0.5,0.5">
+                                                                                    <Path.RenderTransform>
+                                                                                        <RotateTransform Angle="0" />
+                                                                                    </Path.RenderTransform>
+                                                                                </Path>
+                                                                            </Border>
+                                                                            <ControlTemplate.Triggers>
+                                                                                <Trigger Property="IsChecked"
+                                                                                    Value="True">
+                                                                                    <Setter TargetName="ExpandPath"
+                                                                                        Property="RenderTransform">
+                                                                                        <Setter.Value>
+                                                                                            <RotateTransform Angle="90" />
+                                                                                        </Setter.Value>
+                                                                                    </Setter>
+                                                                                </Trigger>
+                                                                            </ControlTemplate.Triggers>
+                                                                        </ControlTemplate>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </Style>
+                                                        </ToggleButton.Style>
+                                                    </ToggleButton>
+                                                    <ContentPresenter x:Name="PART_Header"
+                                                                      Grid.Column="1"
+                                                                      ContentSource="Header"
+                                                                      VerticalAlignment="Center"
+                                                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                                </Grid>
+                                            </Border>
+                                            <ItemsPresenter x:Name="ItemsHost"
+                                                            Grid.Row="1" Margin="19,0,0,0" />
+                                        </Grid>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="HasItems" Value="false">
+                                                <Setter TargetName="Expander" Property="Visibility" Value="Hidden" />
+                                            </Trigger>
+                                            <Trigger Property="IsExpanded" Value="false">
+                                                <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed" />
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="true" SourceName="Bd">
+                                                <Setter TargetName="Bd" Property="Background"
+                                                        Value="{DynamicResource DataGrid.ColumnHeader.Background.MouseOver}" />
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="true">
+                                                <Setter TargetName="Bd" Property="Background"
+                                                        Value="{DynamicResource DataGrid.Row.Selected}" />
+                                                <Setter Property="Foreground"
+                                                        Value="{DynamicResource DataGrid.SelectedForeground}" />
+                                            </Trigger>
+                                            <DataTrigger Binding="{Binding HasDifference, FallbackValue=False}"
+                                                         Value="True">
+                                                <Setter TargetName="Bd" Property="Background"
+                                                        Value="{DynamicResource Active}" />
+                                                <Setter Property="Foreground"
+                                                        Value="{DynamicResource NormalText}" />
+                                            </DataTrigger>
+                                            <Trigger Property="IsEnabled" Value="false">
+                                                <Setter Property="Foreground"
+                                                        Value="{DynamicResource DisabledText}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </TreeView.Resources>
+                </TreeView>
             </TabItem>
-            <TabItem x:Name="PartsTab" Header="Parts" Foreground="{DynamicResource Menu.Static.Foreground}"
-                     BorderBrush="{x:Null}" Background="{x:Null}" Margin="0,0,0,0">
-                <DataGrid x:Name="PartsDataGrid"
-                          ScrollViewer.CanContentScroll="True"
-                          ScrollViewer.VerticalScrollBarVisibility="Visible"
-                          ScrollViewer.HorizontalScrollBarVisibility="Visible"
-                          AlternationCount="0"
-                          SelectionChanged="PartsDataGrid_SelectionChanged"
-                          Style="{DynamicResource CompleteDataGridStyle}" d:ItemsSource="{d:SampleData ItemCount=35}"
-                          Margin="0,0,0,5">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Part Number" Binding="{Binding PartNumber}" IsReadOnly="True"
-                                            CanUserSort="True" SortDirection="Ascending" />
-                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" IsReadOnly="True"
-                                            CanUserSort="False" Width="*" />
-                    </DataGrid.Columns>
-                </DataGrid>
-            </TabItem>
-            <TabItem x:Name="PurchasedTab" Header="Purchased" Foreground="{DynamicResource Menu.Static.Foreground}"
-                     BorderBrush="{x:Null}" Background="{x:Null}" Margin="0,0,0,0">
+            <TabItem x:Name="PurchasedTab" Header="Purchased" Padding="2,5,2,5" Margin="0,0,0,0">
                 <DataGrid x:Name="PurchasedDataGrid"
                           ScrollViewer.CanContentScroll="True"
                           ScrollViewer.VerticalScrollBarVisibility="Visible"
@@ -84,57 +230,60 @@
             </TabItem>
         </TabControl>
         <Border x:Name="ImageBorder" BorderBrush="{DynamicResource ImgBackground}" BorderThickness="2,2,2,2"
-                Grid.Row="0" Grid.Column="1" CornerRadius="3,3,3,3" Width="100" Height="100" VerticalAlignment="Center"
-                HorizontalAlignment="Center">
-            <Image x:Name="image" Stretch="Fill" Width="96" Height="96" />
+                Grid.Row="0" Grid.Column="1" CornerRadius="3,3,3,3" Width="96" Height="96">
+            <Image x:Name="image" Width="96" Height="96" Stretch="Uniform" HorizontalAlignment="Left"
+                   VerticalAlignment="Top" />
         </Border>
-        <Grid x:Name="CompareDT" Grid.Column="1" Grid.Row="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition />
-                <RowDefinition Height="Auto" />
-                <RowDefinition />
-            </Grid.RowDefinitions>
+        <UniformGrid x:Name="CompareDT" Grid.Column="1" Grid.Row="1" Rows="2" UseLayoutRounding="False">
+            <DockPanel d:LayoutOverrides="TopPosition, BottomPosition">
+                <Label Content="Genius Properties" FontSize="13" FontWeight="Bold" DockPanel.Dock="Top"
+                       Padding="0,0,0,0" Margin="2.5,5,5,0" />
+                <DataGrid x:Name="SqlDataGrid"
+                          Style="{DynamicResource CompleteDataGridStyle}" d:ItemsSource="{d:SampleData ItemCount=5}"
+                          IsReadOnly="True" Focusable="False" DockPanel.Dock="Bottom" Margin="2.5,5,5,0">
 
-            <Label Content="Genius Properties" Foreground="{DynamicResource NormalText}"
-                   VerticalContentAlignment="Center" FontSize="14" Margin="5,5,5,-5" />
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Property" Binding="{Binding Property}" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Genius Value" Binding="{Binding [SQL Value]}" IsReadOnly="True"
+                                            CanUserSort="False" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+            <DockPanel>
+                <Label Content="Inventor Properties" VerticalContentAlignment="Center" FontSize="13" FontWeight="Bold"
+                       DockPanel.Dock="Top" Padding="0,0,0,0" Margin="2.5,5,5,0" />
+                <DataGrid x:Name="InventorDataGrid"
+                          Style="{DynamicResource CompleteDataGridStyle}" d:ItemsSource="{d:SampleData ItemCount=5}"
+                          CellEditEnding="InventorDataGrid_CellEditEnding" UseLayoutRounding="False"
+                          DockPanel.Dock="Bottom" Margin="2.5,5,5,0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Property" Binding="{Binding Property}" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Inventor Value" Binding="{Binding [Inventor Value]}"
+                                            IsReadOnly="False" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
 
-            <DataGrid x:Name="SqlDataGrid"
-                      Style="{DynamicResource CompleteDataGridStyle}" d:ItemsSource="{d:SampleData ItemCount=5}"
-                      Grid.Row="1" IsReadOnly="True" Focusable="False">
+            </DockPanel>
 
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Property" Binding="{Binding [Property]}" IsReadOnly="True" />
-                    <DataGridTextColumn Header="Genius Value" Binding="{Binding [SQL Value]}" IsReadOnly="True"
-                                        CanUserSort="False" Width="*" />
-                </DataGrid.Columns>
-            </DataGrid>
-
-            <Label Content="Inventor Properties" Foreground="{DynamicResource NormalText}"
-                   Grid.Row="2" VerticalContentAlignment="Center" FontSize="14" Margin="5,5,5,-5" />
-
-            <DataGrid x:Name="InventorDataGrid"
-                      Style="{DynamicResource CompleteDataGridStyle}" d:ItemsSource="{d:SampleData ItemCount=5}"
-                      Height="{Binding Height, ElementName=SqlDataGrid}"
-                      Width="{Binding Width, ElementName=SqlDataGrid}" Grid.Row="3"
-                      CellEditEnding="InventorDataGrid_CellEditEnding">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Property" Binding="{Binding [Property]}" IsReadOnly="True" />
-                    <DataGridTextColumn Header="Inventor Value" Binding="{Binding [Inventor Value]}"
-                                        IsReadOnly="False" Width="*" />
-                </DataGrid.Columns>
-            </DataGrid>
-
-        </Grid>
-        <StackPanel x:Name="Buttons" Grid.Column="1" Orientation="Vertical" Grid.Row="2" HorizontalAlignment="Center"
-                    VerticalAlignment="Center">
-
-            <Button x:Name="CalculatePropsButton" Content="Calculate Properties"
-                    Click="CalculatePropsButton_Click" Height="20" Width="138"
-                    Style="{DynamicResource ButtonStyle}" Margin="5,0,5,0" />
-            <Button x:Name="Open_All_Parts" Content="Open All Parts"
-                    Click="Open_All_Parts_Click" Height="20" Width="138" Margin="5,5,5,5"
-                    Style="{DynamicResource ButtonStyle}" />
-        </StackPanel>
+        </UniformGrid>
+        <DockPanel Grid.Row="2" Grid.ColumnSpan="2" Grid.Column="0">
+            <TextBlock TextTrimming="CharacterEllipsis" x:Name="StatusText" FontSize="11" DockPanel.Dock="Bottom" />
+            <UniformGrid Columns="5" DockPanel.Dock="Top" Height="30">
+                <Button ToolTip="Calculate properties for the currently selected part"
+                        Style="{DynamicResource ButtonStyle}" x:Name="CalculatePropsButton"
+                        Content="Get Selected" Click="CalculatePropsButton_Click" Margin="5,5,2.5,5" />
+                <Button ToolTip="Calculate properties for all parts and subassemblies in this assembly"
+                        Style="{DynamicResource ButtonStyle}" x:Name="CalculateAllPartsButton" Content="Get All Props"
+                        Click="CalculateAllPartsButton_Click" Margin="2.5,5,2.5,5" />
+                <Button ToolTip="Stop the current calculation" Style="{DynamicResource ButtonStyle}"
+                        x:Name="StopButton" MinWidth="50" IsEnabled="False" Content="Stop" Click="StopButton_Click"
+                        Margin="2.5,5,2.5,5" />
+                <Button ToolTip="Save all pending changes" Style="{DynamicResource ButtonStyle}" x:Name="SaveButton"
+                        IsEnabled="False" Content="Save" Click="SaveButton_Click" Margin="2.5,5,2.5,5" />
+                <Button ToolTip="Cancel all pending changes" Style="{DynamicResource ButtonStyle}"
+                        x:Name="CancelButton" MinWidth="60" IsEnabled="False" Content="Cancel"
+                        Click="CancelButton_Click" Margin="2.5,5,5,5" />
+            </UniformGrid>
+        </DockPanel>
     </Grid>
 </UserControl>
