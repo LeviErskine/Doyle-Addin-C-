@@ -3,15 +3,13 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:options="clr-namespace:DoyleAddin.Options" x:Name="Options_Pane"
-    d:DataContext="{d:DesignInstance Type=options:UserOptions}"
     x:Class="DoyleAddin.Options.UserOptionsWindow"
     mc:Ignorable="d"
     Loaded="UserOptionsWindow_Loaded"
     ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True"
     WindowStartupLocation="CenterScreen" WindowStyle="None" SnapsToDevicePixels="True"
     ScrollViewer.VerticalScrollBarVisibility="Disabled" FontSize="16" UseLayoutRounding="True"
-    Background="#00000000" AllowsTransparency="True" FontFamily="Tahoma" MaxHeight="330" MaxWidth="565" Height="180">
+    Background="#00000000" AllowsTransparency="True" FontFamily="Tahoma" MaxHeight="380" MaxWidth="565" Height="230">
     <d:Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -77,7 +75,7 @@
                           IsChecked="{Binding EnableExplodeiComponents}" Style="{DynamicResource CheckBoxStyle}"
                           VerticalContentAlignment="Center" />-->
                 </StackPanel>
-                <TextBlock FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock FontSize="14" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,3,10,0">
                     <Hyperlink NavigateUri="https://forms.cloud.microsoft/r/nTzBPgpuYc"
                                RequestNavigate="Hyperlink_RequestNavigate"
                                Foreground="Blue">
@@ -85,6 +83,14 @@
                     </Hyperlink>
                 </TextBlock>
             </DockPanel>
+            <StackPanel x:Name="BetaRow" Orientation="Horizontal" HorizontalAlignment="Left">
+                <Button x:Name="OptInBeta" Content="Opt In to Beta"
+                        Style="{DynamicResource ButtonStyle}"
+                        Click="OptInBeta_Click" Width="110" Height="25" />
+                <Button x:Name="OptOutBeta" Content="Opt Out of Beta"
+                        Style="{DynamicResource ButtonStyle}"
+                        Click="OptOutBeta_Click" Height="25" Width="125" Visibility="Collapsed" />
+            </StackPanel>
             <UniformGrid x:Name="Row4Columns" Columns="2">
                 <Button x:Name="Save" Content="Save" Click="BtnSave_Click"
                         Style="{DynamicResource ButtonStyle}"

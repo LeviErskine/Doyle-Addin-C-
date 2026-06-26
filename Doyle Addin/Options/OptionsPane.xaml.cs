@@ -1,6 +1,5 @@
 ﻿namespace DoyleAddin.Options;
 
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
@@ -28,6 +27,14 @@ public partial class UserOptionsWindow
 
 		// Apply the theme
 		ThemeManager.ApplyTheme(this);
+
+		UpdateBetaButtons();
+	}
+
+	private void UpdateBetaButtons()
+	{
+		OptInBeta.Visibility  = options.IsBetaEnabled ? Visibility.Collapsed : Visibility.Visible;
+		OptOutBeta.Visibility = options.IsBetaEnabled ? Visibility.Visible : Visibility.Collapsed;
 	}
 
 	private void BtnSave_Click(object sender, RoutedEventArgs e)
@@ -72,5 +79,51 @@ public partial class UserOptionsWindow
 	{
 		DialogResult = false;
 		Close();
+	}
+
+	private void OptInBeta_Click(object sender, RoutedEventArgs e)
+	{
+		var result = MessageBox.Show(
+			"This will close Inventor and install the latest Beta version of the Doyle Add-in. Continue?",
+			"Opt In to Beta",
+			MessageBoxButton.YesNo,
+			MessageBoxImage.Warning);
+
+		if (result != MessageBoxResult.Yes) return;
+
+		options.IsBetaEnabled = true;
+		options.Save();
+		UpdateBetaButtons();
+
+		Process.Start(new ProcessStartInfo
+		{
+			FileName        = "Doyle Addin Installer Beta.bat",
+			UseShellExecute = true
+		});
+
+		Application.Current.Shutdown();
+	}
+
+	private void OptOutBeta_Click(object sender, RoutedEventArgs e)
+	{
+		var result = MessageBox.Show(
+			"This will close Inventor and install the latest stable Release of the Doyle Add-in. Continue?",
+			"Opt Out of Beta",
+			MessageBoxButton.YesNo,
+			MessageBoxImage.Warning);
+
+		if (result != MessageBoxResult.Yes) return;
+
+		options.IsBetaEnabled = false;
+		options.Save();
+		UpdateBetaButtons();
+
+		Process.Start(new ProcessStartInfo
+		{
+			FileName        = "Doyle Addin Installer.bat",
+			UseShellExecute = true
+		});
+
+		Application.Current.Shutdown();
 	}
 }
